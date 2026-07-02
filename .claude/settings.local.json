@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__6cb1c6c8-c3c5-4477-acfc-5111a66803ec__execute_sql",
+      "PowerShell(cd \"C:\\\\Users\\\\Asad Mughal\\\\jor-website\"; Start-Job -ScriptBlock { cd \"C:\\\\Users\\\\Asad Mughal\\\\jor-website\"; npm run dev } | Out-Null; Start-Sleep -Seconds 8; Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -TimeoutSec 5 | Select-Object StatusCode)",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "PowerShell(npm install -g playwright @playwright/test 2>&1)",
+      "PowerShell(npx playwright install chromium 2>&1)",
+      "PowerShell(node C:\\\\Temp\\\\screenshot.mjs 2>&1)",
+      "Bash(node -e \"const fs = require\\('fs'\\); const content = fs.readFileSync\\('C:/Users/Asad Mughal/jor-website/app/proposals/ProposalsClient.tsx', 'utf8'\\); const lines = content.split\\('\\\\n'\\); lines.slice\\(140, 150\\).forEach\\(\\(l, i\\) => console.log\\(i+141, l\\)\\);\")",
+      "mcp__6cb1c6c8-c3c5-4477-acfc-5111a66803ec__list_projects",
+      "mcp__6cb1c6c8-c3c5-4477-acfc-5111a66803ec__get_edge_function",
+      "mcp__6cb1c6c8-c3c5-4477-acfc-5111a66803ec__list_edge_functions",
+      "mcp__visualize__show_widget",
+      "Bash(ls \"/c/Users/Asad Mughal/Desktop/\" | grep -i jor)",
+      "mcp__6cb1c6c8-c3c5-4477-acfc-5111a66803ec__apply_migration",
+      "mcp__6cb1c6c8-c3c5-4477-acfc-5111a66803ec__list_tables",
+      "mcp__6cb1c6c8-c3c5-4477-acfc-5111a66803ec__list_migrations",
+      "mcp__6cb1c6c8-c3c5-4477-acfc-5111a66803ec__get_logs"
+    ]
+  }
+}

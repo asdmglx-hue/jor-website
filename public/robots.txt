@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /my-proposal
+Disallow: /login
+Disallow: /admin
+
+Sitemap: https://jor.com.pk/sitemap.xml
