@@ -1,4 +1,5 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import ProposalsClient from './ProposalsClient';
 
 export const metadata: Metadata = {
@@ -6,10 +7,10 @@ export const metadata: Metadata = {
   description: 'Browse thousands of verified rishta proposals from across Pakistan. Filter by city, caste, sect, profession and more.',
 };
 
-export default function ProposalsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | undefined }>;
-}) {
-  return <ProposalsClient searchParamsPromise={searchParams} />;
+export default function ProposalsPage() {
+  return (
+    <Suspense fallback={null}>
+      <ProposalsClient />
+    </Suspense>
+  );
 }

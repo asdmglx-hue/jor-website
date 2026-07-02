@@ -1,0 +1,78 @@
+import { fetchCountryCounts, fetchProposalsForCategory, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
+import { slugify } from '@/lib/categories';
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import ProposalCard from '@/components/ProposalCard';
+
+type Props = { params: Promise<{ country: string }> };
+
+// Countries aren't a fixed list like cities/castes — they're whatever
+// actually has profiles right now, pulled fresh from real data. A new
+// country automatically gets its own page once it crosses the threshold,
+// with zero manual maintenance needed.
+async function getQualifyingCountries(): Promise<{ value: string; slug: string }[]> {
+  const counts = await fetchCountryCounts();
+  return Object.entries(counts)
+    .filter(([, count]) => count >= MIN_CATEGORY_PROFILES)
+    .map(([value]) => ({ value, slug: slugify(value) }));
+}
+
+export async function generateStaticParams() {
+  const countries = await getQualifyingCountries();
+  return countries.map(c => ({ country: c.slug }));
+}
+
+async function resolveCountrySlug(slug: string): Promise<string | null> {
+  const countries = await getQualifyingCountries();
+  return countries.find(c => c.slug === slug)?.value ?? null;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { country } = await params;
+  const value = await resolveCountrySlug(country);
+  if (!value) return { title: 'Not Found | Jor' };
+  return {
+    title: `Overseas Rishta in ${value} | Jor – Pakistan's Trusted Matrimonial Platform`,
+    description: `Browse verified Pakistani rishta proposals for families based in ${value}. Connect directly — no middlemen, no hidden fees.`,
+  };
+}
+
+export default async function OverseasCountryPage({ params }: Props) {
+  const { country } = await params;
+  const value = await resolveCountrySlug(country);
+  if (!value) notFound();
+
+  const proposals = await fetchProposalsForCategory('country', value, 24);
+  if (proposals.length === 0) notFound();
+
+  return (
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px' }}>
+      <div style={{ fontSize: 13, color: '#B0ADCB', marginBottom: 12 }}>
+        <Link href="/" style={{ color: '#534AB7', textDecoration: 'none' }}>Home</Link>
+        {' › '}
+        <Link href="/proposals" style={{ color: '#534AB7', textDecoration: 'none' }}>Proposals</Link>
+        {' › '}
+        <span>Overseas — {value}</span>
+      </div>
+
+      <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Overseas Rishta in {value}</h1>
+      <p style={{ fontSize: 14, color: '#6B6893', marginBottom: 24 }}>
+        Browse verified rishta proposals for Pakistani families based in {value}. Connect directly — no middlemen, no hidden fees.
+      </p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginBottom: 24 }}>
+        {proposals.map(p => <ProposalCard key={p.id} proposal={p} />)}
+      </div>
+
+      <div style={{ textAlign: 'center', padding: '16px 0' }}>
+        <Link href={`/proposals?country=${encodeURIComponent(value)}`} style={{
+          display: 'inline-block', padding: '12px 28px', borderRadius: 12,
+          background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, textDecoration: 'none',
+        }}>
+          View All Proposals & Filter Further →
+        </Link>
+      </div>
+    </div>
+  );
+}

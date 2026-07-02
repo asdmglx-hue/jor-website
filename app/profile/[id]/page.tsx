@@ -1,4 +1,4 @@
-import { fetchProposalById, heightDisplay } from '@/lib/supabase';
+import { fetchProposalByNumber, fetchAllProposalNumbers, heightDisplay } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -8,9 +8,20 @@ import ShareButton from '@/components/ShareButton';
 
 type Props = { params: Promise<{ id: string }> };
 
+// Pre-renders one static page per active/paused proposal at build time —
+// required for output: 'export' (a static site can't look up an arbitrary
+// ID at request time, since there's no server to ask). The auto-rebuild
+// trigger keeps this list current as profiles are added/removed.
+export async function generateStaticParams() {
+  const numbers = await fetchAllProposalNumbers();
+  return numbers.map(n => ({ id: String(n) }));
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const p = await fetchProposalById(id);
+  const num = Number(id);
+  if (!Number.isFinite(num)) return { title: 'Proposal Not Found | Jor' };
+  const p = await fetchProposalByNumber(num);
   if (!p) return { title: 'Proposal Not Found | Jor' };
   return {
     title: `${p.gender === 'Male' ? 'Groom' : 'Bride'} Profile – ${p.age} yrs, ${p.city} | Jor`,
@@ -45,7 +56,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default async function ProposalDetailPage({ params }: Props) {
   const { id } = await params;
-  const p = await fetchProposalById(id);
+  const num = Number(id);
+  if (!Number.isFinite(num)) notFound();
+  const p = await fetchProposalByNumber(num);
   if (!p) notFound();
 
   const heightFt = p.height_inches ? heightDisplay(p.height_inches) : null;

@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+
 import Image from "next/image";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 
-const inter = Inter({ subsets: ['latin'], weight: ['400', '700', '800'], display: 'swap' });
+const inter = { className: '' };
 
 export const metadata: Metadata = {
   title: "Jor – Pakistan's Trusted Matrimonial Platform",
@@ -61,8 +61,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="footer-nav-right footer-nav-desktop" style={{ textAlign: 'right' }}>
                 <div className="footer-nav-main" style={{ display: 'flex', gap: 32, fontSize: 15, fontWeight: 500, color: '#fff', marginBottom: 8, justifyContent: 'flex-end' }}>
                   <a href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Browse Proposals</a>
-                  <a href="/submit" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
-                  <a href="/subscription" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
+                  <a href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
+                  <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
                   <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
                   <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none' }}>Contact</a>
                   <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Refer & Earn</a>
@@ -98,8 +98,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="footer-nav-mobile-copy">
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 8 }}>
                   <a href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Browse Proposals</a>
-                  <a href="/submit" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
-                  <a href="/subscription" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
+                  <a href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
+                  <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
                 </div>
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 10 }}>
                   <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>

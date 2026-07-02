@@ -13,6 +13,7 @@ export type Proposal = {
   gender: string;
   city: string;
   country?: string;
+  delete_reason?: string;
   caste: string;
   sect: string;
   education: string;
@@ -177,6 +178,79 @@ export async function fetchProposalById(id: string): Promise<Proposal | null> {
   const { data, error } = await supabase.from('proposals').select('*').eq('id', id).in('status', ['active', 'paused']).single();
   if (error) return null;
   return data as Proposal;
+}
+
+// Looks up by the short, shareable proposal_number (e.g. 1822) rather than
+// the internal UUID — used for the public /profile/{number} URL scheme.
+export async function fetchProposalByNumber(proposalNumber: number): Promise<Proposal | null> {
+  const { data, error } = await supabase.from('proposals').select('*').eq('proposal_number', proposalNumber).in('status', ['active', 'paused']).single();
+  if (error) return null;
+  return data as Proposal;
+}
+
+// Every currently active/paused proposal's number — used by
+// generateStaticParams to pre-render every /profile/{number} page at
+// build time (required for output: 'export').
+export async function fetchAllProposalNumbers(): Promise<number[]> {
+  const { data, error } = await supabase.from('proposals').select('proposal_number').in('status', ['active', 'paused']);
+  if (error || !data) return [];
+  return (data as { proposal_number: number }[]).map(r => r.proposal_number);
+}
+
+// Counts real profiles per value for one column (e.g. every city, with
+// how many active/paused profiles are in each) — one query per column,
+// not per value. Used at build time to decide which SEO category pages
+// are actually worth generating (see MIN_CATEGORY_PROFILES).
+export const MIN_CATEGORY_PROFILES = 5;
+
+export async function fetchCategoryCounts(dbColumn: 'city' | 'caste' | 'sect' | 'marital_status' | 'profession'): Promise<Record<string, number>> {
+  const { data, error } = await supabase.from('proposals').select(dbColumn).in('status', ['active', 'paused']);
+  if (error || !data) return {};
+  const counts: Record<string, number> = {};
+  for (const row of data as Record<string, string | null>[]) {
+    const v = row[dbColumn];
+    if (v) counts[v] = (counts[v] || 0) + 1;
+  }
+  return counts;
+}
+
+// Same idea, for overseas countries (a dynamic list, not a fixed constant).
+export async function fetchCountryCounts(): Promise<Record<string, number>> {
+  const { data, error } = await supabase
+    .from('proposals')
+    .select('country')
+    .in('status', ['active', 'paused'])
+    .not('country', 'is', null)
+    .neq('country', '')
+    .neq('country', 'Pakistan');
+  if (error || !data) return {};
+  const counts: Record<string, number> = {};
+  for (const row of data as { country: string | null }[]) {
+    if (row.country) counts[row.country] = (counts[row.country] || 0) + 1;
+  }
+  return counts;
+}
+
+// Preview list of proposals matching one category filter — capped, since a
+// city like Lahore could have hundreds; the full interactive /proposals
+// search page is where deeper browsing happens. Real content either way.
+export async function fetchProposalsForCategory(
+  dbColumn: 'city' | 'caste' | 'sect' | 'marital_status' | 'profession' | 'country',
+  value: string,
+  limit = 24,
+  extra?: { gender?: string }
+): Promise<Proposal[]> {
+  let query = supabase
+    .from('proposals')
+    .select(CARD_COLS)
+    .eq('status', 'active')
+    .eq(dbColumn, value)
+    .order('posted_at', { ascending: false })
+    .limit(limit);
+  if (extra?.gender) query = query.eq('gender', extra.gender);
+  const { data, error } = await query;
+  if (error || !data) return [];
+  return data as Proposal[];
 }
 
 // Login with CNIC + password (matches your Flutter app exactly)

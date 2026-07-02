@@ -1002,7 +1002,7 @@ export default function SubmitClient() {
                 if (digits.length > 5) formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
                 if (digits.length > 12) formatted = `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
                 set('cnic', formatted);
-              }} style={inp} placeholder="12345-1234567-1" maxLength={15} />
+              }} placeholder="12345-1234567-1" maxLength={15} />
             </Field>
             {error.includes('already registered') && (
               <div style={{ marginTop: -8, marginBottom: 14, fontSize: 13 }}>

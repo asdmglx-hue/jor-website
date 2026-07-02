@@ -1,0 +1,84 @@
+import { fetchCategoryCounts, fetchProposalsForCategory, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
+import { CATEGORY_ENTRIES, resolveCategoryBySlug } from '@/lib/categories';
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import ProposalCard from '@/components/ProposalCard';
+
+type Props = { params: Promise<{ slug: string; gender: string }> };
+
+// 'bride' / 'groom' are the real search terms people use — not 'female' /
+// 'male', which is the underlying DB value.
+const GENDER_SLUGS: Record<string, string> = { bride: 'Female', groom: 'Male' };
+
+// Only city slugs get a /{gender} sub-route — caste/sect/profession pages
+// don't (matches a much less common real search pattern for those).
+export async function generateStaticParams() {
+  const cityCounts = await fetchCategoryCounts('city');
+  const qualifyingCities = CATEGORY_ENTRIES.filter(
+    e => e.type === 'city' && (cityCounts[e.value] ?? 0) >= MIN_CATEGORY_PROFILES
+  );
+  const params: { slug: string; gender: string }[] = [];
+  for (const city of qualifyingCities) {
+    for (const gender of Object.keys(GENDER_SLUGS)) {
+      params.push({ slug: city.slug, gender });
+    }
+  }
+  return params;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug, gender } = await params;
+  const entry = resolveCategoryBySlug(slug);
+  const genderValue = GENDER_SLUGS[gender];
+  if (!entry || entry.type !== 'city' || !genderValue) return { title: 'Not Found | Jor' };
+  const label = gender === 'bride' ? 'Bride' : 'Groom';
+  return {
+    title: `${label} Profiles in ${entry.value} | Jor – Pakistan's Trusted Matrimonial Platform`,
+    description: `Browse verified ${label.toLowerCase()} rishta profiles in ${entry.value}. Find your perfect match on Jor, Pakistan's trusted matrimonial platform.`,
+  };
+}
+
+export default async function CityGenderPage({ params }: Props) {
+  const { slug, gender } = await params;
+  const entry = resolveCategoryBySlug(slug);
+  const genderValue = GENDER_SLUGS[gender];
+  if (!entry || entry.type !== 'city' || !genderValue) notFound();
+
+  const proposals = await fetchProposalsForCategory('city', entry.value, 24, { gender: genderValue });
+  if (proposals.length === 0) notFound();
+
+  const label = gender === 'bride' ? 'Bride' : 'Groom';
+
+  return (
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px' }}>
+      <div style={{ fontSize: 13, color: '#B0ADCB', marginBottom: 12 }}>
+        <Link href="/" style={{ color: '#534AB7', textDecoration: 'none' }}>Home</Link>
+        {' › '}
+        <Link href="/proposals" style={{ color: '#534AB7', textDecoration: 'none' }}>Proposals</Link>
+        {' › '}
+        <Link href={`/proposals/${entry.slug}`} style={{ color: '#534AB7', textDecoration: 'none' }}>{entry.value}</Link>
+        {' › '}
+        <span>{label}s</span>
+      </div>
+
+      <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>{label} Profiles in {entry.value}</h1>
+      <p style={{ fontSize: 14, color: '#6B6893', marginBottom: 24 }}>
+        Browse verified {label.toLowerCase()} rishta profiles from {entry.value}. Connect directly with families across Pakistan.
+      </p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginBottom: 24 }}>
+        {proposals.map(p => <ProposalCard key={p.id} proposal={p} />)}
+      </div>
+
+      <div style={{ textAlign: 'center', padding: '16px 0' }}>
+        <Link href={`/proposals?city=${encodeURIComponent(entry.value)}&gender=${genderValue}`} style={{
+          display: 'inline-block', padding: '12px 28px', borderRadius: 12,
+          background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, textDecoration: 'none',
+        }}>
+          View All Proposals & Filter Further →
+        </Link>
+      </div>
+    </div>
+  );
+}

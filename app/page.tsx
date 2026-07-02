@@ -1,11 +1,19 @@
 import { supabase, CARD_COLS } from '@/lib/supabase';
 import Link from 'next/link';
+import Image from 'next/image';
 import ProposalCard from '@/components/ProposalCard';
 import CitySlider from '@/components/CitySlider';
 import CountrySlider from '@/components/CountrySlider';
 import PostRishtaButton from '@/components/PostRishtaButton';
 import AnimatedCounter from '@/components/AnimatedCounter';
 import type { Proposal } from '@/lib/supabase';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Jor – Find Your Perfect Rishta in Pakistan | Trusted Matrimonial Platform",
+  description: "Browse thousands of verified rishta proposals across Pakistan and overseas. Filter by city, caste, sect, profession and more. Free to join, no middlemen.",
+};
+
 
 async function getStats() {
   const { count: total } = await supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active');
@@ -96,8 +104,36 @@ const CITIES = ['Lahore','Karachi','Islamabad','Rawalpindi','Faisalabad','Multan
 export default async function HomePage() {
   const [stats, recent, cities, countries] = await Promise.all([getStats(), getRecent(), getCities(), getCountries()]);
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: 'Jor',
+        url: 'https://joronline.com',
+        description: "Pakistan's trusted matrimonial platform connecting families for marriage across Pakistan and overseas.",
+        areaServed: 'PK',
+      },
+      {
+        '@type': 'WebSite',
+        name: 'Jor – Matrimonial Platform',
+        url: 'https://joronline.com',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: 'https://joronline.com/proposals?search={search_term_string}',
+          'query-input': 'required name=search_term_string',
+        },
+      },
+    ],
+  };
+
   return (
     <div>
+      {/* Structured data: tells search engines exactly what this site is
+          and that it has a search feature — a small addition that can
+          unlock richer result displays, not just a plain blue link. */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+
       {/* Hero */}
       <section style={{
         background: 'linear-gradient(135deg, #534AB7 0%, #3D35A0 50%, #0F6E56 100%)',
@@ -105,13 +141,14 @@ export default async function HomePage() {
         position: 'relative', overflow: 'hidden',
       }}>
         {/* Wedding photo as background at low opacity */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="/hero-wedding.jpg"
           alt=""
           aria-hidden="true"
+          fill
+          priority
+          sizes="100vw"
           style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%',
             objectFit: 'cover', objectPosition: 'center',
             opacity: 0.13, mixBlendMode: 'luminosity', pointerEvents: 'none',
           }}
@@ -120,8 +157,7 @@ export default async function HomePage() {
         <div style={{ position: 'absolute', inset: 0, opacity: 0.07, backgroundImage: 'radial-gradient(circle at 20% 80%, #fff 0%, transparent 50%), radial-gradient(circle at 80% 20%, #fff 0%, transparent 50%)', pointerEvents: 'none' }} />
 
         <div style={{ position: 'relative', maxWidth: 680, margin: '0 auto' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/hero-couple.png" alt="" aria-hidden="true" style={{ height: 120, width: 'auto', display: 'block', margin: '0 auto 8px' }} />
+          <Image src="/hero-couple.png" alt="" aria-hidden="true" width={120} height={120} priority style={{ height: 120, width: 'auto', display: 'block', margin: '0 auto 8px' }} />
           <h1 style={{ fontSize: 'clamp(28px, 5vw, 48px)', fontWeight: 900, margin: '0 0 16px', lineHeight: 1.15 }}>
             <span style={{ color: '#ffffff' }}>Find Your Perfect</span><br />
             <span style={{ color: '#D4D1F7' }}>Rishta in Pakistan</span>

@@ -67,7 +67,7 @@ export default function ContactButtons({ phone, phone2 }: { phone: string; phone
           </svg>
           WhatsApp
         </div>
-        <a href="/subscription" style={{
+        <a href="/plans" style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           width: '100%', padding: '11px', borderRadius: 12, boxSizing: 'border-box',
           background: '#534AB7', color: '#fff', fontWeight: 700, fontSize: 13,

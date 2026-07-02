@@ -242,7 +242,7 @@ export default function MyProposalClient() {
     if (!session) { router.replace('/login'); return; }
     setUser(session);
     setSavedIds(getSavedIds());
-    // Always fetch fresh data so status/subscription changes are reflected
+    // Always fetch fresh data so status/plans changes are reflected
     supabase.from('proposals').select('*').eq('id', session.id).maybeSingle().then(({ data }) => {
       if (data) {
         const fresh = data as Proposal;
@@ -403,13 +403,13 @@ export default function MyProposalClient() {
           {user.proposal_number && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', lineHeight: '28px' }}>#{user.proposal_number}</div>}
           <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', alignItems: 'center' }}>
             {/* View */}
-            {(['Active','Featured'].includes(getStatusLabel(user, hasFeaturedBoost))) && <Link href={`/proposal/${user.id}`}
+            {(['Active','Featured'].includes(getStatusLabel(user, hasFeaturedBoost))) && <Link href={`/profile/${user.proposal_number}`}
               style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#EEEDFE', textDecoration: 'none' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               <span style={{ fontSize: 10, fontWeight: 700, color: '#534AB7' }}>View</span>
             </Link>}
             {/* Share */}
-            <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/proposal/${user.id}`); setSaveMsg('Profile link copied!'); setTimeout(() => setSaveMsg(''), 3000); }}
+            <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/profile/${user.proposal_number}`); setSaveMsg('Profile link copied!'); setTimeout(() => setSaveMsg(''), 3000); }}
               style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', cursor: 'pointer' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
               <span style={{ fontSize: 10, fontWeight: 700, color: '#534AB7' }}>Share</span>
@@ -503,7 +503,7 @@ export default function MyProposalClient() {
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 4 }}>Upgrade to Featured — Stand Out from the Rest</div>
               <div style={{ fontSize: 13, color: '#D4D1F7', lineHeight: 1.5, marginBottom: 12 }}>Featured profiles appear at the top of every search, get a gold badge, and receive 5× more views than regular profiles.</div>
-              <Link href="/subscription?plan=featured" style={{ display: 'inline-block', padding: '9px 20px', borderRadius: 10, background: '#fff', color: '#534AB7', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>Get Featured →</Link>
+              <Link href="/plans?plan=featured" style={{ display: 'inline-block', padding: '9px 20px', borderRadius: 10, background: '#fff', color: '#534AB7', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>Get Featured →</Link>
             </div>
           </div>
         </div>

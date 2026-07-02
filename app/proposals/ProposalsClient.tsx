@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect, useCallback, use, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { fetchProposals, FilterState, Proposal, supabase } from '@/lib/supabase';
 import { getNotInterestedIds, addNotInterested } from '@/lib/auth';
 import ProposalCard from '@/components/ProposalCard';
@@ -18,8 +19,17 @@ function Spinner({ size = 36 }: { size?: number }) {
 
 const PAGE_SIZE = 16;
 
-export default function ProposalsClient({ searchParamsPromise }: { searchParamsPromise: Promise<{ [key: string]: string | undefined }> }) {
-  const searchParams = use(searchParamsPromise);
+export default function ProposalsClient() {
+  // useSearchParams reads the URL directly in the browser — works fine in
+  // a static export, unlike the previous server-passed searchParams prop,
+  // which required per-request server rendering (not possible/needed here
+  // since a static file can't know the query string in advance anyway).
+  const urlParams = useSearchParams();
+  const searchParams = {
+    gender: urlParams.get('gender') ?? undefined,
+    city: urlParams.get('city') ?? undefined,
+    country: urlParams.get('country') ?? undefined,
+  };
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);

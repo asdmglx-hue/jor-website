@@ -33,7 +33,7 @@ export default function Navbar() {
         {/* Desktop nav */}
         <div className="nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <Link href="/proposals" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: pathname.startsWith('/proposals') ? '#EEEDFE' : 'transparent', color: '#534AB7' }}>Browse Proposals</Link>
-          <Link href="/subscription" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: pathname.startsWith('/subscription') ? '#EEEDFE' : 'transparent', color: '#534AB7' }}>Plans</Link>
+          <Link href="/plans" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: pathname.startsWith('/plans') ? '#EEEDFE' : 'transparent', color: '#534AB7' }}>Plans</Link>
 
           {user ? (
             <div style={{ position: 'relative' }}>
@@ -60,7 +60,7 @@ export default function Navbar() {
           )}
 
           {!user && (
-            <Link href="/submit" style={{ textDecoration: 'none', padding: '8px 18px', borderRadius: 10, background: '#534AB7', color: '#fff', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(83,74,183,0.25)' }}>
+            <Link href="/register" style={{ textDecoration: 'none', padding: '8px 18px', borderRadius: 10, background: '#534AB7', color: '#fff', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(83,74,183,0.25)' }}>
               Register
             </Link>
           )}
@@ -92,7 +92,7 @@ export default function Navbar() {
           ) : (
             <>
               <Link href="/login" style={{ textDecoration: 'none', padding: '7px 12px', borderRadius: 10, color: '#1A1830', fontSize: 13, fontWeight: 700, border: '1.5px solid #E8E6F5' }}>Login</Link>
-              <Link href="/submit" style={{ textDecoration: 'none', padding: '7px 14px', borderRadius: 10, background: '#534AB7', color: '#fff', fontSize: 13, fontWeight: 700 }}>Register</Link>
+              <Link href="/register" style={{ textDecoration: 'none', padding: '7px 14px', borderRadius: 10, background: '#534AB7', color: '#fff', fontSize: 13, fontWeight: 700 }}>Register</Link>
             </>
           )}
 
@@ -110,7 +110,7 @@ export default function Navbar() {
             {menuOpen === 'nav' && (
               <div style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, padding: '6px', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200 }}>
                 <Link href="/proposals" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '9px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'none', background: pathname.startsWith('/proposals') ? '#EEEDFE' : 'transparent' }}>Browse Proposals</Link>
-                <Link href="/subscription" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '9px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'none', background: pathname.startsWith('/subscription') ? '#EEEDFE' : 'transparent' }}>Plans</Link>
+                <Link href="/plans" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '9px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'none', background: pathname.startsWith('/plans') ? '#EEEDFE' : 'transparent' }}>Plans</Link>
               </div>
             )}
           </div>

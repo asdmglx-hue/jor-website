@@ -14,7 +14,7 @@ export default function AboutCta() {
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
         <Link href="/proposals" style={{ padding: '12px 24px', borderRadius: 12, background: '#534AB7', color: '#fff', fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>Browse Proposals</Link>
         {!loggedIn && (
-          <Link href="/submit" style={{ padding: '12px 24px', borderRadius: 12, background: '#fff', border: '1.5px solid #534AB7', color: '#534AB7', fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>Post a Rishta</Link>
+          <Link href="/register" style={{ padding: '12px 24px', borderRadius: 12, background: '#fff', border: '1.5px solid #534AB7', color: '#534AB7', fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>Post a Rishta</Link>
         )}
       </div>
     </div>

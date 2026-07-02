@@ -99,7 +99,7 @@ export default function ProposalCard({ proposal: p, onNotInterested }: Props) {
   if (dismissed) return null;
 
   return (
-    <Link href={`/proposal/${p.id}`} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Link href={`/profile/${p.proposal_number}`} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="card-hover" style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 20, padding: '14px', cursor: 'pointer', position: 'relative', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
         {isFeatured && (
           <div style={{ position: 'absolute', top: 12, right: 12, background: '#E8620A', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 20, letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 2 }}>

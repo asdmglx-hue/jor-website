@@ -46,8 +46,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div style={{ textAlign: 'right' }}>
                 <div style={{ display: 'flex', gap: 24, fontSize: 15, fontWeight: 500, color: '#fff', marginBottom: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                   <a href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Browse Proposals</a>
-                  <a href="/submit" style={{ color: '#fff', textDecoration: 'none' }}>Post Rishta</a>
-                  <a href="/subscription" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
+                  <a href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Post Rishta</a>
+                  <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
                   <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
                   <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Refer & Earn</a>
                   <a href="https://wa.me/923287654333" target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none' }}>Contact</a>

@@ -2,7 +2,11 @@ import { Proposal } from './supabase';
 
 export function buildProposalShareText(p: Proposal, useEmoji: boolean, showFullPhone: boolean): string {
   const cp = String.fromCodePoint;
-  const webLink = `https://jor-share.asdmglx.workers.dev/${p.id}`;
+  // Real production link — the static site's own pre-rendered profile page
+  // already has correct per-profile preview data baked in (name, photo,
+  // description via generateMetadata), so no separate preview service is
+  // needed. Uses the short proposal_number, not the internal UUID.
+  const webLink = `https://joronline.com/profile/${p.proposal_number}`;
   const hFt = Math.floor(p.height_inches / 12);
   const hIn = Math.round(p.height_inches % 12);
   const b = (emoji: number) => useEmoji ? cp(emoji) : '•';

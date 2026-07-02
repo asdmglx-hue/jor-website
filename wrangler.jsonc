@@ -1,0 +1,12 @@
+{
+  // Tells Cloudflare Workers "this deployment is just static files, serve
+  // them directly" — no Worker script needed, since the site has no
+  // server-side logic left after the static export conversion. This is
+  // Cloudflare's current recommended path for static sites (Workers with
+  // static assets), which their build system expects to find here.
+  "name": "jor-website",
+  "compatibility_date": "2026-01-01",
+  "assets": {
+    "directory": "./out"
+  }
+}

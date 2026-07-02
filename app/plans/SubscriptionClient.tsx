@@ -85,13 +85,16 @@ export default function SubscriptionClient() {
     setUser(getSession() ?? null);
     const params = new URLSearchParams(window.location.search);
     if (params.get('plan') === 'featured') setSelected(1);
-    supabase.from('app_settings').select('key, value').then(({ data }) => {
-      if (data) {
-        const s: Record<string, string> = {};
-        (data as { key: string; value: string }[]).forEach(r => { s[r.key] = r.value; });
-        setSettings(s);
-      }
-    }).catch(() => {});
+    (async () => {
+      try {
+        const { data } = await supabase.from('app_settings').select('key, value');
+        if (data) {
+          const s: Record<string, string> = {};
+          (data as { key: string; value: string }[]).forEach(r => { s[r.key] = r.value; });
+          setSettings(s);
+        }
+      } catch (_) {}
+    })();
   }, []);
 
   const copyText = (text: string, key: string) => {
