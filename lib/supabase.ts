@@ -116,7 +116,7 @@ const PROFESSION_GROUPS: Record<string, string[]> = {
 };
 
 // Columns needed to render a ProposalCard (incl. share text fields)
-export const CARD_COLS ='id,name,age,gender,city,country,profession,caste,sect,marital_status,height_inches,boys,girls,about,looking_for,profile_photo_url,posted_at,subscription_tier,is_boosted,contact_phone,contact_phone_2,home_type,education,father_alive,mother_alive,brothers,sisters,status';
+export const CARD_COLS ='id,proposal_number,name,age,gender,city,country,profession,caste,sect,marital_status,height_inches,boys,girls,about,looking_for,profile_photo_url,posted_at,subscription_tier,is_boosted,contact_phone,contact_phone_2,home_type,education,father_alive,mother_alive,brothers,sisters,status';
 
 export async function fetchProposals(filters: FilterState = {}, page = 0, pageSize = 16): Promise<{ proposals: Proposal[]; total: number }> {
   let query = supabase
