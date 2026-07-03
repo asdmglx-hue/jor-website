@@ -98,8 +98,8 @@ export default async function ProposalDetailPage({ params }: Props) {
             boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
           }}>
             {isFeatured && (
-              <span style={{ position: 'absolute', top: -12, right: 24, background: '#E8620A', color: '#fff', fontSize: 11, fontWeight: 800, padding: '4px 12px', borderRadius: 20, letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', gap: 4, boxShadow: '0 2px 6px rgba(232,98,10,0.4)' }}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
+              <span className="featured-badge" style={{ position: 'absolute', top: -14, right: 24, background: '#E8620A', color: '#fff', fontWeight: 800, borderRadius: 20, letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', boxShadow: '0 2px 6px rgba(232,98,10,0.4)' }}>
+                <svg viewBox="0 0 24 24" fill="white"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
                 FEATURED
               </span>
             )}

@@ -160,6 +160,19 @@ body {
   font-size: 22px;
 }
 
+/* FEATURED badge on profile detail page — same reasoning as .profile-name
+   above: font-size/padding/icon live here so the mobile query can shrink
+   them independently of the desktop size. */
+.featured-badge {
+  font-size: 13px;
+  padding: 5px 14px;
+  gap: 5px;
+}
+.featured-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
 /* Hero stats */
 .hero-stats {
   display: flex;
@@ -332,6 +345,15 @@ body {
   }
   .profile-name {
     font-size: 18px;
+  }
+  .featured-badge {
+    font-size: 9px;
+    padding: 3px 9px;
+    gap: 3px;
+  }
+  .featured-badge svg {
+    width: 8px;
+    height: 8px;
   }
 
   /* Hero stats — tighter on mobile */
