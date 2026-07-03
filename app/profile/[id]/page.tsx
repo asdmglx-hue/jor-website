@@ -91,11 +91,18 @@ export default async function ProposalDetailPage({ params }: Props) {
         <div>
           {/* Header card */}
           <div style={{
+            position: 'relative',
             background: isFeatured ? '#FFFBF5' : '#fff',
             border: `1px solid ${isFeatured ? '#E8620A44' : '#E8E6F5'}`,
             borderRadius: 20, padding: '24px', marginBottom: 16,
             boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
           }}>
+            {isFeatured && (
+              <span style={{ position: 'absolute', top: -12, right: 24, background: '#E8620A', color: '#fff', fontSize: 11, fontWeight: 800, padding: '4px 12px', borderRadius: 20, letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', gap: 4, boxShadow: '0 2px 6px rgba(232,98,10,0.4)' }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
+                FEATURED
+              </span>
+            )}
             <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
               {/* Photo */}
               {p.profile_photo_url ? (
@@ -111,18 +118,12 @@ export default async function ProposalDetailPage({ params }: Props) {
                 </div>
               )}
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4, minWidth: 0 }}>
                   <ExpandableName
                     name={p.name}
                     className="profile-name"
                     style={{ fontWeight: 900, color: '#1A1830', margin: 0 }}
                   />
-                  {isFeatured && (
-                    <span style={{ position: 'absolute', top: -14, right: 0, background: '#E8620A', color: '#fff', fontSize: 8, fontWeight: 800, padding: '2px 6px', borderRadius: 20, letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-                      <svg width="7" height="7" viewBox="0 0 24 24" fill="white"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
-                      FEATURED
-                    </span>
-                  )}
                 </div>
                 <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.7 }}>
                   <div>{p.age} yrs • {p.country && p.country !== 'Pakistan' ? `${p.country} (from ${p.city})` : p.city}</div>
