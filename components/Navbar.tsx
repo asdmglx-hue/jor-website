@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { getSession, clearSession, saveSession, syncSavedFromServer } from '@/lib/auth';
+import { getSession, clearSession, saveSession, syncSavedFromServer, syncNotInterestedFromServer } from '@/lib/auth';
 import { updateProposal } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 
@@ -24,6 +24,7 @@ export default function Navbar() {
     const s = getSession();
     setUser(s ? { name: s.name, profile_photo_url: s.profile_photo_url, gender: s.gender } : null);
     if (s?.id) syncSavedFromServer(s.id);
+    if (s?.cnic) syncNotInterestedFromServer(s.cnic);
     setMounted(true);
   }, [pathname]);
 

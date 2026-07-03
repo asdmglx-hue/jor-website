@@ -70,9 +70,14 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
     const session = getSession();
     setIsActive(session ? isSubscriptionActive(session) : false);
     if (getNotInterestedIds().includes(p.id)) setDismissed(true);
-    const onSynced = () => setSaved(getSavedIds().includes(p.id));
-    window.addEventListener('jor:saved-synced', onSynced);
-    return () => window.removeEventListener('jor:saved-synced', onSynced);
+    const onSavedSynced = () => setSaved(getSavedIds().includes(p.id));
+    const onNotInterestedSynced = () => { if (getNotInterestedIds().includes(p.id)) setDismissed(true); };
+    window.addEventListener('jor:saved-synced', onSavedSynced);
+    window.addEventListener('jor:not-interested-synced', onNotInterestedSynced);
+    return () => {
+      window.removeEventListener('jor:saved-synced', onSavedSynced);
+      window.removeEventListener('jor:not-interested-synced', onNotInterestedSynced);
+    };
   }, [p.id]);
 
   const handleSave = (e: React.MouseEvent) => {
@@ -85,6 +90,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
 
   const handleNotInterested = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
+    if (!window.confirm("We won't show you this profile for the next 30 days. Continue?")) return;
     addNotInterested(p.id);
     setDismissed(true);
     onNotInterested?.(p.id);

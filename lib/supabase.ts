@@ -72,6 +72,7 @@ export type Proposal = {
   phone_verified: boolean;
   email_verified?: boolean;
   cnic_verified?: boolean;
+  not_interested_ids?: string[];
   cnic?: string;
   cnic_front_url?: string;
   cnic_back_url?: string;

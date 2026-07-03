@@ -72,14 +72,76 @@ export async function syncSavedFromServer(userProposalId: string): Promise<strin
   }
 }
 
+const NOT_INTERESTED_KEY = 'er_not_interested';
+const NOT_INTERESTED_DAYS = 30;
+type NotInterestedMap = Record<string, number>; // proposal id -> dismissed-at timestamp (ms)
+
+function getNotInterestedMap(): NotInterestedMap {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(NOT_INTERESTED_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    // Back-compat: older versions stored a flat string[] with no expiry.
+    // Treat those as dismissed right now, so they still get a fresh 30-day window.
+    if (Array.isArray(parsed)) {
+      const now = Date.now();
+      const map: NotInterestedMap = {};
+      parsed.forEach((id: string) => { map[id] = now; });
+      return map;
+    }
+    return parsed as NotInterestedMap;
+  } catch { return {}; }
+}
+
+function saveNotInterestedMap(map: NotInterestedMap) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(NOT_INTERESTED_KEY, JSON.stringify(map));
+}
+
 export function getNotInterestedIds(): string[] {
-  if (typeof window === 'undefined') return [];
-  try { return JSON.parse(localStorage.getItem('er_not_interested') || '[]'); } catch { return []; }
+  const map = getNotInterestedMap();
+  const now = Date.now();
+  const cutoffMs = NOT_INTERESTED_DAYS * 24 * 60 * 60 * 1000;
+  return Object.entries(map).filter(([, dismissedAt]) => now - dismissedAt < cutoffMs).map(([id]) => id);
 }
 
 export function addNotInterested(id: string): string[] {
-  const ids = getNotInterestedIds();
-  if (!ids.includes(id)) ids.push(id);
-  localStorage.setItem('er_not_interested', JSON.stringify(ids));
-  return ids;
+  const map = getNotInterestedMap();
+  map[id] = Date.now();
+  saveNotInterestedMap(map);
+
+  // Sync to the database in the background if logged in — uses the same
+  // append_not_interested RPC and not_interested_ids column your mobile
+  // app already relies on, so this survives clearing browser history.
+  const session = getSession();
+  if (session?.cnic) {
+    supabase.rpc('append_not_interested', { p_cnic: session.cnic, p_proposal_id: id }).then(() => {});
+  }
+  return getNotInterestedIds();
+}
+
+// Pulls the authoritative not-interested list from the database and
+// refreshes the local cache — call this once a logged-in session is
+// detected, so dismissed proposals stay hidden even after localStorage
+// was wiped. IDs newly seen from the server start a fresh 30-day timer;
+// IDs the website already had a local timestamp for keep that timestamp.
+export async function syncNotInterestedFromServer(cnic: string): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('proposals')
+      .select('not_interested_ids')
+      .eq('cnic', cnic)
+      .maybeSingle();
+    if (error || !data) return getNotInterestedIds();
+    const ids = (data.not_interested_ids as string[] | null) || [];
+    const map = getNotInterestedMap();
+    const now = Date.now();
+    ids.forEach(id => { if (!(id in map)) map[id] = now; });
+    saveNotInterestedMap(map);
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('jor:not-interested-synced'));
+    return getNotInterestedIds();
+  } catch {
+    return getNotInterestedIds();
+  }
 }
