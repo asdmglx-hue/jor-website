@@ -157,18 +157,44 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   return { proposals: (data as Proposal[]) || [], total: count || 0 };
 }
 
+// Supabase silently caps any query at 1000 rows by default — a query with
+// no .range()/.limit() doesn't error when there's more data than that, it
+// just quietly returns the first 1000 and stops. This is exactly what
+// caused ~171 real, active profiles to go missing from the live site
+// without any warning during the build. This helper fetches ALL matching
+// rows in batches of 1000, so every function that genuinely needs a
+// complete result set (not just a capped preview) can't silently truncate
+// again as the site grows past whatever the current count happens to be.
+export async function fetchAllRows<T>(
+  buildQuery: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>
+): Promise<T[]> {
+  const BATCH = 1000;
+  const all: T[] = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await buildQuery(from, from + BATCH - 1);
+    if (error || !data) break;
+    all.push(...data);
+    if (data.length < BATCH) break; // last batch — fewer rows than requested means we're done
+    from += BATCH;
+  }
+  return all;
+}
+
 export async function fetchOverseasCountries(): Promise<string[]> {
-  const { data } = await supabase
-    .from('proposals')
-    .select('country')
-    .eq('status', 'active')
-    .not('country', 'is', null)
-    .neq('country', '')
-    .neq('country', 'Pakistan');
-  if (!data) return [];
+  const data = await fetchAllRows<{ country: string }>((from, to) =>
+    supabase
+      .from('proposals')
+      .select('country')
+      .eq('status', 'active')
+      .not('country', 'is', null)
+      .neq('country', '')
+      .neq('country', 'Pakistan')
+      .range(from, to)
+  );
   const counts: Record<string, number> = {};
   for (const row of data) {
-    const c = row.country as string;
+    const c = row.country;
     counts[c] = (counts[c] || 0) + 1;
   }
   return Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
@@ -190,11 +216,13 @@ export async function fetchProposalByNumber(proposalNumber: number): Promise<Pro
 
 // Every currently active/paused proposal's number — used by
 // generateStaticParams to pre-render every /profile/{number} page at
-// build time (required for output: 'export').
+// build time (required for output: 'export'). Must fetch ALL of them, not
+// just the first 1000 — see fetchAllRows above for why this matters.
 export async function fetchAllProposalNumbers(): Promise<number[]> {
-  const { data, error } = await supabase.from('proposals').select('proposal_number').in('status', ['active', 'paused']);
-  if (error || !data) return [];
-  return (data as { proposal_number: number }[]).map(r => r.proposal_number);
+  const data = await fetchAllRows<{ proposal_number: number }>((from, to) =>
+    supabase.from('proposals').select('proposal_number').in('status', ['active', 'paused']).range(from, to)
+  );
+  return data.map(r => r.proposal_number);
 }
 
 // Counts real profiles per value for one column (e.g. every city, with
@@ -204,10 +232,11 @@ export async function fetchAllProposalNumbers(): Promise<number[]> {
 export const MIN_CATEGORY_PROFILES = 5;
 
 export async function fetchCategoryCounts(dbColumn: 'city' | 'caste' | 'sect' | 'marital_status' | 'profession'): Promise<Record<string, number>> {
-  const { data, error } = await supabase.from('proposals').select(dbColumn).in('status', ['active', 'paused']);
-  if (error || !data) return {};
+  const data = await fetchAllRows<Record<string, string | null>>((from, to) =>
+    supabase.from('proposals').select(dbColumn).in('status', ['active', 'paused']).range(from, to)
+  );
   const counts: Record<string, number> = {};
-  for (const row of data as Record<string, string | null>[]) {
+  for (const row of data) {
     const v = row[dbColumn];
     if (v) counts[v] = (counts[v] || 0) + 1;
   }
@@ -216,16 +245,18 @@ export async function fetchCategoryCounts(dbColumn: 'city' | 'caste' | 'sect' | 
 
 // Same idea, for overseas countries (a dynamic list, not a fixed constant).
 export async function fetchCountryCounts(): Promise<Record<string, number>> {
-  const { data, error } = await supabase
-    .from('proposals')
-    .select('country')
-    .in('status', ['active', 'paused'])
-    .not('country', 'is', null)
-    .neq('country', '')
-    .neq('country', 'Pakistan');
-  if (error || !data) return {};
+  const data = await fetchAllRows<{ country: string | null }>((from, to) =>
+    supabase
+      .from('proposals')
+      .select('country')
+      .in('status', ['active', 'paused'])
+      .not('country', 'is', null)
+      .neq('country', '')
+      .neq('country', 'Pakistan')
+      .range(from, to)
+  );
   const counts: Record<string, number> = {};
-  for (const row of data as { country: string | null }[]) {
+  for (const row of data) {
     if (row.country) counts[row.country] = (counts[row.country] || 0) + 1;
   }
   return counts;

@@ -1,4 +1,4 @@
-import { supabase, CARD_COLS } from '@/lib/supabase';
+import { supabase, fetchAllRows, CARD_COLS } from '@/lib/supabase';
 import Link from 'next/link';
 import Image from 'next/image';
 import ProposalCard from '@/components/ProposalCard';
@@ -22,12 +22,15 @@ async function getStats() {
   return { total: total || 0, male: male || 0, female: female || 0 };
 }
 
+// fetchAllRows fetches every matching row in batches — without it, this
+// silently caps at Supabase's default 1000-row limit once the site has
+// more active profiles than that, quietly undercounting cities without
+// any error (this is exactly what caused ~171 profiles to go missing from
+// generateStaticParams elsewhere on the site).
 async function getCities(): Promise<{ city: string; count: number }[]> {
-  const { data } = await supabase
-    .from('proposals')
-    .select('city')
-    .eq('status', 'active');
-  if (!data) return [];
+  const data = await fetchAllRows<{ city: string }>((from, to) =>
+    supabase.from('proposals').select('city').eq('status', 'active').range(from, to)
+  );
   const counts: Record<string, number> = {};
   for (const row of data) {
     if (row.city) counts[row.city] = (counts[row.city] || 0) + 1;
@@ -38,14 +41,16 @@ async function getCities(): Promise<{ city: string; count: number }[]> {
 }
 
 async function getCountries(): Promise<{ country: string; count: number }[]> {
-  const { data } = await supabase
-    .from('proposals')
-    .select('country')
-    .eq('status', 'active')
-    .not('country', 'is', null)
-    .neq('country', '')
-    .neq('country', 'Pakistan');
-  if (!data) return [];
+  const data = await fetchAllRows<{ country: string | null }>((from, to) =>
+    supabase
+      .from('proposals')
+      .select('country')
+      .eq('status', 'active')
+      .not('country', 'is', null)
+      .neq('country', '')
+      .neq('country', 'Pakistan')
+      .range(from, to)
+  );
   const counts: Record<string, number> = {};
   for (const row of data) {
     if (row.country) counts[row.country] = (counts[row.country] || 0) + 1;
