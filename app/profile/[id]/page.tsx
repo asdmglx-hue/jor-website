@@ -103,7 +103,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                 FEATURED
               </span>
             )}
-            <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
               {/* Photo */}
               {p.profile_photo_url ? (
                 <PhotoLightbox src={p.profile_photo_url} name={p.name} />
