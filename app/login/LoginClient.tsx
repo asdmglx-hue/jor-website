@@ -118,7 +118,7 @@ export default function LoginClient() {
 
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#6B6893' }}>
             Don&apos;t have an account?{' '}
-            <Link href="/register" style={{ color: '#534AB7', fontWeight: 700, textDecoration: 'none' }}>Post a Rishta</Link>
+            <Link href="/register" style={{ color: '#534AB7', fontWeight: 700, textDecoration: 'none' }}>Register</Link>
           </p>
         </div>
       </div>
