@@ -111,18 +111,18 @@ export default async function ProposalDetailPage({ params }: Props) {
                 </div>
               )}
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4, minWidth: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 4, minWidth: 0 }}>
+                  {isFeatured && (
+                    <span style={{ background: '#E8620A', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20, letterSpacing: 0.5, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 3, alignSelf: 'flex-start' }}>
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="white"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
+                      FEATURED
+                    </span>
+                  )}
                   <ExpandableName
                     name={p.name}
                     className="profile-name"
                     style={{ fontWeight: 900, color: '#1A1830', margin: 0 }}
                   />
-                  {isFeatured && (
-                    <span style={{ background: '#E8620A', color: '#fff', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20, letterSpacing: 0.5, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: -4 }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
-                      FEATURED
-                    </span>
-                  )}
                 </div>
                 <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.7 }}>
                   <div>{p.age} yrs • {p.country && p.country !== 'Pakistan' ? `${p.country} (from ${p.city})` : p.city}</div>
