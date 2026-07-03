@@ -12,7 +12,7 @@ export default function ExpandableName({ name, style, className }: { name: strin
   return (
     <h1
       className={className}
-      onClick={() => setExpanded(e => !e)}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setExpanded(v => !v); }}
       style={{
         ...style,
         cursor: 'pointer',

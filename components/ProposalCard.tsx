@@ -4,6 +4,7 @@ import { getSavedIds, toggleSaved, addNotInterested, getNotInterestedIds, getSes
 import { buildProposalShareText } from '@/lib/shareText';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import ExpandableName from './ExpandableName';
 
 function Avatar({ name, photoUrl, size = 56, locked = false }: { name: string; photoUrl?: string; size?: number; locked?: boolean }) {
   const colors = ['#534AB7','#0F6E56','#E8620A','#0369A1','#E11D48'];
@@ -112,11 +113,12 @@ export default function ProposalCard({ proposal: p, onNotInterested }: Props) {
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
           <Avatar name={p.name} photoUrl={p.profile_photo_url} size={52} locked={!isActive} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 15, fontWeight: 800, color: '#1A1830' }}>
-                {p.name}
-              </span>
-              <span style={{ fontSize: 11, color: '#B0ADCB' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0 }}>
+              <ExpandableName
+                name={p.name}
+                style={{ fontSize: 15, fontWeight: 800, color: '#1A1830' }}
+              />
+              <span style={{ fontSize: 11, color: '#B0ADCB', flexShrink: 0, marginLeft: 6 }}>
                 {new Date(p.posted_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
               </span>
             </div>
