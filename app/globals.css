@@ -37,6 +37,13 @@
 }
 
 
+html {
+  /* Same reasoning as body below — some browsers treat html, not body,
+     as the actual page-level horizontal scroll container, so both need
+     this to reliably prevent sideways scrolling in every browser. */
+  overflow-x: hidden;
+}
+
 body {
   background: #FAF9FF;
   color: #1A1830;
@@ -130,6 +137,16 @@ body {
   grid-template-columns: 1fr 340px;
   gap: 20px;
   align-items: start;
+}
+/* Grid items default to min-width: auto, meaning they refuse to shrink
+   below their content's natural width — same underlying quirk as
+   flexbox. Without this, any long unbroken text anywhere in either
+   column (a name, a sentence with no natural wrap point, etc.) silently
+   pushes the entire grid — and therefore the whole page — wider than the
+   viewport on mobile, even though each individual piece of text "looks"
+   like it should just wrap normally. */
+.proposal-detail-grid > * {
+  min-width: 0;
 }
 .proposal-sidebar {
   position: sticky;
