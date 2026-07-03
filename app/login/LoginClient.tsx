@@ -1,16 +1,35 @@
 'use client';
-import { useState } from 'react';
-import { loginWithCnic } from '@/lib/supabase';
+import { useState, useEffect } from 'react';
+import { loginWithCnic, supabase } from '@/lib/supabase';
 import { saveSession } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+
+const ADMIN_WHATSAPP = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '923000000000';
 
 export default function LoginClient() {
   const [cnic, setCnic] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [settings, setSettings] = useState<Record<string, string>>({});
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotCnic, setForgotCnic] = useState('');
+  const [forgotError, setForgotError] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.from('app_settings').select('key, value');
+        if (data) {
+          const s: Record<string, string> = {};
+          (data as { key: string; value: string }[]).forEach(r => { s[r.key] = r.value; });
+          setSettings(s);
+        }
+      } catch (_) {}
+    })();
+  }, []);
 
   // Auto-format CNIC as 12345-1234567-1
   const formatCnic = (val: string) => {
@@ -30,6 +49,17 @@ export default function LoginClient() {
     if (!proposal) { setError('Incorrect CNIC or password. Please try again.'); return; }
     saveSession(proposal);
     router.push('/my-proposal');
+  };
+
+  const handleForgotSubmit = () => {
+    const digits = forgotCnic.replace(/-/g, '');
+    if (digits.length !== 13) { setForgotError('Enter a complete 13-digit CNIC number.'); return; }
+    setForgotError('');
+    const adminWa = settings['whatsapp_number'] || ADMIN_WHATSAPP;
+    const text = `Hi, I forgot my password.\n\nMy CNIC: ${forgotCnic}\n\nPlease help me reset my password.`;
+    window.open(`https://wa.me/${adminWa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+    setShowForgotModal(false);
+    setForgotCnic('');
   };
 
   return (
@@ -63,6 +93,11 @@ export default function LoginClient() {
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
               style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1.5px solid #E8E6F5', fontSize: 15, outline: 'none', color: '#1A1830' }}
             />
+            <div style={{ textAlign: 'right', marginTop: 8 }}>
+              <button onClick={() => { setForgotCnic(''); setForgotError(''); setShowForgotModal(true); }} style={{ background: 'none', border: 'none', padding: 0, color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                Forgot Password?
+              </button>
+            </div>
           </div>
 
           {error && (
@@ -87,6 +122,35 @@ export default function LoginClient() {
           </p>
         </div>
       </div>
+
+      {showForgotModal && (
+        <div onClick={() => setShowForgotModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 380, padding: 24 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830', marginBottom: 4 }}>Forgot Password</div>
+            <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 16, lineHeight: 1.5 }}>
+              Enter your CNIC number and we&apos;ll reach out on WhatsApp to help reset your password.
+            </div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>CNIC Number</label>
+            <input
+              type="text" placeholder="12345-1234567-1"
+              value={forgotCnic} onChange={e => { setForgotCnic(formatCnic(e.target.value)); setForgotError(''); }}
+              maxLength={15}
+              autoFocus
+              onKeyDown={e => e.key === 'Enter' && handleForgotSubmit()}
+              style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${forgotError ? '#DC2626' : '#E8E6F5'}`, fontSize: 15, outline: 'none', color: '#1A1830', letterSpacing: 1, boxSizing: 'border-box', marginBottom: 6 }}
+            />
+            {forgotError && <div style={{ fontSize: 12, color: '#DC2626', marginBottom: 10 }}>{forgotError}</div>}
+            <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+              <button onClick={() => setShowForgotModal(false)} style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                Cancel
+              </button>
+              <button onClick={handleForgotSubmit} style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
