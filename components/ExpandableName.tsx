@@ -17,7 +17,7 @@ export default function ExpandableName({ name, style, className }: { name: strin
         ...style,
         cursor: 'pointer',
         ...(expanded
-          ? { whiteSpace: 'normal', overflow: 'visible', textOverflow: 'clip', wordBreak: 'break-word' }
+          ? { whiteSpace: 'normal', overflow: 'visible', textOverflow: 'clip', wordBreak: 'break-word', minWidth: 0, flex: '1 1 auto' }
           : { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: '1 1 auto' }),
       }}
       title={expanded ? undefined : name} // native tooltip as a bonus on devices/browsers that support hover
