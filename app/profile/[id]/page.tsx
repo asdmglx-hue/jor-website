@@ -111,10 +111,11 @@ export default async function ProposalDetailPage({ params }: Props) {
                 </div>
               )}
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4, minWidth: 0 }}>
                   <ExpandableName
                     name={p.name}
-                    style={{ fontSize: 22, fontWeight: 900, color: '#1A1830', margin: 0 }}
+                    className="profile-name"
+                    style={{ fontWeight: 900, color: '#1A1830', margin: 0 }}
                   />
                   {isFeatured && (
                     <span style={{ background: '#E8620A', color: '#fff', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20, letterSpacing: 0.5, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
