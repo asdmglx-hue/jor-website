@@ -1,12 +1,22 @@
 {
-  // Tells Cloudflare Workers "this deployment is just static files, serve
-  // them directly" — no Worker script needed, since the site has no
-  // server-side logic left after the static export conversion. This is
-  // Cloudflare's current recommended path for static sites (Workers with
-  // static assets), which their build system expects to find here.
+  // This deployment now runs a small Worker script (worker.js) in front of
+  // the static site. For every request it either handles the one CNIC
+  // upload route itself, or passes the request straight through to the
+  // static files exactly as before — normal pages are unaffected.
   "name": "jor-website",
   "compatibility_date": "2026-01-01",
+  "main": "worker.js",
   "assets": {
-    "directory": "./out"
-  }
+    "directory": "./out",
+    "binding": "ASSETS"
+  },
+  "r2_buckets": [
+    {
+      // Same bucket the admin app already uploads CNIC/profile photos to —
+      // this binding grants access without any access key or secret ever
+      // being written into this file or the deployed website code.
+      "binding": "CNIC_BUCKET",
+      "bucket_name": "proposal-photos"
+    }
+  ]
 }

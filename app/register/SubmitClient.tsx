@@ -827,19 +827,32 @@ export default function SubmitClient() {
       if (pd) { const { data: url } = supabase.storage.from('profile-photos').getPublicUrl(pd.path); profilePhotoUrl = url.publicUrl; }
     }
 
-    // Upload CNIC photos
+    // Upload CNIC photos — via secure server-side R2 upload endpoint (not
+    // client-side Supabase Storage), since CNIC images must go through a
+    // credential-free Worker binding rather than any key exposed to the browser.
     let cnicFrontUrl: string | undefined;
     let cnicBackUrl: string | undefined;
     const cleanCnic = `${digits.slice(0,5)}-${digits.slice(5,12)}-${digits.slice(12)}`;
-    if (cnicFront) {
-      const ext = cnicFront.name.split('.').pop();
-      const { data: fd } = await supabase.storage.from('cnic-photos').upload(`${cleanCnic}/front.${ext}`, cnicFront, { upsert: true });
-      if (fd) { const { data: url } = supabase.storage.from('cnic-photos').getPublicUrl(fd.path); cnicFrontUrl = url.publicUrl; }
-    }
-    if (cnicBack) {
-      const ext = cnicBack.name.split('.').pop();
-      const { data: bd } = await supabase.storage.from('cnic-photos').upload(`${cleanCnic}/back.${ext}`, cnicBack, { upsert: true });
-      if (bd) { const { data: url } = supabase.storage.from('cnic-photos').getPublicUrl(bd.path); cnicBackUrl = url.publicUrl; }
+    if (cnicFront && cnicBack) {
+      const uploadForm = new FormData();
+      uploadForm.append('cnic', digits);
+      uploadForm.append('front', cnicFront);
+      uploadForm.append('back', cnicBack);
+      try {
+        const res = await fetch('/api/upload-cnic', { method: 'POST', body: uploadForm });
+        const uploaded = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setError(uploaded.error || 'Failed to upload CNIC photos. Please try again.');
+          setSubmitting(false);
+          return;
+        }
+        cnicFrontUrl = uploaded.front;
+        cnicBackUrl = uploaded.back;
+      } catch {
+        setError('Failed to upload CNIC photos. Please check your connection and try again.');
+        setSubmitting(false);
+        return;
+      }
     }
 
     const { success, error: apiErr } = await submitProposal({
