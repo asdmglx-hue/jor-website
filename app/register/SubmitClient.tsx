@@ -653,6 +653,8 @@ type FormData = {
   phone_dial_code: string; phone2_dial_code: string;
   // Step 3
   cnic: string; password: string; confirm_password: string;
+  // Step 5 (Review)
+  affiliate: string;
 };
 
 const EMPTY: FormData = {
@@ -681,6 +683,7 @@ const EMPTY: FormData = {
   lifestyle: '', smoker: '',
   phone_dial_code: '+92', phone2_dial_code: '+92',
   cnic: '', password: '', confirm_password: '',
+  affiliate: '',
 };
 
 const DRAFT_KEY = 'jor_submit_draft';
@@ -911,6 +914,7 @@ export default function SubmitClient() {
       profile_photo_url: profilePhotoUrl,
       cnic_front_url: cnicFrontUrl,
       cnic_back_url: cnicBackUrl,
+      affiliate_code: form.affiliate.trim() ? form.affiliate.trim().toUpperCase() : undefined,
     });
 
     setSubmitting(false);
@@ -1562,6 +1566,16 @@ export default function SubmitClient() {
                   }
                 </div>
               ))}
+
+              <SecHeader title="AFFILIATE REFERRAL" />
+              <Field label="Referral Code (Optional)">
+                <input
+                  value={form.affiliate}
+                  style={inp}
+                  placeholder="Enter referral code if you have one"
+                  onChange={e => set('affiliate', e.target.value.toUpperCase())}
+                />
+              </Field>
 
               <div style={{ marginTop: 16, background: '#EEEDFE', border: '1px solid #534AB733', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
                 By submitting your proposal, it will be reviewed by our team and published within 24 hours. If you haven't paid yet, please complete the payment.

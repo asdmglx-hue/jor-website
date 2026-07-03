@@ -75,6 +75,7 @@ export type Proposal = {
   cnic?: string;
   cnic_front_url?: string;
   cnic_back_url?: string;
+  affiliate_code?: string;
   has_disability?: boolean;
   disability_details?: string;
   smokes?: boolean;
