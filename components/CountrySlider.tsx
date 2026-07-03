@@ -87,18 +87,27 @@ export default function CountrySlider({ countries }: { countries: { country: str
   }, [countries]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    isDraggingRef.current = true;
     hasDraggedRef.current = false;
     dragStartXRef.current = e.clientX;
     dragStartPosRef.current = posRef.current;
-    setPaused(true);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    // Deliberately NOT setting isDraggingRef/paused here — see
+    // handlePointerMove. Doing it on press alone meant even a simple
+    // click (with a pixel or two of natural hand tremor before release)
+    // could get misread as a drag and have its navigation suppressed.
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDraggingRef.current || !trackRef.current) return;
+    if (!trackRef.current) return;
     const deltaX = e.clientX - dragStartXRef.current; // this track moves the opposite way, so delta direction flips vs CitySlider
-    if (Math.abs(deltaX) > 3) hasDraggedRef.current = true;
+    if (!isDraggingRef.current) {
+      // Only start actually dragging once movement clearly exceeds
+      // normal click jitter — a real, deliberate drag, not a shaky click.
+      if (Math.abs(deltaX) < 8) return;
+      isDraggingRef.current = true;
+      hasDraggedRef.current = true;
+      setPaused(true);
+    }
     const half = trackRef.current.scrollWidth / 2;
     // Keep position in (-half, 0], matching this track's own convention.
     let next = (dragStartPosRef.current + deltaX) % half;
@@ -108,8 +117,8 @@ export default function CountrySlider({ countries }: { countries: { country: str
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    if (isDraggingRef.current) setPaused(false);
     isDraggingRef.current = false;
-    setPaused(false);
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
   };
 
