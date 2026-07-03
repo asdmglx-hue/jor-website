@@ -32,14 +32,13 @@ const PROFESSIONS: Record<string, string[]> = {
 };
 
 const PAKISTAN_CITIES: Record<string, string[]> = {
-  'Punjab': ['Lahore','Faisalabad','Rawalpindi','Multan','Gujranwala','Sialkot','Bahawalpur','Sargodha','Sheikhupura','Rahim Yar Khan','Jhelum','Gujrat','Okara','Sahiwal','Khanewal','Vehari','Kasur','Dera Ghazi Khan','Layyah','Mianwali','Bhakkar','Toba Tek Singh','Chiniot','Hafizabad','Lodhran','Muzaffargarh','Rajanpur','Pakpattan','Narowal','Attock','Chakwal','Murree','Talagang','Fort Abbas','Haroonabad','Hasilpur','Arifwala','Kallar Kahar','Mailsi','Kot Addu','Kabirwala','Samundri','Phalia','Kharian','Wazirabad','Shorkot','Jampur','Khanpur','Shakargarh','Daska','Kamoke'],
-  'Sindh': ['Karachi','Hyderabad','Sukkur','Larkana','Mirpur Khas','Khairpur','Nawabshah','Badin','Thatta','Jamshoro','Sanghar','Ghotki','Jacobabad','Shikarpur','Dadu','Umerkot','Tando Adam','Tando Allahyar','Sehwan Sharif','Shahdadkot','Mithi','Kandhkot','Kotri','Mirwah','Matli','Khipro','Tharparkar'],
-  'Khyber Pakhtunkhwa': ['Peshawar','Mardan','Mingora','Abbottabad','Kohat','Dera Ismail Khan','Bannu','Chitral','Mansehra','Haripur','Swabi','Nowshera','Charsadda','Batkhela','Shangla','Hangu','Timergara','Dir Upper','Karak','Lakki Marwat','Tank','Parachinar','Jamrud','Kohistan'],
-  'Balochistan': ['Quetta','Gwadar','Turbat','Khuzdar','Chaman','Sibi','Zhob','Hub','Killa Saifullah','Dera Murad Jamali','Awaran','Panjgur','Kharan','Washuk','Loralai','Mastung','Ziarat','Pasni','Ormara','Jaffarabad'],
+  'Punjab': ['Lahore','Faisalabad','Rawalpindi','Multan','Gujranwala','Sialkot','Bahawalpur','Sargodha','Sheikhupura','Rahim Yar Khan','Jhelum','Gujrat','Okara','Sahiwal','Khanewal','Vehari','Kasur','Dera Ghazi Khan','Layyah','Mianwali','Bhakkar','Toba Tek Singh','Chiniot','Hafizabad','Lodhran','Muzaffargarh','Rajanpur','Bahawalnagar','Pasrur','Wazirabad','Pakpattan','Narowal','Attock','Chakwal','Murree','Jhang','Wah Cantonment','Burewala','Kamoke','Sadiqabad','Muridke','Khanpur','Mandi Bahauddin','Daska','Gojra','Ahmedpur East','Chishtian','Samundri','Ferozwala','Jaranwala','Hasilpur','Kamalia','Kot Abdul Malik','Arif Wala','Gujranwala Cantonment','Jampur','Jatoi','Shujabad','Haroonabad','Jalalpur Jattan','Kot Addu','Mian Channu','Khushab','Taxila','Shakargarh','Mailsi','Dipalpur','Haveli Lakha','Lala Musa','Sambrial','Bhalwal','Taunsa','Phool Nagar','Pattoki','Jauharabad','Chichawatni','Farooqabad','Sangla Hill','Gujar Khan','Kharian','Kot Radha Kishan','Ludhewala Waraich','Renala Khurd'],
+  'Sindh': ['Karachi','Hyderabad','Sukkur','Larkana','Mirpur Khas','Khairpur','Nawabshah','Badin','Thatta','Jamshoro','Sanghar','Ghotki','Jacobabad','Shikarpur','Dadu','Tando Adam','Tando Allahyar','Bholari','Umerkot','Moro','Shahdadkot','Tando Muhammad Khan','Shahdadpur','Kamber Ali Khan','Kotri'],
+  'KPK': ['Peshawar','Mardan','Mingora','Abbottabad','Kohat','Dera Ismail Khan','Bannu','Chitral','Mansehra','Haripur','Swabi','Nowshera','Charsadda','Kabal','Barikot','Shabqadar'],
+  'Balochistan': ['Quetta','Gwadar','Turbat','Khuzdar','Chaman','Sibi','Zhob','Hub','Panjgur','Pishin','Dera Murad Jamali'],
   'Islamabad': ['Islamabad'],
-  'Gilgit Baltistan': ['Gilgit','Skardu','Hunza','Chilas','Khaplu','Shigar','Astore','Nagar'],
-  'Azad Kashmir': ['Muzaffarabad','Mirpur','Rawalakot','Kotli','Bagh','Neelum Valley','Haveli'],
-  'Other': ['Other'],
+  'Gilgit Baltistan': ['Gilgit','Skardu','Hunza'],
+  'Azad Kashmir': ['Muzaffarabad','Mirpur','Rawalakot','Kotli','Bagh'],
 };
 
 
