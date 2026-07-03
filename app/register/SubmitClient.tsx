@@ -1112,7 +1112,7 @@ export default function SubmitClient() {
             </Field>
 
             <Field label="House" required>
-              <Sel value={form.home_type} onChange={v => set('home_type', v)} options={HOME_TYPES} placeholder="Select House Type" hasError={errorField === 'home_type'} />
+              <Sel value={form.home_type} onChange={v => set('home_type', v)} options={HOME_TYPES} placeholder="Select" hasError={errorField === 'home_type'} />
             </Field>
             {form.home_type && (
               <SubSection>
