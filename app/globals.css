@@ -153,6 +153,13 @@ body {
   top: 80px;
 }
 
+/* Name font size lives here (not inline) specifically so the mobile
+   media query below can shrink it — only this element, only on mobile,
+   nothing else on the page or on desktop is touched. */
+.profile-name {
+  font-size: 22px;
+}
+
 /* Hero stats */
 .hero-stats {
   display: flex;
@@ -322,6 +329,9 @@ body {
   }
   .proposal-sidebar {
     position: static;
+  }
+  .profile-name {
+    font-size: 18px;
   }
 
   /* Hero stats — tighter on mobile */
