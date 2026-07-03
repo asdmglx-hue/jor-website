@@ -6,6 +6,7 @@ import Link from 'next/link';
 import PhotoLightbox from '@/components/PhotoLightbox';
 import ContactButtons from '@/components/ContactButtons';
 import ShareButton from '@/components/ShareButton';
+import SaveButton from '@/components/SaveButton';
 import ExpandableName from '@/components/ExpandableName';
 
 type Props = { params: Promise<{ id: string }> };
@@ -103,6 +104,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                 FEATURED
               </span>
             )}
+            <SaveButton proposalId={p.id} />
             <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
               {/* Photo */}
               {p.profile_photo_url ? (

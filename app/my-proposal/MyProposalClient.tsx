@@ -367,7 +367,7 @@ export default function MyProposalClient() {
       </div>
 
       {/* Profile card */}
-      <div style={{ background: user.is_boosted ? '#FFFBF5' : '#fff', border: `1px solid ${user.is_boosted ? '#E8620A44' : '#E8E6F5'}`, borderRadius: 20, padding: '20px', marginBottom: 16, display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+      <div style={{ background: user.is_boosted ? '#FFFBF5' : '#fff', border: `1px solid ${user.is_boosted ? '#E8620A44' : '#E8E6F5'}`, borderRadius: 20, padding: '20px', marginBottom: 16, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
         <div className="my-account-left" style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
           <div onClick={() => photoInputRef.current?.click()} style={{ position: 'relative', width: 72, height: 72, borderRadius: 36, flexShrink: 0, cursor: 'pointer' }}>
             <div style={{ width: 72, height: 72, borderRadius: 36, background: user.gender === 'Male' ? '#534AB7' : '#E11D48', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, color: '#fff', fontWeight: 900, overflow: 'hidden' }}>

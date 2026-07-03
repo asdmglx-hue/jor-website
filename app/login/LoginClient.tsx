@@ -126,7 +126,7 @@ export default function LoginClient() {
       {showForgotModal && (
         <div onClick={() => setShowForgotModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 380, padding: 24 }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830', marginBottom: 4 }}>Forgot Password</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: '#534AB7', marginBottom: 4 }}>Forgot Password</div>
             <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 16, lineHeight: 1.5 }}>
               Enter your CNIC number and we&apos;ll reach out on WhatsApp to help reset your password.
             </div>
