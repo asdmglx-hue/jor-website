@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getSession, clearSession, saveSession } from '@/lib/auth';
 import { updateProposal } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
@@ -15,8 +16,11 @@ export default function Navbar() {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const s = getSession();
@@ -57,7 +61,7 @@ export default function Navbar() {
     window.location.href = '/';
   };
 
-  return (
+  const navContent = (
     <nav style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
@@ -155,8 +159,13 @@ export default function Navbar() {
         </div>
       </div>
       <div className="nav-gradient-bar" />
+    </nav>
+  );
 
-      {showPasswordModal && (
+  return (
+    <>
+      {navContent}
+      {mounted && showPasswordModal && createPortal(
         <div onClick={() => setShowPasswordModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 380, padding: 24 }}>
             <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830', marginBottom: 16 }}>Change Password</div>
@@ -194,8 +203,9 @@ export default function Navbar() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </nav>
+    </>
   );
 }
