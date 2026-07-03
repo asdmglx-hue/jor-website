@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { normalizeCountry } from './constants';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -257,7 +258,10 @@ export async function fetchCountryCounts(): Promise<Record<string, number>> {
   );
   const counts: Record<string, number> = {};
   for (const row of data) {
-    if (row.country) counts[row.country] = (counts[row.country] || 0) + 1;
+    if (row.country) {
+      const c = normalizeCountry(row.country);
+      counts[c] = (counts[c] || 0) + 1;
+    }
   }
   return counts;
 }

@@ -54,3 +54,20 @@ export const PROFESSIONS = [
   'Teacher','Telecom Engineer','Trader','UI/UX Designer','Web Developer',
   'Businessman','Housewife','Student','Other',
 ];
+
+// Countries aren't a fixed list like cities (they're whatever's actually
+// in the data), so instead of a closed set, this normalizes known
+// abbreviations to their full name — otherwise "UK" and "United Kingdom"
+// silently count as two different countries anywhere this data gets
+// aggregated (the homepage's country slider, the overseas SEO pages).
+// Add more pairs here if the same pattern shows up for another country.
+const COUNTRY_ALIASES: Record<string, string> = {
+  'UK': 'United Kingdom',
+  'USA': 'United States',
+  'UAE': 'United Arab Emirates',
+};
+
+export function normalizeCountry(country: string): string {
+  return COUNTRY_ALIASES[country] || country;
+}
+

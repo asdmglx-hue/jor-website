@@ -1,5 +1,5 @@
 import { supabase, fetchAllRows, CARD_COLS } from '@/lib/supabase';
-import { CITIES as VALID_CITY_NAMES } from '@/lib/constants';
+import { CITIES as VALID_CITY_NAMES, normalizeCountry } from '@/lib/constants';
 import Link from 'next/link';
 import Image from 'next/image';
 import ProposalCard from '@/components/ProposalCard';
@@ -62,7 +62,10 @@ async function getCountries(): Promise<{ country: string; count: number }[]> {
   );
   const counts: Record<string, number> = {};
   for (const row of data) {
-    if (row.country) counts[row.country] = (counts[row.country] || 0) + 1;
+    if (row.country) {
+      const c = normalizeCountry(row.country);
+      counts[c] = (counts[c] || 0) + 1;
+    }
   }
   return Object.entries(counts)
     .map(([country, count]) => ({ country, count }))
