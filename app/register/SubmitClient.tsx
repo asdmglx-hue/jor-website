@@ -952,11 +952,8 @@ export default function SubmitClient() {
       </div>
       <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Proposal Submitted!</h2>
       <p style={{ color: '#6B6893', marginBottom: 24, lineHeight: 1.6 }}>
-        Your proposal has been received and is under review. It will be published within 24 hours once approved.
+        Your proposal has been received and is under review. It will be published within 24 hours once approved. If you haven't paid yet, please complete the payment.
       </p>
-      <div style={{ background: '#EEEDFE', border: '1px solid #534AB733', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#534AB7', lineHeight: 1.6, marginBottom: 24, textAlign: 'left' }}>
-        If you haven't paid yet, please complete the payment.
-      </div>
       <a href="/" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: 12, background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>
         Back to Home
       </a>
