@@ -6,6 +6,7 @@ import Link from 'next/link';
 import PhotoLightbox from '@/components/PhotoLightbox';
 import ContactButtons from '@/components/ContactButtons';
 import ShareButton from '@/components/ShareButton';
+import ExpandableName from '@/components/ExpandableName';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -111,9 +112,10 @@ export default async function ProposalDetailPage({ params }: Props) {
               )}
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, minWidth: 0 }}>
-                  <h1 style={{ fontSize: 22, fontWeight: 900, color: '#1A1830', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
-                    {p.name}
-                  </h1>
+                  <ExpandableName
+                    name={p.name}
+                    style={{ fontSize: 22, fontWeight: 900, color: '#1A1830', margin: 0 }}
+                  />
                   {isFeatured && (
                     <span style={{ background: '#E8620A', color: '#fff', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20, letterSpacing: 0.5, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
