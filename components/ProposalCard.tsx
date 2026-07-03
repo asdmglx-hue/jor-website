@@ -69,6 +69,9 @@ export default function ProposalCard({ proposal: p, onNotInterested }: Props) {
     const session = getSession();
     setIsActive(session ? isSubscriptionActive(session) : false);
     if (getNotInterestedIds().includes(p.id)) setDismissed(true);
+    const onSynced = () => setSaved(getSavedIds().includes(p.id));
+    window.addEventListener('jor:saved-synced', onSynced);
+    return () => window.removeEventListener('jor:saved-synced', onSynced);
   }, [p.id]);
 
   const handleSave = (e: React.MouseEvent) => {

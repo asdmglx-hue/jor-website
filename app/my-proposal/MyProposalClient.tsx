@@ -243,6 +243,9 @@ export default function MyProposalClient() {
     if (!session) { router.replace('/login'); return; }
     setUser(session);
     setSavedIds(getSavedIds());
+    if (session.id) {
+      import('@/lib/auth').then(m => m.syncSavedFromServer(session.id).then(ids => setSavedIds(ids)));
+    }
     // Always fetch fresh data so status/plans changes are reflected
     supabase.from('proposals').select('*').eq('id', session.id).maybeSingle().then(({ data }) => {
       if (data) {
