@@ -20,12 +20,11 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => { setMounted(true); }, []);
-
   useEffect(() => {
     const s = getSession();
     setUser(s ? { name: s.name, profile_photo_url: s.profile_photo_url, gender: s.gender } : null);
     if (s?.id) syncSavedFromServer(s.id);
+    setMounted(true);
   }, [pathname]);
 
   const openPasswordModal = () => {
@@ -75,7 +74,7 @@ export default function Navbar() {
           <Link href="/proposals" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: pathname.startsWith('/proposals') ? '#EEEDFE' : 'transparent', color: '#534AB7' }}>Browse Proposals</Link>
           <Link href="/plans" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: pathname.startsWith('/plans') ? '#EEEDFE' : 'transparent', color: '#534AB7' }}>Plans</Link>
 
-          {user ? (
+          {mounted && (user ? (
             <div style={{ position: 'relative' }}>
               <button onClick={() => setMenuOpen(menuOpen === 'desktop' ? false : 'desktop')} style={{
                 display: 'flex', alignItems: 'center', gap: 7, padding: '5px 12px 5px 5px', borderRadius: 10,
@@ -98,9 +97,9 @@ export default function Navbar() {
             </div>
           ) : (
             <Link href="/login" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, color: '#1A1830', fontSize: 13, fontWeight: 700, border: '1.5px solid #E8E6F5' }}>Login</Link>
-          )}
+          ))}
 
-          {!user && (
+          {mounted && !user && (
             <Link href="/register" style={{ textDecoration: 'none', padding: '8px 18px', borderRadius: 10, background: '#534AB7', color: '#fff', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(83,74,183,0.25)' }}>
               Register
             </Link>
@@ -110,7 +109,7 @@ export default function Navbar() {
         {/* Mobile nav — avatar/login + hamburger */}
         <div className="nav-mobile" style={{ display: 'none', alignItems: 'center', gap: 8 }}>
 
-          {user ? (
+          {mounted && (user ? (
             <div style={{ position: 'relative' }}>
               <button onClick={() => setMenuOpen(menuOpen === 'user' ? false : 'user')} style={{
                 display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px 4px 4px', borderRadius: 10,
@@ -136,7 +135,7 @@ export default function Navbar() {
               <Link href="/login" style={{ textDecoration: 'none', padding: '7px 12px', borderRadius: 10, color: '#1A1830', fontSize: 13, fontWeight: 700, border: '1.5px solid #E8E6F5' }}>Login</Link>
               <Link href="/register" style={{ textDecoration: 'none', padding: '7px 14px', borderRadius: 10, background: '#534AB7', color: '#fff', fontSize: 13, fontWeight: 700 }}>Register</Link>
             </>
-          )}
+          ))}
 
           {/* Hamburger dropdown — Browse & Plans */}
           <div style={{ position: 'relative' }}>
