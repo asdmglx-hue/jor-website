@@ -398,7 +398,7 @@ export default function MyProposalClient() {
           </div>
         </div>
         <div className="my-account-right" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-          {user.proposal_number && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', lineHeight: '28px' }}>#{user.proposal_number}</div>}
+          {user.proposal_number && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', alignSelf: 'flex-end' }}>#{user.proposal_number}</div>}
           <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', alignItems: 'center' }}>
             {/* View */}
             {(['Active','Featured'].includes(getStatusLabel(user, hasFeaturedBoost))) && <Link href={`/profile/${user.proposal_number}`}
@@ -806,7 +806,7 @@ export default function MyProposalClient() {
                 </>))}
 
                 {sec('Health & Lifestyle', grid(<>
-                  <Field label="Lifestyle" fieldKey="physically_active" options={['Active Living','Sedentary Living','Balance']} />
+                  <Field label="Lifestyle" fieldKey="physically_active" options={['Active Living','Moderately Active','Sedentary Living']} />
                   <BoolField label="Smoker" fieldKey="smokes" />
                   <BoolField label="Disability / Chronic Illness" fieldKey="has_disability" />
                   {user.has_disability && (() => {
