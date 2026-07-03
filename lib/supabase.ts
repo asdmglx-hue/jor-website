@@ -160,6 +160,19 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   return { proposals: (data as Proposal[]) || [], total: count || 0 };
 }
 
+// Fetches a single proposal at `offset` in the same "most recently posted"
+// order as the homepage's Recently Added section — used to backfill a
+// replacement card when one gets dismissed as not interested.
+export async function fetchRecentProposalAt(offset: number): Promise<Proposal | null> {
+  const { data } = await supabase
+    .from('proposals')
+    .select(CARD_COLS)
+    .eq('status', 'active')
+    .order('posted_at', { ascending: false })
+    .range(offset, offset);
+  return (data && data[0]) ? (data[0] as Proposal) : null;
+}
+
 // Supabase silently caps any query at 1000 rows by default — a query with
 // no .range()/.limit() doesn't error when there's more data than that, it
 // just quietly returns the first 1000 and stops. This is exactly what

@@ -2,7 +2,7 @@ import { supabase, fetchAllRows, CARD_COLS } from '@/lib/supabase';
 import { CITIES as VALID_CITY_NAMES, normalizeCountry } from '@/lib/constants';
 import Link from 'next/link';
 import Image from 'next/image';
-import ProposalCard from '@/components/ProposalCard';
+import RecentProposals from '@/components/RecentProposals';
 import CitySlider from '@/components/CitySlider';
 import CountrySlider from '@/components/CountrySlider';
 import PostRishtaButton from '@/components/PostRishtaButton';
@@ -223,9 +223,7 @@ export default async function HomePage() {
           <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1A1830' }}>Recently Added</h2>
           <Link href="/proposals" style={{ fontSize: 13, color: '#534AB7', fontWeight: 700, textDecoration: 'none' }}>View all →</Link>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
-          {recent.map(p => <ProposalCard key={p.id} proposal={p} />)}
-        </div>
+        <RecentProposals initial={recent} />
       </section>
 
       {/* How it works */}

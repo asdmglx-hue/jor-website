@@ -48,8 +48,47 @@ export default function ProposalsClient() {
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
   const loadingMoreRef = useRef(false);
+  const pageRef = useRef(0);
+  const totalRef = useRef(0);
+  const proposalsLenRef = useRef(0);
+  const proposalsRef = useRef<Proposal[]>([]);
 
-  useEffect(() => { setNotInterestedIds(getNotInterestedIds()); }, []);
+  // Fetches `count` replacement proposals to keep the grid full whenever
+  // cards get filtered out for being "not interested" — pulls from right
+  // after everything already loaded, skipping dupes and dismissed ids.
+  const backfill = useCallback(async (count: number) => {
+    if (count <= 0) return;
+    const dismissed = getNotInterestedIds();
+    const existingIds = new Set(proposalsRef.current.map(p => p.id));
+    const results: Proposal[] = [];
+    let offset = proposalsLenRef.current;
+    let guard = 0; // safety cap so a bad state can't loop forever
+    while (results.length < count && offset < totalRef.current && guard < count + 20) {
+      const { proposals: data } = await fetchProposals(filtersRef.current, offset, 1);
+      offset += 1;
+      guard += 1;
+      const item = data[0];
+      if (!item) break;
+      if (dismissed.includes(item.id) || existingIds.has(item.id)) continue;
+      results.push(item);
+      existingIds.add(item.id);
+    }
+    if (results.length) setProposals(prev => [...prev, ...results]);
+  }, []);
+
+  useEffect(() => {
+    setNotInterestedIds(getNotInterestedIds());
+    const onSynced = () => {
+      const freshIds = getNotInterestedIds();
+      setNotInterestedIds(prevIds => {
+        const newlyHidden = freshIds.filter(id => !prevIds.includes(id) && proposalsRef.current.some(p => p.id === id));
+        if (newlyHidden.length) backfill(newlyHidden.length);
+        return freshIds;
+      });
+    };
+    window.addEventListener('jor:not-interested-synced', onSynced);
+    return () => window.removeEventListener('jor:not-interested-synced', onSynced);
+  }, [backfill]);
 
   const load = useCallback(async (f: FilterState, p: number, append = false) => {
     if (!append) setLoading(true);
@@ -70,12 +109,10 @@ export default function ProposalsClient() {
 
   useEffect(() => { setPage(0); load(filters, 0); }, [filters, load]);
 
-  const pageRef = useRef(0);
-  const totalRef = useRef(0);
-  const proposalsLenRef = useRef(0);
   useEffect(() => { pageRef.current = page; }, [page]);
   useEffect(() => { totalRef.current = total; }, [total]);
   useEffect(() => { proposalsLenRef.current = proposals.length; }, [proposals.length]);
+  useEffect(() => { proposalsRef.current = proposals; }, [proposals]);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -154,7 +191,10 @@ export default function ProposalsClient() {
     setLoadingSaved(false);
   };
 
-  const handleNotInterested = (id: string) => setNotInterestedIds(addNotInterested(id));
+  const handleNotInterested = (id: string) => {
+    setNotInterestedIds(addNotInterested(id));
+    backfill(1);
+  };
   const visible = proposals.filter(p => !notInterestedIds.includes(p.id));
 
   return (

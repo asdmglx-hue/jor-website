@@ -4,6 +4,7 @@ import { getSavedIds, toggleSaved, addNotInterested, getNotInterestedIds, getSes
 import { buildProposalShareText } from '@/lib/shareText';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import ExpandableName from './ExpandableName';
 
 function Avatar({ name, photoUrl, size = 56, locked = false }: { name: string; photoUrl?: string; size?: number; locked?: boolean }) {
@@ -64,6 +65,10 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
   const [dismissed, setDismissed] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     setSaved(getSavedIds().includes(p.id));
@@ -90,9 +95,13 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
 
   const handleNotInterested = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
-    if (!window.confirm("We won't show you this profile for the next 30 days. Continue?")) return;
+    setShowConfirm(true);
+  };
+
+  const confirmNotInterested = () => {
     addNotInterested(p.id);
     setDismissed(true);
+    setShowConfirm(false);
     onNotInterested?.(p.id);
   };
 
@@ -112,7 +121,8 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
   if (dismissed) return null;
 
   return (
-    <Link href={`/profile/${p.proposal_number}`} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <>
+      <Link href={`/profile/${p.proposal_number}`} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="card-hover" style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 20, padding: '14px', cursor: 'pointer', position: 'relative', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
         {isFeatured && (
           <div style={{ position: 'absolute', top: 12, right: 12, background: '#E8620A', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 20, letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -199,6 +209,27 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
           </div>
         </div>
       </div>
-    </Link>
+      </Link>
+
+      {mounted && showConfirm && createPortal(
+        <div onClick={(e) => { e.stopPropagation(); setShowConfirm(false); }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 360, padding: 24 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830', marginBottom: 10 }}>Not Interested?</div>
+            <div style={{ fontSize: 14, color: '#6B6893', marginBottom: 20, lineHeight: 1.5 }}>
+              We won&apos;t show you this profile for the next 30 days. Continue?
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowConfirm(false); }} style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                Cancel
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); e.preventDefault(); confirmNotInterested(); }} style={{ flex: 1, padding: '11px', borderRadius: 12, border: 'none', background: '#DC2626', color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
