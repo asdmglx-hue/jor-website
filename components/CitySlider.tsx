@@ -7,12 +7,12 @@ export default function CitySlider({ cities }: { cities: { city: string; count: 
   const posRef = useRef(0);
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
+  const [isDragging, setIsDragging] = useState(false); // real React state now, purely for the cursor style
 
   // Drag state — a hold-and-drag pauses the auto-scroll and lets the user
   // manually move the track; releasing resumes auto-scroll from wherever
   // it was left, rather than snapping back or restarting.
   const isDraggingRef = useRef(false);
-  const isPointerDownRef = useRef(false); // true only while the pointer is actually held — without this, plain hovering (no press at all) was being misread as a drag
   const dragStartXRef = useRef(0);
   const dragStartPosRef = useRef(0);
   const hasDraggedRef = useRef(false); // distinguishes a real drag from a simple click
@@ -39,51 +39,62 @@ export default function CitySlider({ cities }: { cities: { city: string; count: 
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  const handlePointerDown = (e: React.PointerEvent) => {
-    isPointerDownRef.current = true;
-    hasDraggedRef.current = false;
-    dragStartXRef.current = e.clientX;
-    dragStartPosRef.current = posRef.current;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    // Deliberately NOT setting isDraggingRef/paused here — see
-    // handlePointerMove. Doing it on press alone meant even a simple
-    // click (with a pixel or two of natural hand tremor before release)
-    // could get misread as a drag and have its navigation suppressed.
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    // Without this check, this fires on every mouse movement over the
-    // slider — including just hovering with no press at all — which was
-    // being misread as a drag purely from ordinary mouse travel.
-    if (!isPointerDownRef.current || !trackRef.current) return;
-    const deltaX = dragStartXRef.current - e.clientX; // dragging left → content moves left, matches natural drag feel
-    if (!isDraggingRef.current) {
-      // Only start actually dragging once movement clearly exceeds
-      // normal click jitter — a real, deliberate drag, not a shaky click.
-      if (Math.abs(deltaX) < 8) return;
-      isDraggingRef.current = true;
-      hasDraggedRef.current = true;
-      setPaused(true);
-    }
+  // Global (window-level) listeners, only attached while a real drag is
+  // in progress — added in handlePointerDown's move check below, removed
+  // on release. Deliberately NOT using setPointerCapture: capturing the
+  // pointer on this container can, in some browsers, prevent the click
+  // that follows from ever reaching the Link nested inside it — which is
+  // exactly what broke click-to-filter last time. Global listeners give
+  // the same "keep tracking even if the cursor leaves the slider" benefit
+  // without that side effect.
+  const handleWindowPointerMove = (e: PointerEvent) => {
+    if (!trackRef.current) return;
+    const deltaX = dragStartXRef.current - e.clientX;
     const half = trackRef.current.scrollWidth / 2;
-    // Wrap correctly for drags in either direction, not just forward.
     let next = (dragStartPosRef.current + deltaX) % half;
     if (next < 0) next += half;
     posRef.current = next;
     trackRef.current.style.transform = `translateX(-${next}px)`;
   };
 
-  const handlePointerUp = (e: React.PointerEvent) => {
-    isPointerDownRef.current = false;
-    if (isDraggingRef.current) setPaused(false); // resume auto-scroll from the current position
+  const stopDragging = () => {
+    window.removeEventListener('pointermove', handleWindowPointerMove);
+    window.removeEventListener('pointerup', stopDragging);
     isDraggingRef.current = false;
-    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    setIsDragging(false);
+    setPaused(false); // resume auto-scroll from the current position
   };
 
+  const handlePointerDown = (e: React.PointerEvent) => {
+    hasDraggedRef.current = false;
+    dragStartXRef.current = e.clientX;
+    dragStartPosRef.current = posRef.current;
+    const startX = e.clientX;
+
+    // Waits for real movement before committing to a drag — a plain
+    // click never exceeds this, so it's left completely alone and
+    // reaches the Link normally.
+    const checkForDragStart = (moveEvent: PointerEvent) => {
+      if (Math.abs(moveEvent.clientX - startX) < 8) return;
+      window.removeEventListener('pointermove', checkForDragStart);
+      isDraggingRef.current = true;
+      hasDraggedRef.current = true;
+      setIsDragging(true);
+      setPaused(true);
+      window.addEventListener('pointermove', handleWindowPointerMove);
+      window.addEventListener('pointerup', stopDragging);
+    };
+    const cancelIfReleasedEarly = () => {
+      window.removeEventListener('pointermove', checkForDragStart);
+      window.removeEventListener('pointerup', cancelIfReleasedEarly);
+    };
+    window.addEventListener('pointermove', checkForDragStart);
+    window.addEventListener('pointerup', cancelIfReleasedEarly);
+  };
 
   // Prevents an accidental navigation on the Link the pointer happens to
-  // release over, but only for a genuine drag (see the 8px threshold
-  // above) — an ordinary click always passes through untouched.
+  // release over, but only for a genuine drag — an ordinary click always
+  // passes through untouched.
   const handleClickCapture = (e: React.MouseEvent) => {
     if (hasDraggedRef.current) {
       e.preventDefault();
@@ -96,13 +107,10 @@ export default function CitySlider({ cities }: { cities: { city: string; count: 
 
   return (
     <div
-      style={{ overflow: 'hidden', position: 'relative', cursor: isDraggingRef.current ? 'grabbing' : 'grab', touchAction: 'pan-y' }}
+      style={{ overflow: 'hidden', position: 'relative', cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'pan-y' }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => { if (!isDraggingRef.current) setPaused(false); }}
       onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
       onClickCapture={handleClickCapture}
     >
       <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 60, background: 'linear-gradient(to right, #F5F4FF, transparent)', zIndex: 1, pointerEvents: 'none' }} />
