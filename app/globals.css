@@ -164,13 +164,14 @@ body {
    above: font-size/padding/icon live here so the mobile query can shrink
    them independently of the desktop size. */
 .featured-badge {
-  font-size: 13px;
-  padding: 5px 14px;
-  gap: 5px;
+  font-size: 11px;
+  padding: 4px 12px;
+  gap: 4px;
+  top: -12px;
 }
 .featured-badge svg {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
 }
 
 /* Hero stats */
@@ -350,6 +351,7 @@ body {
     font-size: 9px;
     padding: 3px 9px;
     gap: 3px;
+    top: -9px;
   }
   .featured-badge svg {
     width: 8px;
