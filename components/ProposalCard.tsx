@@ -50,9 +50,10 @@ function Chip({ label, color = '#534AB7', bg = '#EEEDFE' }: { label: string; col
 type Props = {
   proposal: Proposal;
   onNotInterested?: (id: string) => void;
+  onSavedChange?: (id: string, isSaved: boolean) => void;
 };
 
-export default function ProposalCard({ proposal: p, onNotInterested }: Props) {
+export default function ProposalCard({ proposal: p, onNotInterested, onSavedChange }: Props) {
   const isFeatured = p.subscription_tier === 'featured' || p.is_boosted;
   const isBasic = p.subscription_tier === 'basic';
   const cardBorder = isFeatured ? '#E8620A44' : isBasic ? '#534AB744' : '#E8E6F5';
@@ -77,7 +78,9 @@ export default function ProposalCard({ proposal: p, onNotInterested }: Props) {
   const handleSave = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     const ids = toggleSaved(p.id);
-    setSaved(ids.includes(p.id));
+    const isSaved = ids.includes(p.id);
+    setSaved(isSaved);
+    onSavedChange?.(p.id, isSaved);
   };
 
   const handleNotInterested = (e: React.MouseEvent) => {

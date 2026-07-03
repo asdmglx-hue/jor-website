@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getSession, clearSession, getSavedIds, toggleSaved as toggleSavedFn } from '@/lib/auth';
+import { getSession, clearSession, getSavedIds } from '@/lib/auth';
 import { fetchProposalById, heightDisplay, Proposal, updateProposal, isSubscriptionActive, supabase } from '@/lib/supabase';
 import { buildProposalShareText } from '@/lib/shareText';
 import { useRouter } from 'next/navigation';
@@ -318,12 +318,6 @@ export default function MyProposalClient() {
       setTimeout(() => setSaveMsg(''), 3000);
     }
     setUploadingPhoto(false);
-  };
-
-  const handleToggleSaved = (id: string) => {
-    const newIds = toggleSavedFn(id);
-    setSavedIds(newIds);
-    if (!newIds.includes(id)) setSavedProposals(prev => prev.filter(p => p.id !== id));
   };
 
   const saveInline = async (key: string, val: unknown) => {
@@ -902,10 +896,16 @@ export default function MyProposalClient() {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
               {savedProposals.map(p => (
-                <div key={p.id} style={{ position: 'relative' }}>
-                  <ProposalCard proposal={p} />
-                  <button onClick={() => handleToggleSaved(p.id)} style={{ position: 'absolute', top: 12, right: 12, background: '#FEE2E2', border: 'none', borderRadius: 8, padding: '4px 8px', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#DC2626' }}>✕</button>
-                </div>
+                <ProposalCard
+                  key={p.id}
+                  proposal={p}
+                  onSavedChange={(id, isSaved) => {
+                    if (!isSaved) {
+                      setSavedProposals(prev => prev.filter(pr => pr.id !== id));
+                      setSavedIds(prev => prev.filter(sid => sid !== id));
+                    }
+                  }}
+                />
               ))}
             </div>
           )}
