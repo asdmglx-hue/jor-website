@@ -254,6 +254,7 @@ export async function fetchCountryCounts(): Promise<Record<string, number>> {
       .not('country', 'is', null)
       .neq('country', '')
       .neq('country', 'Pakistan')
+      .neq('country', 'Other')
       .range(from, to)
   );
   const counts: Record<string, number> = {};

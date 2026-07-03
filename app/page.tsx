@@ -58,6 +58,7 @@ async function getCountries(): Promise<{ country: string; count: number }[]> {
       .not('country', 'is', null)
       .neq('country', '')
       .neq('country', 'Pakistan')
+      .neq('country', 'Other')
       .range(from, to)
   );
   const counts: Record<string, number> = {};
