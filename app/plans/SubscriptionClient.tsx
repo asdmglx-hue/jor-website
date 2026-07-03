@@ -85,6 +85,7 @@ export default function SubscriptionClient() {
     setUser(getSession() ?? null);
     const params = new URLSearchParams(window.location.search);
     if (params.get('plan') === 'featured') setSelected(1);
+    if (params.get('plan') === 'rishta-profile') setSelected(0);
     (async () => {
       try {
         const { data } = await supabase.from('app_settings').select('key, value');
