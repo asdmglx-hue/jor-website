@@ -1,4 +1,5 @@
 import { supabase, fetchAllRows, CARD_COLS } from '@/lib/supabase';
+import { CITIES as VALID_CITY_NAMES } from '@/lib/constants';
 import Link from 'next/link';
 import Image from 'next/image';
 import ProposalCard from '@/components/ProposalCard';
@@ -14,6 +15,14 @@ export const metadata: Metadata = {
   description: "Browse thousands of verified rishta proposals across Pakistan and overseas. Filter by city, caste, sect, profession and more. Free to join, no middlemen.",
 };
 
+// The known-good set of real Pakistani cities — same list the SEO city
+// pages already use. Anything outside this (e.g. "Sydney", "Istanbul")
+// is a data-entry mistake — someone's overseas city ended up in the
+// "city" field instead of the separate country field the site already
+// has a dedicated Overseas section for. Filtering here doesn't touch the
+// underlying data, just keeps the homepage slider showing only genuine
+// Pakistani cities.
+const VALID_CITIES = new Set(VALID_CITY_NAMES.filter(c => c !== 'Other'));
 
 async function getStats() {
   const { count: total } = await supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active');
@@ -33,7 +42,7 @@ async function getCities(): Promise<{ city: string; count: number }[]> {
   );
   const counts: Record<string, number> = {};
   for (const row of data) {
-    if (row.city) counts[row.city] = (counts[row.city] || 0) + 1;
+    if (row.city && VALID_CITIES.has(row.city)) counts[row.city] = (counts[row.city] || 0) + 1;
   }
   return Object.entries(counts)
     .map(([city, count]) => ({ city, count }))
