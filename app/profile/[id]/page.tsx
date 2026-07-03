@@ -96,7 +96,7 @@ export default async function ProposalDetailPage({ params }: Props) {
             borderRadius: 20, padding: '24px', marginBottom: 16,
             boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
           }}>
-            <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
               {/* Photo */}
               {p.profile_photo_url ? (
                 <PhotoLightbox src={p.profile_photo_url} name={p.name} />
@@ -118,7 +118,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                     style={{ fontWeight: 900, color: '#1A1830', margin: 0 }}
                   />
                   {isFeatured && (
-                    <span style={{ background: '#E8620A', color: '#fff', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20, letterSpacing: 0.5, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <span style={{ background: '#E8620A', color: '#fff', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20, letterSpacing: 0.5, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: -4 }}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
                       FEATURED
                     </span>
