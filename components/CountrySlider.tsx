@@ -54,6 +54,14 @@ export default function CountrySlider({ countries }: { countries: { country: str
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
 
+  // Drag state — same idea as CitySlider, but this track's position is
+  // negative-ranging (see the animate loop below), so the wrap-around math
+  // during a drag needs to match that convention, not CitySlider's.
+  const isDraggingRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragStartPosRef = useRef(0);
+  const hasDraggedRef = useRef(false);
+
   useEffect(() => { pausedRef.current = paused; }, [paused]);
 
   useEffect(() => {
@@ -78,6 +86,41 @@ export default function CountrySlider({ countries }: { countries: { country: str
     return () => cancelAnimationFrame(raf);
   }, [countries]);
 
+  const handlePointerDown = (e: React.PointerEvent) => {
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    dragStartXRef.current = e.clientX;
+    dragStartPosRef.current = posRef.current;
+    setPaused(true);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDraggingRef.current || !trackRef.current) return;
+    const deltaX = e.clientX - dragStartXRef.current; // this track moves the opposite way, so delta direction flips vs CitySlider
+    if (Math.abs(deltaX) > 3) hasDraggedRef.current = true;
+    const half = trackRef.current.scrollWidth / 2;
+    // Keep position in (-half, 0], matching this track's own convention.
+    let next = (dragStartPosRef.current + deltaX) % half;
+    if (next > 0) next -= half;
+    posRef.current = next;
+    trackRef.current.style.transform = `translateX(${next}px)`;
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    isDraggingRef.current = false;
+    setPaused(false);
+    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+  };
+
+  const handleClickCapture = (e: React.MouseEvent) => {
+    if (hasDraggedRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      hasDraggedRef.current = false;
+    }
+  };
+
   // Repeat until at least 20 items
   const base = countries.length === 0 ? [] : countries;
   let repeated = [...base];
@@ -86,9 +129,14 @@ export default function CountrySlider({ countries }: { countries: { country: str
 
   return (
     <div
-      style={{ overflow: 'hidden', position: 'relative' }}
+      style={{ overflow: 'hidden', position: 'relative', cursor: isDraggingRef.current ? 'grabbing' : 'grab', touchAction: 'pan-y' }}
       onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onMouseLeave={() => { if (!isDraggingRef.current) setPaused(false); }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onClickCapture={handleClickCapture}
     >
       <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 60, background: 'linear-gradient(to right, #F5F4FF, transparent)', zIndex: 1, pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 60, background: 'linear-gradient(to left, #F5F4FF, transparent)', zIndex: 1, pointerEvents: 'none' }} />
@@ -99,6 +147,7 @@ export default function CountrySlider({ countries }: { countries: { country: str
             <Link
               key={i}
               href={`/proposals?country=${encodeURIComponent(item.country)}`}
+              draggable={false}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '10px 18px', borderRadius: 12,
@@ -106,6 +155,7 @@ export default function CountrySlider({ countries }: { countries: { country: str
                 color: '#534AB7', fontWeight: 700, fontSize: 14,
                 textDecoration: 'none', whiteSpace: 'nowrap',
                 boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+                userSelect: 'none',
               }}
             >
               {code && (
@@ -113,6 +163,7 @@ export default function CountrySlider({ countries }: { countries: { country: str
                   src={`https://flagcdn.com/20x15/${code}.png`}
                   width="20" height="15"
                   alt={item.country}
+                  draggable={false}
                   style={{ borderRadius: 2, objectFit: 'cover' }}
                 />
               )}
