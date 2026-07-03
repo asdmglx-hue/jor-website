@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSession, clearSession, getSavedIds, toggleSaved as toggleSavedFn } from '@/lib/auth';
 import { fetchProposalById, heightDisplay, Proposal, updateProposal, isSubscriptionActive, supabase } from '@/lib/supabase';
+import { buildProposalShareText } from '@/lib/shareText';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProposalCard from '@/components/ProposalCard';
@@ -206,6 +207,12 @@ export default function MyProposalClient() {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState('');
   const deleteReasons = [
     'I have found a proposal through Jor.',
     'I have found a proposal from an external source.',
@@ -409,7 +416,17 @@ export default function MyProposalClient() {
               <span style={{ fontSize: 10, fontWeight: 700, color: '#534AB7' }}>View</span>
             </Link>}
             {/* Share */}
-            <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/profile/${user.proposal_number}`); setSaveMsg('Profile link copied!'); setTimeout(() => setSaveMsg(''), 3000); }}
+            <button onClick={async () => {
+                const session = getSession();
+                const showFullPhone = !!session && isSubscriptionActive(session);
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                if (isMobile && navigator.share) {
+                  const text = buildProposalShareText(user, true, showFullPhone);
+                  try { await navigator.share({ text }); return; } catch { /* cancelled */ }
+                }
+                const text = buildProposalShareText(user, false, showFullPhone);
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+              }}
               style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', cursor: 'pointer' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
               <span style={{ fontSize: 10, fontWeight: 700, color: '#534AB7' }}>Share</span>
@@ -869,6 +886,57 @@ export default function MyProposalClient() {
                   <Field label="Primary Phone" fieldKey="contact_phone" type="tel" />
                   <Field label="Secondary Phone" fieldKey="contact_phone_2" type="tel" />
                 </>))}
+
+                {sec('Change Password', <>
+                  <input
+                    type="password"
+                    placeholder="Current password"
+                    value={currentPassword}
+                    onChange={e => { setCurrentPassword(e.target.value); setPasswordError(''); setPasswordSuccess(''); }}
+                    style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid #E8E6F5', fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 10 }}
+                  />
+                  <input
+                    type="password"
+                    placeholder="New password"
+                    value={newPassword}
+                    onChange={e => { setNewPassword(e.target.value); setPasswordError(''); setPasswordSuccess(''); }}
+                    style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid #E8E6F5', fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 10 }}
+                  />
+                  <input
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmNewPassword}
+                    onChange={e => { setConfirmNewPassword(e.target.value); setPasswordError(''); setPasswordSuccess(''); }}
+                    style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid #E8E6F5', fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 6 }}
+                  />
+                  {passwordError && <div style={{ fontSize: 12, color: '#DC2626', marginBottom: 10 }}>{passwordError}</div>}
+                  {passwordSuccess && <div style={{ fontSize: 12, color: '#16A34A', marginBottom: 10 }}>{passwordSuccess}</div>}
+                  <button
+                    disabled={passwordSaving}
+                    onClick={async () => {
+                      if (!user) return;
+                      setPasswordError(''); setPasswordSuccess('');
+                      if (!currentPassword.trim()) { setPasswordError('Enter your current password'); return; }
+                      if (currentPassword.trim() !== user.password) { setPasswordError('Current password is incorrect'); return; }
+                      if (!newPassword.trim() || newPassword.trim().length < 4) { setPasswordError('New password must be at least 4 characters'); return; }
+                      if (newPassword.trim() !== confirmNewPassword.trim()) { setPasswordError('New passwords do not match'); return; }
+                      setPasswordSaving(true);
+                      const ok = await updateProposal(user.id, { password: newPassword.trim() });
+                      setPasswordSaving(false);
+                      if (ok) {
+                        const updated = { ...user, password: newPassword.trim() };
+                        setUser(updated as typeof user);
+                        import('@/lib/auth').then(m => m.saveSession(updated as typeof user));
+                        setCurrentPassword(''); setNewPassword(''); setConfirmNewPassword('');
+                        setPasswordSuccess('Password updated successfully.');
+                      } else {
+                        setPasswordError('Failed to update password. Please try again.');
+                      }
+                    }}
+                    style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: passwordSaving ? '#F5F5F5' : '#534AB7', color: passwordSaving ? '#B0ADCB' : '#fff', fontWeight: 800, fontSize: 13, cursor: passwordSaving ? 'not-allowed' : 'pointer' }}>
+                    {passwordSaving ? 'Saving…' : 'Update Password'}
+                  </button>
+                </>)}
               </>
             );
           })()}
