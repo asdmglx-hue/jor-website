@@ -398,7 +398,7 @@ export default function MyProposalClient() {
           </div>
         </div>
         <div className="my-account-right" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-          {user.proposal_number && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', alignSelf: 'flex-end' }}>#{user.proposal_number}</div>}
+          {user.proposal_number && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', alignSelf: 'flex-end', marginTop: -12 }}>#{user.proposal_number}</div>}
           <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', alignItems: 'center' }}>
             {/* View */}
             {(['Active','Featured'].includes(getStatusLabel(user, hasFeaturedBoost))) && <Link href={`/profile/${user.proposal_number}`}
