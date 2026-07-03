@@ -42,6 +42,11 @@ body {
   color: #1A1830;
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  /* Safety net: if any element ever pushes wider than the viewport (like
+     the untruncated-name bug this was added alongside), clip it instead
+     of letting the whole page scroll sideways — a much less jarring
+     failure mode on mobile. */
+  overflow-x: hidden;
 }
 
 /* Custom scrollbar */

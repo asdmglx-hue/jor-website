@@ -110,8 +110,8 @@ export default async function ProposalDetailPage({ params }: Props) {
                 </div>
               )}
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <h1 style={{ fontSize: 22, fontWeight: 900, color: '#1A1830', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, minWidth: 0 }}>
+                  <h1 style={{ fontSize: 22, fontWeight: 900, color: '#1A1830', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
                     {p.name}
                   </h1>
                   {isFeatured && (
