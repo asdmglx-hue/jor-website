@@ -58,6 +58,7 @@ export default function CountrySlider({ countries }: { countries: { country: str
   // negative-ranging (see the animate loop below), so the wrap-around math
   // during a drag needs to match that convention, not CitySlider's.
   const isDraggingRef = useRef(false);
+  const isPointerDownRef = useRef(false); // true only while the pointer is actually held — without this, plain hovering (no press at all) was being misread as a drag
   const dragStartXRef = useRef(0);
   const dragStartPosRef = useRef(0);
   const hasDraggedRef = useRef(false);
@@ -87,6 +88,7 @@ export default function CountrySlider({ countries }: { countries: { country: str
   }, [countries]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    isPointerDownRef.current = true;
     hasDraggedRef.current = false;
     dragStartXRef.current = e.clientX;
     dragStartPosRef.current = posRef.current;
@@ -98,7 +100,10 @@ export default function CountrySlider({ countries }: { countries: { country: str
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!trackRef.current) return;
+    // Without this check, this fires on every mouse movement over the
+    // slider — including just hovering with no press at all — which was
+    // being misread as a drag purely from ordinary mouse travel.
+    if (!isPointerDownRef.current || !trackRef.current) return;
     const deltaX = e.clientX - dragStartXRef.current; // this track moves the opposite way, so delta direction flips vs CitySlider
     if (!isDraggingRef.current) {
       // Only start actually dragging once movement clearly exceeds
@@ -117,10 +122,12 @@ export default function CountrySlider({ countries }: { countries: { country: str
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    isPointerDownRef.current = false;
     if (isDraggingRef.current) setPaused(false);
     isDraggingRef.current = false;
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
   };
+
 
   const handleClickCapture = (e: React.MouseEvent) => {
     if (hasDraggedRef.current) {

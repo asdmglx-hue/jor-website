@@ -12,6 +12,7 @@ export default function CitySlider({ cities }: { cities: { city: string; count: 
   // manually move the track; releasing resumes auto-scroll from wherever
   // it was left, rather than snapping back or restarting.
   const isDraggingRef = useRef(false);
+  const isPointerDownRef = useRef(false); // true only while the pointer is actually held — without this, plain hovering (no press at all) was being misread as a drag
   const dragStartXRef = useRef(0);
   const dragStartPosRef = useRef(0);
   const hasDraggedRef = useRef(false); // distinguishes a real drag from a simple click
@@ -39,6 +40,7 @@ export default function CitySlider({ cities }: { cities: { city: string; count: 
   }, []);
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    isPointerDownRef.current = true;
     hasDraggedRef.current = false;
     dragStartXRef.current = e.clientX;
     dragStartPosRef.current = posRef.current;
@@ -50,7 +52,10 @@ export default function CitySlider({ cities }: { cities: { city: string; count: 
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!trackRef.current) return;
+    // Without this check, this fires on every mouse movement over the
+    // slider — including just hovering with no press at all — which was
+    // being misread as a drag purely from ordinary mouse travel.
+    if (!isPointerDownRef.current || !trackRef.current) return;
     const deltaX = dragStartXRef.current - e.clientX; // dragging left → content moves left, matches natural drag feel
     if (!isDraggingRef.current) {
       // Only start actually dragging once movement clearly exceeds
@@ -69,10 +74,12 @@ export default function CitySlider({ cities }: { cities: { city: string; count: 
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    isPointerDownRef.current = false;
     if (isDraggingRef.current) setPaused(false); // resume auto-scroll from the current position
     isDraggingRef.current = false;
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
   };
+
 
   // Prevents an accidental navigation on the Link the pointer happens to
   // release over, but only for a genuine drag (see the 8px threshold
