@@ -1578,7 +1578,7 @@ export default function SubmitClient() {
               </Field>
 
               <div style={{ marginTop: 16, background: '#EEEDFE', border: '1px solid #534AB733', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-                By submitting your proposal will be reviewed and published within 24 hours.
+                Once you submit your proposal, it will be reviewed and published within 24 hours.
               </div>
             </div>
           );
