@@ -954,6 +954,9 @@ export default function SubmitClient() {
       <p style={{ color: '#6B6893', marginBottom: 24, lineHeight: 1.6 }}>
         Your proposal has been received and is under review. It will be published within 24 hours once approved.
       </p>
+      <div style={{ background: '#EEEDFE', border: '1px solid #534AB733', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#534AB7', lineHeight: 1.6, marginBottom: 24, textAlign: 'left' }}>
+        If you haven't paid yet, please complete the payment.
+      </div>
       <a href="/" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: 12, background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>
         Back to Home
       </a>
@@ -1577,6 +1580,9 @@ export default function SubmitClient() {
                 />
               </Field>
 
+              <div style={{ marginTop: 16, background: '#EEEDFE', border: '1px solid #534AB733', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
+                By submitting your proposal, it will be reviewed by our team and published within 24 hours.
+              </div>
             </div>
           );
         })()}
