@@ -1,4 +1,5 @@
 import { fetchProposalByNumber, fetchAllProposalNumbers, heightDisplay } from '@/lib/supabase';
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -17,11 +18,19 @@ export async function generateStaticParams() {
   return numbers.map(n => ({ id: String(n) }));
 }
 
+// React's cache() deduplicates calls with the same argument within one
+// render pass — so generateMetadata and the page component below share a
+// single fetch per page instead of two independent ones. This halves (not
+// eliminates) the timing window where a profile's data could theoretically
+// change between when generateStaticParams listed it and when its
+// individual page actually gets built.
+const getCachedProposal = cache((num: number) => fetchProposalByNumber(num));
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const num = Number(id);
   if (!Number.isFinite(num)) return { title: 'Proposal Not Found | Jor' };
-  const p = await fetchProposalByNumber(num);
+  const p = await getCachedProposal(num);
   if (!p) return { title: 'Proposal Not Found | Jor' };
   return {
     title: `${p.gender === 'Male' ? 'Groom' : 'Bride'} Profile – ${p.age} yrs, ${p.city} | Jor`,
@@ -58,7 +67,7 @@ export default async function ProposalDetailPage({ params }: Props) {
   const { id } = await params;
   const num = Number(id);
   if (!Number.isFinite(num)) notFound();
-  const p = await fetchProposalByNumber(num);
+  const p = await getCachedProposal(num);
   if (!p) notFound();
 
   const heightFt = p.height_inches ? heightDisplay(p.height_inches) : null;
