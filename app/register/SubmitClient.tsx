@@ -738,7 +738,9 @@ export default function SubmitClient() {
   const validateStep = (): { msg: string; field: string } => {
     const fail = (msg: string, field: string) => ({ msg, field });
     if (step === 1) {
-      if (!form.cnic.trim()) return fail('CNIC number is required', 'cnic');
+      const cnicDigits = form.cnic.replace(/\D/g, '');
+      if (!cnicDigits) return fail('CNIC number is required', 'cnic');
+      if (cnicDigits.length !== 13) return fail('Enter a complete 13-digit CNIC number', 'cnic');
       if (!form.password.trim() || form.password.length < 4) return fail('Password must be at least 4 characters', 'password');
       if (form.password !== form.confirm_password) return fail('Passwords do not match', 'confirm_password');
     }
