@@ -15,24 +15,22 @@ const MAX_FILE_BYTES = 8 * 1024 * 1024; // 8MB per photo
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 // These two are the actual destinations your QR codes/footer links point
-// to — deliberately a stable URL on your own domain, not a raw App Store /
-// Play Store link, since the real store URLs don't exist yet. Once your
-// app is actually published, just change these two constants to the real
-// store URLs and redeploy — every QR code, footer link, and printed
-// material that already points to /get-ios or /get-android keeps working
-// with zero changes needed anywhere else.
-const IOS_APP_URL = 'https://joronline.com';
-const ANDROID_APP_URL = 'https://joronline.com';
+// to. Right now they show a "coming soon" page since the app isn't
+// published yet. Once your app IS live, just replace the two
+// Response("...") blocks below (in the /get-ios and /get-android checks)
+// with:
+//   return Response.redirect('https://apps.apple.com/app/idXXXXXXXXXX', 302);
+//   return Response.redirect('https://play.google.com/store/apps/details?id=your.package.name', 302);
+// Every QR code, footer link, and printed material that already points to
+// /get-ios or /get-android keeps working with zero changes needed anywhere
+// else.
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    if (url.pathname === '/get-ios') {
-      return Response.redirect(IOS_APP_URL, 302);
-    }
-    if (url.pathname === '/get-android') {
-      return Response.redirect(ANDROID_APP_URL, 302);
+    if (url.pathname === '/get-ios' || url.pathname === '/get-android') {
+      return comingSoonResponse(url.pathname === '/get-ios' ? 'iOS' : 'Android');
     }
 
     if (url.pathname === '/api/upload-cnic' && request.method === 'POST') {
@@ -42,6 +40,58 @@ export default {
     return env.ASSETS.fetch(request);
   },
 };
+
+function comingSoonResponse(platform) {
+  const storeName = platform === 'iOS' ? 'the App Store' : 'Google Play';
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coming Soon - Joron</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    .card { max-width: 420px; }
+    h1 { font-size: 1.6rem; margin-bottom: 12px; }
+    p { color: #aaa; line-height: 1.5; margin-bottom: 24px; }
+    a {
+      display: inline-block;
+      background: #fff;
+      color: #0a0a0a;
+      padding: 12px 28px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>${platform} app is on its way 🚀</h1>
+    <p>We're putting the finishing touches on the Joron app for ${storeName}. Check back soon — or visit our site in the meantime.</p>
+    <a href="https://joronline.com">Visit joronline.com</a>
+  </div>
+</body>
+</html>`;
+
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+    status: 200,
+  });
+}
 
 async function handleCnicUpload(request, env) {
   try {
