@@ -35,6 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `Overseas Rishta in ${value} | Jor – Pakistan's Trusted Matrimonial Platform`,
     description: `Browse verified Pakistani rishta proposals for families based in ${value}. Connect directly — no middlemen, no hidden fees.`,
+    alternates: { canonical: `https://joronline.com/proposals/overseas/${slugify(value)}` },
   };
 }
 
@@ -46,8 +47,19 @@ export default async function OverseasCountryPage({ params }: Props) {
   const proposals = await fetchProposalsForCategory('country', value, 24);
   if (proposals.length === 0) notFound();
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://joronline.com' },
+      { '@type': 'ListItem', position: 2, name: 'Proposals', item: 'https://joronline.com/proposals' },
+      { '@type': 'ListItem', position: 3, name: `Overseas — ${value}` },
+    ],
+  };
+
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px' }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <div style={{ fontSize: 13, color: '#B0ADCB', marginBottom: 12 }}>
         <Link href="/" style={{ color: '#534AB7', textDecoration: 'none' }}>Home</Link>
         {' › '}

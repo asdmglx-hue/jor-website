@@ -40,6 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: entry.type === 'city'
       ? `Browse verified rishta proposals in ${entry.value}. Find your perfect match from ${entry.value} on Jor, Pakistan's trusted matrimonial platform.`
       : `Browse verified ${entry.value} rishta proposals on Jor. Connect directly with families — no middlemen, no hidden fees.`,
+    alternates: { canonical: `https://joronline.com/proposals/${entry.slug}` },
   };
 }
 
@@ -54,8 +55,19 @@ export default async function CategoryPage({ params }: Props) {
   const title = categoryPageTitle(entry);
   const searchLink = entry.type === 'city' ? `/proposals?city=${encodeURIComponent(entry.value)}` : `/proposals`;
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://joronline.com' },
+      { '@type': 'ListItem', position: 2, name: 'Proposals', item: 'https://joronline.com/proposals' },
+      { '@type': 'ListItem', position: 3, name: entry.value },
+    ],
+  };
+
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px' }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <div style={{ fontSize: 13, color: '#B0ADCB', marginBottom: 12 }}>
         <Link href="/" style={{ color: '#534AB7', textDecoration: 'none' }}>Home</Link>
         {' › '}
