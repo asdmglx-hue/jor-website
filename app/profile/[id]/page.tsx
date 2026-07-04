@@ -104,7 +104,6 @@ export default async function ProposalDetailPage({ params }: Props) {
                 FEATURED
               </span>
             )}
-            <SaveButton proposalId={p.id} />
             <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
               {/* Photo */}
               {p.profile_photo_url ? (
@@ -119,7 +118,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                   {p.name.charAt(0)}
                 </div>
               )}
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingRight: 46 }}>
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4, minWidth: 0 }}>
                   <ExpandableName
                     name={p.name}
@@ -214,7 +213,10 @@ export default async function ProposalDetailPage({ params }: Props) {
                 </div>
                 <div style={{ fontSize: 12, color: '#B0ADCB', marginTop: 4 }}>Proposal #{p.proposal_number}</div>
               </div>
-              <ShareButton p={p} compact />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <SaveButton proposalId={p.id} />
+                <ShareButton p={p} compact />
+              </div>
             </div>
           </div>
         </div>

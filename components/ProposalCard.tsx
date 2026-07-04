@@ -201,7 +201,11 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
               </svg>
             </button>
             <button onClick={handleSave} style={{ background: saved ? '#FEE2E2' : '#F5F5F5', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }} title={saved ? 'Unsave' : 'Save'}>
-              {saved ? '❤️' : '🤍'}
+              {saved ? (
+                <svg width="15" height="14" viewBox="0 0 24 24" fill="#DC2626"><path d="M12 21s-6.716-4.35-9.428-8.06C.24 9.79 1.02 5.9 4.2 4.44c2.1-.96 4.5-.3 5.8 1.5.5.7 1.4.7 1.9 0 1.3-1.8 3.7-2.46 5.8-1.5 3.18 1.46 3.96 5.35 1.63 8.5C18.716 16.65 12 21 12 21z"/></svg>
+              ) : (
+                <svg width="15" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B6893" strokeWidth="2"><path d="M12 21s-6.716-4.35-9.428-8.06C.24 9.79 1.02 5.9 4.2 4.44c2.1-.96 4.5-.3 5.8 1.5.5.7 1.4.7 1.9 0 1.3-1.8 3.7-2.46 5.8-1.5 3.18 1.46 3.96 5.35 1.63 8.5C18.716 16.65 12 21 12 21z"/></svg>
+              )}
             </button>
             <button onClick={handleNotInterested} style={{ background: '#F5F5F5', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Not Interested">
               ✕
