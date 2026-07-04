@@ -11,8 +11,8 @@ import type { Proposal } from '@/lib/supabase';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Jor – Find Your Perfect Rishta in Pakistan | Trusted Matrimonial Platform",
-  description: "Browse thousands of verified rishta proposals across Pakistan and overseas. Filter by city, caste, sect, profession and more. Free to join, no middlemen.",
+  title: "Jor – Pakistan's Trusted Matrimonial Platform",
+  description: "Browse verified rishta proposals from Pakistan and overseas. Filter by city, caste, sect, profession. Free to join — on Play Store & App Store.",
 };
 
 // The known-good set of real Pakistani cities — same list the SEO city
