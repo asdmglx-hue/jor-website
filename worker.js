@@ -73,8 +73,6 @@ function comingSoonResponse(platform) {
       padding: 40px 32px;
       backdrop-filter: blur(6px);
     }
-    .logo { font-size: 2rem; font-weight: 900; margin-bottom: 20px; letter-spacing: -0.5px; }
-    .logo .dot { color: #2ECC91; }
     .badge {
       display: inline-block; background: rgba(255,255,255,0.15); border-radius: 20px;
       padding: 5px 14px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
@@ -96,7 +94,7 @@ function comingSoonResponse(platform) {
 </head>
 <body>
   <div class="card">
-    <div class="logo">jor<span class="dot">.</span></div>
+    <img src="https://joronline.com/logo-white.png" alt="Jor" style="height: 40px; width: auto; margin-bottom: 20px;" />
     <div class="badge">${platform} App</div>
     <h1>We're putting the finishing touches on it 🚀</h1>
     <p>The Jor app is on its way to ${storeName}. In the meantime, you can browse rishta proposals and manage everything right from our website.</p>
