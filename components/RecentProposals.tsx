@@ -19,11 +19,6 @@ export default function RecentProposals({ initial }: { initial: Proposal[] }) {
 
   useEffect(() => { proposalsRef.current = proposals; }, [proposals]);
 
-  useEffect(() => {
-    setNotInterestedIds(getNotInterestedIds());
-    setReady(true);
-  }, []);
-
   // Fetches `count` replacement proposals — pulls from right after
   // everything already shown in this section, in the same "most recently
   // posted" order, skipping dupes and dismissed ids.
@@ -45,18 +40,27 @@ export default function RecentProposals({ initial }: { initial: Proposal[] }) {
     if (results.length) setProposals(prev => [...prev, ...results]);
   }, []);
 
+  // Shared by both the very first check (on page load, from local storage)
+  // and any later background syncs — whichever newly-dismissed ids are
+  // sitting in what's currently on screen get backfilled, every time.
+  const applyDismissed = useCallback((freshIds: string[]) => {
+    setNotInterestedIds(prevIds => {
+      const newlyHidden = freshIds.filter(id => !prevIds.includes(id) && proposalsRef.current.some(p => p.id === id));
+      if (newlyHidden.length) backfill(newlyHidden.length);
+      return freshIds;
+    });
+  }, [backfill]);
+
   useEffect(() => {
-    const onSynced = () => {
-      const freshIds = getNotInterestedIds();
-      setNotInterestedIds(prevIds => {
-        const newlyHidden = freshIds.filter(id => !prevIds.includes(id) && proposalsRef.current.some(p => p.id === id));
-        if (newlyHidden.length) backfill(newlyHidden.length);
-        return freshIds;
-      });
-    };
+    applyDismissed(getNotInterestedIds());
+    setReady(true);
+  }, [applyDismissed]);
+
+  useEffect(() => {
+    const onSynced = () => applyDismissed(getNotInterestedIds());
     window.addEventListener('jor:not-interested-synced', onSynced);
     return () => window.removeEventListener('jor:not-interested-synced', onSynced);
-  }, [backfill]);
+  }, [applyDismissed]);
 
   const handleNotInterested = (id: string) => {
     setNotInterestedIds(addNotInterested(id));
