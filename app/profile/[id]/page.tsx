@@ -119,7 +119,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                   {p.name.charAt(0)}
                 </div>
               )}
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingRight: 46 }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4, minWidth: 0 }}>
                   <ExpandableName
                     name={p.name}

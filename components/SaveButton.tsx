@@ -21,7 +21,7 @@ export default function SaveButton({ proposalId }: { proposalId: string }) {
     <button onClick={handleClick} title={saved ? 'Unsave' : 'Save'} style={{
       position: 'absolute', top: 16, right: 16,
       background: saved ? '#FEE2E2' : '#F5F5F5', border: 'none', borderRadius: 8,
-      width: 34, height: 34, cursor: 'pointer', fontSize: 15,
+      width: 32, height: 32, cursor: 'pointer', fontSize: 14,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       {saved ? '❤️' : '🤍'}
