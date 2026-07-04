@@ -6,11 +6,18 @@ import ProposalCard from './ProposalCard';
 
 export default function RecentProposals({ initial }: { initial: Proposal[] }) {
   const [proposals, setProposals] = useState<Proposal[]>(initial);
-  const [notInterestedIds, setNotInterestedIds] = useState<string[]>(() => getNotInterestedIds());
+  // Starts empty to match what the server rendered (server has no access to
+  // localStorage) — the real list is applied in the effect below, right
+  // after mount, avoiding a hydration mismatch that was causing the flicker.
+  const [notInterestedIds, setNotInterestedIds] = useState<string[]>([]);
   const proposalsRef = useRef<Proposal[]>(initial);
   const offsetRef = useRef(initial.length);
 
   useEffect(() => { proposalsRef.current = proposals; }, [proposals]);
+
+  useEffect(() => {
+    setNotInterestedIds(getNotInterestedIds());
+  }, []);
 
   // Fetches `count` replacement proposals — pulls from right after
   // everything already shown in this section, in the same "most recently
