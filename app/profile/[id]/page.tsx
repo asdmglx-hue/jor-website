@@ -8,6 +8,23 @@ import ContactButtons from '@/components/ContactButtons';
 import ShareButton from '@/components/ShareButton';
 import SaveButton from '@/components/SaveButton';
 import ExpandableName from '@/components/ExpandableName';
+import ProfileName from '@/components/ProfileName';
+
+// Bios are often written in third person and frequently open with the
+// person's actual name ("Muhammad Zaid is a 25-year-old...") — this strips
+// literal occurrences of it (full name and first name) before the text
+// ever reaches the static HTML, so masking just the heading/photo alone
+// doesn't get quietly undone by the bio paragraph itself.
+function maskNameInText(text: string | null | undefined, fullName: string, label: string): string {
+  if (!text) return '';
+  let result = text.split(fullName).join(label);
+  const firstName = fullName.trim().split(/\s+/)[0];
+  if (firstName && firstName.length > 2) {
+    const escaped = firstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    result = result.replace(new RegExp(`\\b${escaped}\\b`, 'g'), label);
+  }
+  return result;
+}
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -34,9 +51,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!Number.isFinite(num)) return { title: 'Proposal Not Found | Jor' };
   const p = await getCachedProposal(num);
   if (!p) return { title: 'Proposal Not Found | Jor' };
+  const label = `${p.gender === 'Male' ? 'Groom' : 'Bride'} #${p.proposal_number}`;
   return {
-    title: `${p.gender === 'Male' ? 'Groom' : 'Bride'} Profile – ${p.age} yrs, ${p.city} | Jor`,
-    description: `${p.profession}, ${p.education}, ${p.caste} from ${p.city}. ${p.about || ''}`.slice(0, 160),
+    title: `${label} Profile – ${p.age} yrs, ${p.city} | Jor`,
+    description: `${p.profession}, ${p.education}, ${p.caste} from ${p.city}. ${maskNameInText(p.about, p.name, label)}`.slice(0, 160),
+    alternates: { canonical: `https://joronline.com/profile/${p.proposal_number}` },
     openGraph: {
       title: `Rishta Proposal – ${p.age} yrs, ${p.city}`,
       description: `${p.profession} from ${p.city}. ${p.caste}, ${p.sect}.`,
@@ -76,8 +95,20 @@ export default async function ProposalDetailPage({ params }: Props) {
   const isFeatured = p.subscription_tier === 'featured' || p.is_boosted;
 
 
+  const label = `${p.gender === 'Male' ? 'Groom' : 'Bride'} #${p.proposal_number}`;
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://joronline.com' },
+      { '@type': 'ListItem', position: 2, name: 'Proposals', item: 'https://joronline.com/proposals' },
+      { '@type': 'ListItem', position: 3, name: label },
+    ],
+  };
+
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 20px' }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       {/* Breadcrumb */}
       <div style={{ fontSize: 13, color: '#B0ADCB', marginBottom: 20 }}>
         <Link href="/" style={{ color: '#534AB7', textDecoration: 'none' }}>Home</Link>
@@ -107,7 +138,7 @@ export default async function ProposalDetailPage({ params }: Props) {
             <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
               {/* Photo */}
               {p.profile_photo_url ? (
-                <PhotoLightbox src={p.profile_photo_url} name={p.name} />
+                <PhotoLightbox src={p.profile_photo_url} name={`${p.gender === 'Male' ? 'Groom' : 'Bride'} #${p.proposal_number}`} />
               ) : (
                 <div style={{
                   width: 100, height: 100, borderRadius: 16, flexShrink: 0,
@@ -120,8 +151,9 @@ export default async function ProposalDetailPage({ params }: Props) {
               )}
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4, minWidth: 0 }}>
-                  <ExpandableName
-                    name={p.name}
+                  <ProfileName
+                    proposalId={p.id}
+                    fallback={`${p.gender === 'Male' ? 'Groom' : 'Bride'} #${p.proposal_number}`}
                     className="profile-name"
                     style={{ fontWeight: 900, color: '#1A1830', margin: 0 }}
                   />
@@ -138,7 +170,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           {/* About */}
           {(p.about || p.looking_for) && (
             <Section title="About">
-              {p.about && <p style={{ fontSize: 14, color: '#1A1830', lineHeight: 1.7, marginBottom: p.looking_for ? 12 : 0 }}>{p.about}</p>}
+              {p.about && <p style={{ fontSize: 14, color: '#1A1830', lineHeight: 1.7, marginBottom: p.looking_for ? 12 : 0 }}>{maskNameInText(p.about, p.name, label)}</p>}
               {p.looking_for && (
                 <>
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#534AB7', marginBottom: 6 }}>Looking For:</div>

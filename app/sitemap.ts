@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { fetchCategoryCounts, fetchCountryCounts, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
+import { fetchCategoryCounts, fetchCountryCounts, fetchAllProposalNumbers, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
 import { CATEGORY_ENTRIES, slugify } from '@/lib/categories';
 
 export const dynamic = 'force-static';
@@ -22,13 +22,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Same "does this page actually have enough real profiles behind it"
   // check used by generateStaticParams on these pages — keeps the sitemap
   // from ever listing a thin/empty page that would hurt more than help.
-  const [cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts, countryCounts] = await Promise.all([
+  const [cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts, countryCounts, proposalNumbers] = await Promise.all([
     fetchCategoryCounts('city'),
     fetchCategoryCounts('caste'),
     fetchCategoryCounts('sect'),
     fetchCategoryCounts('marital_status'),
     fetchCategoryCounts('profession'),
     fetchCountryCounts(),
+    fetchAllProposalNumbers(),
   ]);
   const countsByColumn: Record<string, Record<string, number>> = {
     city: cityCounts, caste: casteCounts, sect: sectCounts, marital_status: maritalCounts, profession: professionCounts,
@@ -61,5 +62,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-  return [...staticPages, ...categoryPages, ...cityGenderPages, ...overseasPages];
+  // Individual profile pages — names are kept out of the static HTML
+  // (fetched client-side instead), so these are safe to index for their
+  // genuinely unique long-tail content (age, city, profession, bio)
+  // without making anyone's name itself Google-searchable.
+  const profilePages: MetadataRoute.Sitemap = proposalNumbers.map(num => ({
+    url: `${BASE}/profile/${num}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.5,
+  }));
+
+  return [...staticPages, ...categoryPages, ...cityGenderPages, ...overseasPages, ...profilePages];
 }
