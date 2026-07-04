@@ -73,10 +73,11 @@ function comingSoonResponse(platform) {
       padding: 40px 32px;
       backdrop-filter: blur(6px);
     }
+    .card img { display: block; margin: 0 auto 20px; }
     .badge {
-      display: inline-block; background: rgba(255,255,255,0.15); border-radius: 20px;
+      display: block; width: fit-content; margin: 0 auto 18px; background: rgba(255,255,255,0.15); border-radius: 20px;
       padding: 5px 14px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
-      margin-bottom: 18px; text-transform: uppercase;
+      text-transform: uppercase;
     }
     h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 12px; line-height: 1.3; }
     p { color: rgba(255,255,255,0.8); line-height: 1.6; margin: 0 0 28px; font-size: 15px; }
@@ -94,7 +95,7 @@ function comingSoonResponse(platform) {
 </head>
 <body>
   <div class="card">
-    <img src="https://joronline.com/logo-white.png" alt="Jor" style="height: 40px; width: auto; margin-bottom: 20px;" />
+    <img src="https://joronline.com/logo-white.png" alt="Jor" style="height: 40px; width: auto;" />
     <div class="badge">${platform} App</div>
     <h1>We're putting the finishing touches on it 🚀</h1>
     <p>The Jor app is on its way to ${storeName}. In the meantime, you can browse rishta proposals and manage everything right from our website.</p>
