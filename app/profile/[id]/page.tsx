@@ -3,12 +3,11 @@ import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import PhotoLightbox from '@/components/PhotoLightbox';
 import ContactButtons from '@/components/ContactButtons';
 import ShareButton from '@/components/ShareButton';
 import SaveButton from '@/components/SaveButton';
-import ExpandableName from '@/components/ExpandableName';
 import ProfileName from '@/components/ProfileName';
+import ProfileAvatar from '@/components/ProfileAvatar';
 
 // Bios are often written in third person and frequently open with the
 // person's actual name ("Muhammad Zaid is a 25-year-old...") — this strips
@@ -137,18 +136,12 @@ export default async function ProposalDetailPage({ params }: Props) {
             )}
             <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
               {/* Photo */}
-              {p.profile_photo_url ? (
-                <PhotoLightbox src={p.profile_photo_url} name={`${p.gender === 'Male' ? 'Groom' : 'Bride'} #${p.proposal_number}`} />
-              ) : (
-                <div style={{
-                  width: 100, height: 100, borderRadius: 16, flexShrink: 0,
-                  background: p.gender === 'Male' ? '#534AB7' : '#E11D48',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 40, color: '#fff', fontWeight: 900,
-                }}>
-                  {p.name.charAt(0)}
-                </div>
-              )}
+              <ProfileAvatar
+                initial={p.name.charAt(0).toUpperCase()}
+                bgColor={p.gender === 'Male' ? '#534AB7' : '#E11D48'}
+                photoUrl={p.profile_photo_url}
+                maskedLabel={label}
+              />
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4, minWidth: 0 }}>
                   <ProfileName
