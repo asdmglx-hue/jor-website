@@ -959,6 +959,25 @@ export default function MyProposalClient() {
                     if (!user) return;
                     if (deletePassword.trim() !== user.password) { setDeleteError('Incorrect password. Please try again.'); return; }
                     setDeleting(true);
+                    const cnicDigits = (user.cnic || '').replace(/\D/g, '');
+
+                    // Clean up stored images so deleting an account doesn't
+                    // leave orphaned photos behind in R2 — CNIC photos and
+                    // the profile photo both live under the same
+                    // proposals/{cnic}/ folder, so this one call covers
+                    // both. Best-effort: if it fails, account deletion
+                    // still proceeds rather than getting blocked by a
+                    // storage hiccup.
+                    if (cnicDigits) {
+                      try {
+                        await fetch('/api/delete-cnic-images', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ cnic: cnicDigits }),
+                        });
+                      } catch (_) {}
+                    }
+
                     const ok = await updateProposal(user.id, { status: 'deleted', delete_reason: deleteReason });
                     setDeleting(false);
                     if (ok) { clearSession(); router.push('/'); }

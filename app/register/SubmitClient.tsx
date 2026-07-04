@@ -821,13 +821,30 @@ export default function SubmitClient() {
     const actualFatherOcc = form.father_occupation === 'Other' ? form.father_occupation_custom.trim() : form.father_occupation;
     const actualMotherOcc = form.mother_occupation === 'Other' ? form.mother_occupation_custom.trim() : form.mother_occupation;
 
-    // Upload profile photo
+    // Upload profile photo — via the same secure server-side R2 upload
+    // endpoint used for CNIC photos, not client-side Supabase Storage
+    // (which was a different, unused storage system — every real profile
+    // photo already live on the site is on R2, not Supabase).
     let profilePhotoUrl: string | undefined;
     const digits = form.cnic.replace(/-/g, '').trim();
     if (profilePhoto) {
-      const ext = profilePhoto.name.split('.').pop();
-      const { data: pd } = await supabase.storage.from('profile-photos').upload(`${digits}/profile.${ext}`, profilePhoto, { upsert: true });
-      if (pd) { const { data: url } = supabase.storage.from('profile-photos').getPublicUrl(pd.path); profilePhotoUrl = url.publicUrl; }
+      const photoForm = new FormData();
+      photoForm.append('cnic', digits);
+      photoForm.append('photo', profilePhoto);
+      try {
+        const res = await fetch('/api/upload-profile-photo', { method: 'POST', body: photoForm });
+        const uploaded = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setError(uploaded.error || 'Failed to upload profile photo. Please try again.');
+          setSubmitting(false);
+          return;
+        }
+        profilePhotoUrl = uploaded.url;
+      } catch {
+        setError('Failed to upload profile photo. Please check your connection and try again.');
+        setSubmitting(false);
+        return;
+      }
     }
 
     // Upload CNIC photos — via secure server-side R2 upload endpoint (not
