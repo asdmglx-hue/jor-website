@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     description: "Browse verified rishta proposals across Pakistan. Filter by city, caste, profession and more.",
     type: "website",
     locale: "en_PK",
+    images: [{ url: 'https://joronline.com/hero-wedding.jpg', width: 1200, height: 630, alt: "Jor – Pakistan's Trusted Matrimonial Platform" }],
   },
   robots: { index: true, follow: true },
 };
