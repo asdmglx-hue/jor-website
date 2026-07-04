@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `Rishta Proposal – ${p.age} yrs, ${p.city}`,
       description: `${p.profession} from ${p.city}. ${p.caste}, ${p.sect}.`,
-      images: p.profile_photo_url ? [p.profile_photo_url] : [],
+      images: [p.profile_photo_url || 'https://joronline.com/hero-wedding.jpg'],
     },
   };
 }
