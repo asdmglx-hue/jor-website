@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 // Shows a name truncated with "..." by default (matches the rest of the
 // site's compact header style), but lets the user tap it to reveal the
@@ -8,11 +8,24 @@ import { useState } from 'react';
 // to see the whole thing without it looking cut off forever.
 export default function ExpandableName({ name, style, className }: { name: string; style?: React.CSSProperties; className?: string }) {
   const [expanded, setExpanded] = useState(false);
+  const ref = useRef<HTMLHeadingElement>(null);
+
+  const handleClick = (e: React.MouseEvent<HTMLHeadingElement>) => {
+    // If the name isn't actually cut off (already short enough to fit),
+    // there's nothing to expand — let the tap pass through so the rest of
+    // the card's normal "go to profile" behavior still works here too,
+    // instead of silently swallowing a tap that would have done nothing.
+    const el = ref.current;
+    const isTruncated = !expanded && el ? el.scrollWidth > el.clientWidth : true;
+    if (!isTruncated) return;
+    e.preventDefault(); e.stopPropagation(); setExpanded(v => !v);
+  };
 
   return (
     <h1
+      ref={ref}
       className={className}
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setExpanded(v => !v); }}
+      onClick={handleClick}
       style={{
         ...style,
         cursor: 'pointer',
