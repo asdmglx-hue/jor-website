@@ -14,9 +14,26 @@ const PUBLIC_R2_BASE = 'https://pub-45b25e06fb4b4f448d2ee349c6f55922.r2.dev';
 const MAX_FILE_BYTES = 8 * 1024 * 1024; // 8MB per photo
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+// These two are the actual destinations your QR codes/footer links point
+// to — deliberately a stable URL on your own domain, not a raw App Store /
+// Play Store link, since the real store URLs don't exist yet. Once your
+// app is actually published, just change these two constants to the real
+// store URLs and redeploy — every QR code, footer link, and printed
+// material that already points to /get-ios or /get-android keeps working
+// with zero changes needed anywhere else.
+const IOS_APP_URL = 'https://joronline.com';
+const ANDROID_APP_URL = 'https://joronline.com';
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (url.pathname === '/get-ios') {
+      return Response.redirect(IOS_APP_URL, 302);
+    }
+    if (url.pathname === '/get-android') {
+      return Response.redirect(ANDROID_APP_URL, 302);
+    }
 
     if (url.pathname === '/api/upload-cnic' && request.method === 'POST') {
       return handleCnicUpload(request, env);

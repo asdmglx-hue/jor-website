@@ -85,11 +85,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
               {/* App badges */}
               <div className="footer-app-badges" style={{ display: 'flex', gap: 12 }}>
-                <a href="#" style={{ display: 'inline-block' }}>
+                <a href="/get-android" style={{ display: 'inline-block' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/google_play.png" alt="Get it on Google Play" style={{ height: 32, width: 'auto' }} />
                 </a>
-                <a href="#" style={{ display: 'inline-block' }}>
+                <a href="/get-ios" style={{ display: 'inline-block' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/app_store.png" alt="Download on App Store" style={{ height: 32, width: 'auto' }} />
                 </a>
