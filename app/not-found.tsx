@@ -8,7 +8,7 @@ export default function NotFound() {
         alt=""
         aria-hidden="true"
         style={{
-          position: 'absolute', top: '62%', left: '50%',
+          position: 'absolute', top: '54%', left: '50%',
           transform: 'translate(-50%, -50%)',
           width: 300, height: 'auto', opacity: 0.08, pointerEvents: 'none', zIndex: 0,
         }}
