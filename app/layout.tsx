@@ -66,7 +66,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
                   <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
                   <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none' }}>Contact</a>
-                  <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Refer & Earn</a>
+                  <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</a>
                 </div>
                 <div className="footer-nav-legal" style={{ display: 'flex', gap: 24, fontSize: 14, justifyContent: 'flex-end' }}>
                   <a href="/privacy-policy" style={{ color: '#6B6893', textDecoration: 'none' }}>Privacy Policy</a>
@@ -105,7 +105,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 10 }}>
                   <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
                   <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none' }}>Contact</a>
-                  <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Refer & Earn</a>
+                  <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</a>
                 </div>
                 <div style={{ display: 'flex', gap: 20, fontSize: 13, marginBottom: 24 }}>
                   <a href="/privacy-policy" style={{ color: '#6B6893', textDecoration: 'none' }}>Privacy Policy</a>
