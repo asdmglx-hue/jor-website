@@ -4,27 +4,21 @@ import { normalizeCountry } from './constants';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Next.js caches every fetch() call by default — including ones made by
-// third-party libraries like this client — unless told otherwise. For a
-// long-running server that cache resets between deploys and is harmless,
-// but this site is a static export built fresh on every data change, and
-// some CI build pipelines reuse a persistent build-cache folder between
-// separate builds for speed. If Next's Data Cache persists inside that
-// folder, a rebuild can silently keep re-baking forward the same stale
-// query results instead of ever hitting the database fresh again — no
-// amount of CDN/edge cache purging fixes that, since the problem is
-// baked into the HTML at build time, upstream of any CDN. Explicitly
-// forcing cache: 'no-store' on every request this client makes guarantees
-// each build always reads current data, regardless of any build cache.
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  global: {
-    fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
-  },
-});
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Ensures a database call can never hang the build indefinitely. If a
+// query doesn't resolve within the given time, this rejects with a clear,
+// specific error (naming which query) instead of leaving the whole build
+// silently frozen — a stuck request now fails fast and visibly.
+function withTimeout<T>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`Timed out after ${ms}ms: ${label}`)), ms)),
+  ]);
+}
 
 export type Proposal = {
   id: string;
-
   proposal_number: number;
   name: string;
   age: number;
@@ -205,7 +199,7 @@ export async function fetchAllRows<T>(
   const all: T[] = [];
   let from = 0;
   while (true) {
-    const { data, error } = await buildQuery(from, from + BATCH - 1);
+    const { data, error } = await withTimeout<{ data: T[] | null; error: unknown }>(buildQuery(from, from + BATCH - 1), 20000, `fetchAllRows(from=${from})`);
     if (error || !data) break;
     all.push(...data);
     if (data.length < BATCH) break; // last batch — fewer rows than requested means we're done
@@ -242,9 +236,18 @@ export async function fetchProposalById(id: string): Promise<Proposal | null> {
 // Looks up by the short, shareable proposal_number (e.g. 1822) rather than
 // the internal UUID — used for the public /profile/{number} URL scheme.
 export async function fetchProposalByNumber(proposalNumber: number): Promise<Proposal | null> {
-  const { data, error } = await supabase.from('proposals').select('*').eq('proposal_number', proposalNumber).in('status', ['active', 'paused']).single();
-  if (error) return null;
-  return data as Proposal;
+  try {
+    const { data, error } = await withTimeout<{ data: unknown; error: unknown }>(
+      supabase.from('proposals').select('*').eq('proposal_number', proposalNumber).in('status', ['active', 'paused']).single(),
+      20000,
+      `fetchProposalByNumber(${proposalNumber})`
+    );
+    if (error) return null;
+    return data as Proposal;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
 }
 
 // Every currently active/paused proposal's number — used by
