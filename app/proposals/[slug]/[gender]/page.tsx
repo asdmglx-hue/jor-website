@@ -3,7 +3,7 @@ import { CATEGORY_ENTRIES, resolveCategoryBySlug } from '@/lib/categories';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import ProposalCard from '@/components/ProposalCard';
+import CategoryPageClient from '@/components/CategoryPageClient';
 
 type Props = { params: Promise<{ slug: string; gender: string }> };
 
@@ -55,6 +55,12 @@ export default async function CityGenderPage({ params }: Props) {
 
   const label = gender === 'bride' ? 'Bride' : 'Groom';
 
+  const cityCounts = await fetchCategoryCounts('city');
+  const qualifyingCitySlugs = Object.fromEntries(
+    CATEGORY_ENTRIES.filter(e => e.type === 'city' && (cityCounts[e.value] ?? 0) >= MIN_CATEGORY_PROFILES)
+      .map(e => [e.value, e.slug])
+  );
+
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -84,18 +90,13 @@ export default async function CityGenderPage({ params }: Props) {
         Browse verified {label.toLowerCase()} rishta profiles from {entry.value}. Connect directly with families across Pakistan.
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginBottom: 24 }}>
-        {proposals.map(p => <ProposalCard key={p.id} proposal={p} />)}
-      </div>
-
-      <div style={{ textAlign: 'center', padding: '16px 0' }}>
-        <Link href={`/proposals?city=${encodeURIComponent(entry.value)}&gender=${genderValue}`} style={{
-          display: 'inline-block', padding: '12px 28px', borderRadius: 12,
-          background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, textDecoration: 'none',
-        }}>
-          View All Proposals & Filter Further →
-        </Link>
-      </div>
+      <CategoryPageClient
+        initialProposals={proposals}
+        initialFilters={{ city: entry.value, gender: genderValue }}
+        locationField="city"
+        qualifyingSlugs={qualifyingCitySlugs}
+        hasGenderSegment
+      />
     </div>
   );
 }

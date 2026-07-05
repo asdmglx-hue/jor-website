@@ -3,7 +3,7 @@ import { slugify } from '@/lib/categories';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import ProposalCard from '@/components/ProposalCard';
+import CategoryPageClient from '@/components/CategoryPageClient';
 
 type Props = { params: Promise<{ country: string }> };
 
@@ -50,6 +50,9 @@ export default async function OverseasCountryPage({ params }: Props) {
   const proposals = await fetchProposalsForCategory('country', value, 24);
   if (proposals.length === 0) notFound();
 
+  const qualifyingCountries = await getQualifyingCountries();
+  const qualifyingCountrySlugs = Object.fromEntries(qualifyingCountries.map(c => [c.value, c.slug]));
+
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -76,18 +79,12 @@ export default async function OverseasCountryPage({ params }: Props) {
         Browse verified rishta proposals for Pakistani families based in {value}. Connect directly — no middlemen, no hidden fees.
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginBottom: 24 }}>
-        {proposals.map(p => <ProposalCard key={p.id} proposal={p} />)}
-      </div>
-
-      <div style={{ textAlign: 'center', padding: '16px 0' }}>
-        <Link href={`/proposals?country=${encodeURIComponent(value)}`} style={{
-          display: 'inline-block', padding: '12px 28px', borderRadius: 12,
-          background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, textDecoration: 'none',
-        }}>
-          View All Proposals & Filter Further →
-        </Link>
-      </div>
+      <CategoryPageClient
+        initialProposals={proposals}
+        initialFilters={{ overseas: true, country: value }}
+        locationField="country"
+        qualifyingSlugs={qualifyingCountrySlugs}
+      />
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { CATEGORY_ENTRIES, resolveCategoryBySlug, categoryPageTitle, CategoryEnt
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import ProposalCard from '@/components/ProposalCard';
+import CategoryPageClient from '@/components/CategoryPageClient';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -61,7 +61,15 @@ export default async function CategoryPage({ params }: Props) {
   if (proposals.length === 0) notFound();
 
   const title = categoryPageTitle(entry);
-  const searchLink = entry.type === 'city' ? `/proposals?city=${encodeURIComponent(entry.value)}` : `/proposals`;
+
+  // Only needed so the filter bar can correctly send someone to another
+  // city's own dedicated page if they change it — not relevant for
+  // caste/sect/profession pages, so only computed when actually needed.
+  let qualifyingCitySlugs: Record<string, string> = {};
+  if (entry.type === 'city') {
+    const qualifying = await getQualifyingEntries();
+    qualifyingCitySlugs = Object.fromEntries(qualifying.filter(e => e.type === 'city').map(e => [e.value, e.slug]));
+  }
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -91,18 +99,12 @@ export default async function CategoryPage({ params }: Props) {
           : `Browse verified ${entry.value.toLowerCase()} rishta proposals. Connect directly with families — no middlemen, no hidden fees.`}
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginBottom: 24 }}>
-        {proposals.map(p => <ProposalCard key={p.id} proposal={p} />)}
-      </div>
-
-      <div style={{ textAlign: 'center', padding: '16px 0' }}>
-        <Link href={searchLink} style={{
-          display: 'inline-block', padding: '12px 28px', borderRadius: 12,
-          background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, textDecoration: 'none',
-        }}>
-          View All Proposals & Filter Further →
-        </Link>
-      </div>
+      <CategoryPageClient
+        initialProposals={proposals}
+        initialFilters={entry.type === 'city' ? { city: entry.value } : { [entry.dbColumn === 'marital_status' ? 'maritalStatus' : entry.dbColumn]: entry.value }}
+        locationField="city"
+        qualifyingSlugs={qualifyingCitySlugs}
+      />
     </div>
   );
 }
