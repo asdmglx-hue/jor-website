@@ -1,24 +1,48 @@
 {
-  // This deployment now runs a small Worker script (worker.js) in front of
-  // the static site. For every request it either handles the one CNIC
-  // upload route itself, or passes the request straight through to the
-  // static files exactly as before — normal pages are unaffected.
+  // Built and deployed via @opennextjs/cloudflare now — "main" points to
+  // the auto-generated worker (created fresh on every build from your
+  // Next.js app), not a hand-written script. Your custom logic (CNIC
+  // upload, profile photo upload, app-store redirects) now lives as
+  // proper Next.js API routes under app/api/ and app/get-ios etc.,
+  // instead of a separate root-level worker.js — that file is no longer
+  // used and can be deleted.
   "name": "jor-website",
-  "compatibility_date": "2026-01-01",
-  "main": "worker.js",
+  "compatibility_date": "2026-07-05",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": ".open-next/worker.js",
   "assets": {
-    "directory": "./out",
-    "binding": "ASSETS",
-    "not_found_handling": "404-page",
-    "run_worker_first": true
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
   },
+  "services": [
+    {
+      // Required for ISR to be able to trigger its own background page
+      // regeneration — the worker calls itself internally when a page's
+      // freshness timer expires. "service" must exactly match "name" above.
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "jor-website"
+    }
+  ],
   "r2_buckets": [
     {
-      // Same bucket the admin app already uploads CNIC/profile photos to —
-      // this binding grants access without any access key or secret ever
-      // being written into this file or the deployed website code.
+      // Unchanged — same bucket the admin app already uploads CNIC/profile
+      // photos to. This binding grants access without any access key or
+      // secret ever being written into this file or the deployed code.
       "binding": "CNIC_BUCKET",
       "bucket_name": "proposal-photos"
+    },
+    {
+      // NEW — a separate, dedicated bucket that stores each ISR-cached
+      // page (not your actual photos). Kept deliberately separate from
+      // proposal-photos so cached page data and real user photos can
+      // never mix or collide. This exact binding name is required by
+      // the Cloudflare adapter — it isn't something we chose, it's a
+      // fixed name it looks for.
+      // ACTION NEEDED: create this bucket once in the Cloudflare
+      // dashboard (R2 → Create bucket → name it exactly
+      // "jor-website-isr-cache") before this first deploys.
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "jor-website-isr-cache"
     }
   ]
 }

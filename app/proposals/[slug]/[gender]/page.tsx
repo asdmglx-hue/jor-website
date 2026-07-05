@@ -27,6 +27,10 @@ export async function generateStaticParams() {
   return params;
 }
 
+// Same reasoning as the city/category page — small page count, existing
+// qualifying-count check kept exactly as-is, just adding freshness on top.
+export const revalidate = 300;
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, gender } = await params;
   const entry = resolveCategoryBySlug(slug);

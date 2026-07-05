@@ -10,6 +10,11 @@ import AnimatedCounter from '@/components/AnimatedCounter';
 import type { Proposal } from '@/lib/supabase';
 import type { Metadata } from 'next';
 
+// Regenerated in the background at most once a minute — the homepage
+// wants to feel current (Recently Added, live counters) without needing
+// a full site rebuild for every single new proposal.
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Jor – Find Your Perfect Rishta in Pakistan",
   description: "Browse thousands of verified rishta proposals from Pakistan and overseas. Filter by city, caste, sect, profession & more. Also available on Play Store & App Store.",

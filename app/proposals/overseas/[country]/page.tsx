@@ -23,6 +23,9 @@ export async function generateStaticParams() {
   return countries.map(c => ({ country: c.slug }));
 }
 
+// Same reasoning as the other category pages.
+export const revalidate = 300;
+
 async function resolveCountrySlug(slug: string): Promise<string | null> {
   const countries = await getQualifyingCountries();
   return countries.find(c => c.slug === slug)?.value ?? null;

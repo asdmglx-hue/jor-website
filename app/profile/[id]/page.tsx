@@ -1,4 +1,4 @@
-import { fetchProposalByNumber, fetchAllProposalNumbers, heightDisplay } from '@/lib/supabase';
+import { fetchProposalByNumber, heightDisplay } from '@/lib/supabase';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -31,10 +31,13 @@ type Props = { params: Promise<{ id: string }> };
 // required for output: 'export' (a static site can't look up an arbitrary
 // ID at request time, since there's no server to ask). The auto-rebuild
 // trigger keeps this list current as profiles are added/removed.
-export async function generateStaticParams() {
-  const numbers = await fetchAllProposalNumbers();
-  return numbers.map(n => ({ id: String(n) }));
-}
+// No generateStaticParams here anymore — with 1256+ profiles, pre-building
+// every single one at every deploy was the single biggest source of slow
+// builds. Instead, each profile page now renders on-demand the first time
+// anyone visits it, then stays cached for 5 minutes before the next
+// visitor triggers a background refresh. New profiles work immediately,
+// with no rebuild needed at all.
+export const revalidate = 300;
 
 // React's cache() deduplicates calls with the same argument within one
 // render pass — so generateMetadata and the page component below share a

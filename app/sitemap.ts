@@ -2,7 +2,10 @@ import { MetadataRoute } from 'next';
 import { fetchCategoryCounts, fetchCountryCounts, fetchAllProposalNumbers, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
 import { CATEGORY_ENTRIES, slugify } from '@/lib/categories';
 
-export const dynamic = 'force-static';
+// Refreshed at most once an hour — the sitemap doesn't need to be
+// instant, but under 'force-static' it would never update again after
+// the first build, silently going stale as new profiles get added.
+export const revalidate = 3600;
 
 const BASE = 'https://joronline.com';
 const GENDER_SLUGS = ['bride', 'groom'];

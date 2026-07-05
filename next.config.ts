@@ -1,11 +1,15 @@
 import type { NextConfig } from "next";
 
-// output: 'export' makes this a fully static site — no Node.js server
-// required at runtime. Images are unoptimized because Next's built-in
-// Image Optimization needs a running server; your images already come
-// from Supabase Storage / Cloudflare R2, which handle their own delivery.
+// Removed output: 'export' — this is the actual switch that turns ISR on.
+// Instead of pre-building all 1355+ pages on every single deploy, each
+// page now decides its own "how fresh does this need to be" timer
+// (via `export const revalidate = ...` in that page's own file). A page
+// is regenerated in the background the first time it's requested after
+// that timer expires — visitors never wait on a rebuild, they always get
+// an instantly-served page (either the current one, or a
+// still-perfectly-fine slightly-older one while the fresh version
+// generates behind the scenes).
 const nextConfig: NextConfig = {
-  output: 'export',
   compress: true,
   images: {
     unoptimized: true,

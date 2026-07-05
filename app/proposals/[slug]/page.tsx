@@ -30,6 +30,14 @@ export async function generateStaticParams() {
   return entries.map(e => ({ slug: e.slug }));
 }
 
+// Category pages are a small minority of the site's total pages, so we
+// keep the existing pre-build + qualifying-count safety check exactly as
+// it was (removing it would need the same minimum-profile check re-added
+// at runtime, for very little build-speed benefit given how few of these
+// pages there are compared to individual profiles). Just adding a
+// freshness timer on top, same as everywhere else.
+export const revalidate = 300;
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const entry = resolveCategoryBySlug(slug);
