@@ -41,10 +41,6 @@ export default {
       return handleProfilePhotoUpload(request, env);
     }
 
-    if (url.pathname === '/api/delete-cnic-images' && request.method === 'POST') {
-      return handleDeleteCnicImages(request, env);
-    }
-
     return env.ASSETS.fetch(request);
   },
 };
@@ -116,27 +112,6 @@ function comingSoonResponse(platform) {
     headers: { 'Content-Type': 'text/html;charset=UTF-8' },
     status: 200,
   });
-}
-
-async function handleDeleteCnicImages(request, env) {
-  try {
-    const body = await request.json().catch(() => ({}));
-    const cnicDigits = String(body.cnic || '').replace(/\D/g, '');
-    if (!/^\d{13}$/.test(cnicDigits)) {
-      return jsonResponse({ error: 'Invalid CNIC number' }, 400);
-    }
-
-    const prefix = `proposals/${cnicDigits}/`;
-    const listed = await env.CNIC_BUCKET.list({ prefix });
-    const keys = listed.objects.map(obj => obj.key);
-    if (keys.length > 0) {
-      await env.CNIC_BUCKET.delete(keys);
-    }
-
-    return jsonResponse({ deleted: keys.length }, 200);
-  } catch (err) {
-    return jsonResponse({ error: 'Delete failed. Please try again.' }, 500);
-  }
 }
 
 async function handleProfilePhotoUpload(request, env) {
