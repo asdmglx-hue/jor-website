@@ -1,6 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { slugify } from '@/lib/categories';
+import { MIN_CATEGORY_PROFILES } from '@/lib/supabase';
 
 const ISO: Record<string, string> = {
   'UAE': 'ae', 'United Arab Emirates': 'ae', 'Afghanistan': 'af', 'Antigua & Barbuda': 'ag',
@@ -164,7 +166,7 @@ export default function CountrySlider({ countries }: { countries: { country: str
           return (
             <Link
               key={i}
-              href={`/proposals?country=${encodeURIComponent(item.country)}`}
+              href={item.count >= MIN_CATEGORY_PROFILES ? `/proposals/overseas/${slugify(item.country)}` : `/proposals?country=${encodeURIComponent(item.country)}`}
               draggable={false}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,

@@ -1,6 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { slugify } from '@/lib/categories';
+import { MIN_CATEGORY_PROFILES } from '@/lib/supabase';
 
 export default function CitySlider({ cities }: { cities: { city: string; count: number }[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -119,7 +121,7 @@ export default function CitySlider({ cities }: { cities: { city: string; count: 
         {doubled.map((item, i) => (
           <Link
             key={i}
-            href={`/proposals?city=${item.city}`}
+            href={item.count >= MIN_CATEGORY_PROFILES ? `/proposals/${slugify(item.city)}` : `/proposals?city=${item.city}`}
             draggable={false}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
