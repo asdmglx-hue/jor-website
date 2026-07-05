@@ -4,10 +4,27 @@ import { normalizeCountry } from './constants';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Next.js caches every fetch() call by default — including ones made by
+// third-party libraries like this client — unless told otherwise. For a
+// long-running server that cache resets between deploys and is harmless,
+// but this site is a static export built fresh on every data change, and
+// some CI build pipelines reuse a persistent build-cache folder between
+// separate builds for speed. If Next's Data Cache persists inside that
+// folder, a rebuild can silently keep re-baking forward the same stale
+// query results instead of ever hitting the database fresh again — no
+// amount of CDN/edge cache purging fixes that, since the problem is
+// baked into the HTML at build time, upstream of any CDN. Explicitly
+// forcing cache: 'no-store' on every request this client makes guarantees
+// each build always reads current data, regardless of any build cache.
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: {
+    fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+  },
+});
 
 export type Proposal = {
   id: string;
+
   proposal_number: number;
   name: string;
   age: number;
