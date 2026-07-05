@@ -5,7 +5,7 @@ import { buildProposalShareText } from '@/lib/shareText';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import ExpandableName from './ExpandableName';
+import ProfileName from './ProfileName';
 
 function Avatar({ name, photoUrl, size = 56, locked = false }: { name: string; photoUrl?: string; size?: number; locked?: boolean }) {
   const colors = ['#534AB7','#0F6E56','#E8620A','#0369A1','#E11D48'];
@@ -136,8 +136,9 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
           <Avatar name={p.name} photoUrl={p.profile_photo_url} size={52} locked={!isActive} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0 }}>
-              <ExpandableName
-                name={p.name}
+              <ProfileName
+                proposalId={p.id}
+                fallback={`${p.gender === 'Male' ? 'Groom' : 'Bride'} #${p.proposal_number}`}
                 style={{ fontSize: 15, fontWeight: 800, color: '#1A1830' }}
               />
               <span style={{ fontSize: 11, color: '#B0ADCB', flexShrink: 0, marginLeft: 6 }}>
