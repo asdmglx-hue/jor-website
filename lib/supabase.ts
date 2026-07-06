@@ -372,7 +372,21 @@ export function heightDisplay(inches: number): string {
   return `${ft}'${inch}"`;
 }
 
+// Cached once per page load so the frequent, synchronous
+// isSubscriptionActive() checks below don't need to hit the database every
+// time. Kicked off immediately when this module loads; by the time most
+// components actually check subscription status, this has usually already
+// resolved. Checked against the live setting (not a hardcoded CNIC) so it
+// stays correct if the admin credentials are ever changed from the admin app.
+let cachedAdminCnic: string | null = null;
+if (typeof window !== 'undefined') {
+  supabase.from('app_settings').select('value').eq('key', 'admin_view_cnic').maybeSingle().then(({ data }) => {
+    if (data?.value) cachedAdminCnic = data.value;
+  });
+}
+
 export function isSubscriptionActive(proposal: Proposal): boolean {
+  if (proposal.cnic && cachedAdminCnic && proposal.cnic === cachedAdminCnic) return true;
   if (proposal.subscription_tier === 'none') return false;
   if (!proposal.subscription_expiry) return false;
   return new Date(proposal.subscription_expiry) > new Date();

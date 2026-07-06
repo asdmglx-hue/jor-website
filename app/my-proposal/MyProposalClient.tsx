@@ -43,7 +43,12 @@ function getStatusLabel(user: Proposal, featuredBoost = false): string {
   return 'Inactive';
 }
 
-function StatusBadge({ user, featuredBoost = false }: { user: Proposal; featuredBoost?: boolean }) {
+function StatusBadge({ user, featuredBoost = false, isAdmin = false }: { user: Proposal; featuredBoost?: boolean; isAdmin?: boolean }) {
+  // Shown as its own distinct label rather than folding it into
+  // getStatusLabel — that function's output also drives which action
+  // buttons appear (Pause/Resume, etc.), which should stay based on the
+  // real underlying status, not be disturbed by this display-only override.
+  if (isAdmin) return <Badge color="#7C3AED" bg="#EDE9FE">Admin</Badge>;
   const label = getStatusLabel(user, featuredBoost);
   const styles: Record<string, { color: string; bg: string }> = {
     Active:   { color: '#16A34A', bg: '#DCFCE7' },
@@ -201,6 +206,7 @@ export default function MyProposalClient() {
   const [saving, setSaving] = useState(false);
   const [featuredBannerDismissed, setFeaturedBannerDismissed] = useState(false);
   const [hasFeaturedBoost, setHasFeaturedBoost] = useState(false);
+  const [isAdminAccount, setIsAdminAccount] = useState(false);
   // Delete modal
   const [deleteStep, setDeleteStep] = useState<'reason' | 'password' | null>(null);
   const [deleteReason, setDeleteReason] = useState('');
@@ -246,6 +252,12 @@ export default function MyProposalClient() {
     if (session.id) {
       import('@/lib/auth').then(m => m.syncSavedFromServer(session.id).then(ids => setSavedIds(ids)));
     }
+    // Checked against the live admin_view_cnic setting (not a hardcoded
+    // value) so this stays correct even if the admin credentials are
+    // later changed from the admin app.
+    supabase.from('app_settings').select('value').eq('key', 'admin_view_cnic').maybeSingle().then(({ data }) => {
+      if (data?.value && session.cnic === data.value) setIsAdminAccount(true);
+    });
     // Always fetch fresh data so status/plans changes are reflected
     supabase.from('proposals').select('*').eq('id', session.id).maybeSingle().then(({ data }) => {
       if (data) {
@@ -382,7 +394,7 @@ export default function MyProposalClient() {
             {/* Name + ACTIVE badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap', width: '100%' }}>
               <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830' }}>{user.name}</div>
-              <StatusBadge user={user} featuredBoost={hasFeaturedBoost} />
+              <StatusBadge user={user} featuredBoost={hasFeaturedBoost} isAdmin={isAdminAccount} />
               {user.proposal_number && <div className="hash-mobile" style={{ display: 'none', fontSize: 13, color: '#6B6893', marginLeft: 'auto', marginRight: 0 }}>#{user.proposal_number}</div>}
             </div>
             <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 2 }}>
@@ -401,13 +413,20 @@ export default function MyProposalClient() {
           {user.proposal_number && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', alignSelf: 'flex-end', position: 'relative', top: -12 }}>#{user.proposal_number}</div>}
           <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', alignItems: 'center' }}>
             {/* View */}
-            {(['Active','Featured'].includes(getStatusLabel(user, hasFeaturedBoost))) && <Link href={`/profile/${user.proposal_number}`}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#EEEDFE', textDecoration: 'none' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#534AB7' }}>View</span>
-            </Link>}
+            {(['Active','Featured'].includes(getStatusLabel(user, hasFeaturedBoost))) && (isAdminAccount ? (
+              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#F5F5F5', opacity: 0.5, cursor: 'not-allowed' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF' }}>View</span>
+              </div>
+            ) : (
+              <Link href={`/profile/${user.proposal_number}`}
+                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#EEEDFE', textDecoration: 'none' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#534AB7' }}>View</span>
+              </Link>
+            ))}
             {/* Share */}
-            <button onClick={async () => {
+            <button disabled={isAdminAccount} onClick={async () => {
                 const session = getSession();
                 const showFullPhone = !!session && isSubscriptionActive(session);
                 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -418,30 +437,30 @@ export default function MyProposalClient() {
                 const text = buildProposalShareText(user, false, showFullPhone);
                 window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
               }}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', cursor: 'pointer' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#534AB7' }}>Share</span>
+              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: isAdminAccount ? '#F5F5F5' : '#fff', cursor: isAdminAccount ? 'not-allowed' : 'pointer', opacity: isAdminAccount ? 0.5 : 1 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isAdminAccount ? '#9CA3AF' : '#534AB7'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              <span style={{ fontSize: 10, fontWeight: 700, color: isAdminAccount ? '#9CA3AF' : '#534AB7' }}>Share</span>
             </button>
             {/* Pause/Resume — only for active/paused users */}
-            {(['Active', 'Featured', 'Paused'].includes(getStatusLabel(user, hasFeaturedBoost))) && <button onClick={async () => {
+            {(['Active', 'Featured', 'Paused'].includes(getStatusLabel(user, hasFeaturedBoost))) && <button disabled={isAdminAccount} onClick={async () => {
                 const isPaused = user.status === 'paused';
                 const msg = isPaused ? 'Resume your profile? It will become visible in the group again.' : 'Pause your profile? It will be hidden from the group. You can resume anytime.';
                 if (!window.confirm(msg)) return;
                 const ok = await updateProposal(user.id, { status: isPaused ? 'active' : 'paused' });
                 if (ok) { const updated = { ...user, status: isPaused ? 'active' : 'paused' }; setUser(updated as typeof user); import('@/lib/auth').then(m => m.saveSession(updated as typeof user)); }
               }}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', cursor: 'pointer' }}>
+              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', cursor: isAdminAccount ? 'not-allowed' : 'pointer', opacity: isAdminAccount ? 0.5 : 1 }}>
               {user.status === 'paused'
-                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isAdminAccount ? '#9CA3AF' : '#16A34A'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
               }
-              <span style={{ fontSize: 10, fontWeight: 700, color: user.status === 'paused' ? '#16A34A' : '#6B7280' }}>{user.status === 'paused' ? 'Resume' : 'Pause'}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: isAdminAccount ? '#9CA3AF' : (user.status === 'paused' ? '#16A34A' : '#6B7280') }}>{user.status === 'paused' ? 'Resume' : 'Pause'}</span>
             </button>}
             {/* Delete */}
-            <button onClick={() => { setDeleteReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep('reason'); }}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FEE2E2', background: '#FEF2F2', cursor: 'pointer' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#DC2626' }}>Delete</span>
+            <button disabled={isAdminAccount} onClick={() => { setDeleteReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep('reason'); }}
+              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: isAdminAccount ? '1.5px solid #E8E6F5' : '1.5px solid #FEE2E2', background: isAdminAccount ? '#F5F5F5' : '#FEF2F2', cursor: isAdminAccount ? 'not-allowed' : 'pointer', opacity: isAdminAccount ? 0.5 : 1 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isAdminAccount ? '#9CA3AF' : '#DC2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              <span style={{ fontSize: 10, fontWeight: 700, color: isAdminAccount ? '#9CA3AF' : '#DC2626' }}>Delete</span>
             </button>
           </div>
         </div>
