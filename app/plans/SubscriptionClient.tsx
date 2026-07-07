@@ -6,9 +6,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const ADMIN_WHATSAPP = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '923000000000';
-const STD_PRICE = process.env.NEXT_PUBLIC_STD_PRICE || '1,000';
-const STD_MONTHS = process.env.NEXT_PUBLIC_STD_MONTHS || '3 Months';
-const FT_PRICE = process.env.NEXT_PUBLIC_FT_PRICE || '200';
 
 const PLAN_ICONS: Record<string, React.ReactNode> = {
   'Rishta Profile': (
@@ -105,6 +102,19 @@ export default function SubscriptionClient() {
     });
   };
 
+  // Read directly from the settings this component already fetches from
+  // app_settings — these are the exact key names the admin app writes to
+  // when pricing is changed there, so this now actually stays in sync
+  // instead of showing values frozen at the last site build.
+  const STD_PRICE = settings.standard_plan_price || '1,000';
+  const STD_MONTHS = settings.standard_plan_days
+    ? `${Math.round(Number(settings.standard_plan_days) / 30)} Month${Math.round(Number(settings.standard_plan_days) / 30) === 1 ? '' : 's'}`
+    : '3 Months';
+  const FT_PRICE = settings.featured_post_price || '200';
+  const FT_DURATION = settings.featured_post_duration
+    ? `${Number(settings.featured_post_duration) * 24} hours`
+    : '24 hours';
+
   const plans = [
     {
       name: 'Rishta Profile', price: STD_PRICE, duration: STD_MONTHS,
@@ -113,9 +123,9 @@ export default function SubscriptionClient() {
       note: undefined,
     },
     {
-      name: 'Featured Post', price: FT_PRICE, duration: '24 hours',
+      name: 'Featured Post', price: FT_PRICE, duration: FT_DURATION,
       tagline: 'Stand out. Get noticed.', color: '#E8620A', bg: '#FEEDE3', popular: false,
-      features: ['Schedule Your Featured Date', 'Choose Your Featured City', 'Up to 5× more visibility', '24 hours validity'],
+      features: ['Schedule Your Featured Date', 'Choose Your Featured City', 'Up to 5× more visibility', `${FT_DURATION} validity`],
       note: 'Requires Rishta Profile subscription',
     },
   ];
