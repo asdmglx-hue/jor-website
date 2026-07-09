@@ -276,11 +276,11 @@ export default function MyProposalClient() {
     if (session.id) {
       import('@/lib/auth').then(m => m.syncSavedFromServer(session.id).then(ids => setSavedIds(ids)));
     }
-    // Checked against the live admin_accounts table (not a hardcoded value)
-    // so this stays correct as admins are added/changed from the admin app.
-    supabase.from('admin_accounts').select('cnic').eq('cnic', session.cnic || '').maybeSingle().then(({ data }) => {
-      if (data) setIsAdminAccount(true);
-    });
+    // Admin sessions are synthesized at login with an id like "admin:<uuid>"
+    // (see loginWithCnic) — checking that directly is synchronous, so the
+    // Admin badge is correct on the very first render instead of briefly
+    // showing "Active" while an async admin_accounts lookup resolves.
+    if (session.id?.startsWith('admin:')) setIsAdminAccount(true);
     // Always fetch fresh data so status/plans changes are reflected
     supabase.from('proposals').select('*').eq('id', session.id).maybeSingle().then(({ data }) => {
       if (data) {
@@ -489,8 +489,9 @@ export default function MyProposalClient() {
         </div>
       </div>
 
-      {/* Status banners */}
-      {(() => {
+      {/* Status banners — not applicable to admin sessions, which use a
+          synthetic session object rather than a real subscription */}
+      {!isAdminAccount && (() => {
         const label = getStatusLabel(user);
         if (label === 'Pending') return (
           <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
@@ -541,7 +542,7 @@ export default function MyProposalClient() {
       })()}
 
       {/* Featured upsell — active non-featured users only, dismissable per session */}
-      {getStatusLabel(user, hasFeaturedBoost) === 'Active' && !featuredBannerDismissed && (
+      {!isAdminAccount && getStatusLabel(user, hasFeaturedBoost) === 'Active' && !featuredBannerDismissed && (
         <div style={{ background: 'linear-gradient(135deg, #7C5CFA 0%, #534AB7 100%)', borderRadius: 16, padding: '18px 20px', marginBottom: 20, position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: 50, background: 'rgba(255,255,255,0.06)' }} />
           <div style={{ position: 'absolute', bottom: -30, left: 60, width: 140, height: 140, borderRadius: 70, background: 'rgba(255,255,255,0.04)' }} />
@@ -587,11 +588,20 @@ export default function MyProposalClient() {
                 </button>
               </div>
             );
+            // Admin sessions can only edit their name — every other field
+            // across Basic Information, Family, Education, etc. becomes
+            // read-only display text instead of a clickable editor.
+            const fieldDisabled = (key: string) => isAdminAccount && key !== 'name';
+
             const emptyPill = (key: string) => (
-              <span onClick={() => { setInlineKey(key); setInlineVal(''); }}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#534AB7', background: '#EEEDFE', border: '1px dashed #C4C2D8', borderRadius: 20, padding: '3px 10px', cursor: 'pointer', marginTop: 2 }}>
-                + Add
-              </span>
+              fieldDisabled(key) ? (
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#B0ADCB' }}>Not set</span>
+              ) : (
+                <span onClick={() => { setInlineKey(key); setInlineVal(''); }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#534AB7', background: '#EEEDFE', border: '1px dashed #C4C2D8', borderRadius: 20, padding: '3px 10px', cursor: 'pointer', marginTop: 2 }}>
+                  + Add
+                </span>
+              )
             );
             const lbl = (label: string, extra?: React.ReactNode) => (
               <label style={{ fontSize: 11, fontWeight: 700, color: '#B0ADCB', display: 'block', marginBottom: 4, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>{label}{extra}</label>
@@ -626,12 +636,16 @@ export default function MyProposalClient() {
                       {inlineButtons(fieldKey, type === 'number' ? Number(inlineVal) : inlineVal)}
                     </>
                   ) : displayVal ? (
+                    fieldDisabled(fieldKey) ? (
+                      <div style={{ fontSize: 14, color: '#1A1830', fontWeight: 500 }}>{displayVal}</div>
+                    ) : (
                     <div onClick={() => { setInlineKey(fieldKey); setInlineVal(displayVal); }}
                       style={{ fontSize: 14, color: '#1A1830', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                       onMouseEnter={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '1'; }}
                       onMouseLeave={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '0'; }}>
                       <span>{displayVal}</span>{pencil}
                     </div>
+                    )
                   ) : emptyPill(fieldKey)}
                 </div>
               );
@@ -654,12 +668,16 @@ export default function MyProposalClient() {
                       {inlineButtons(fieldKey, inlineVal === 'true' ? true : inlineVal === 'false' ? false : null)}
                     </>
                   ) : displayVal ? (
+                    fieldDisabled(fieldKey) ? (
+                      <div style={{ fontSize: 14, color: '#1A1830', fontWeight: 500 }}>{displayVal}</div>
+                    ) : (
                     <div onClick={() => { setInlineKey(fieldKey); setInlineVal(String(val)); }}
                       style={{ fontSize: 14, color: '#1A1830', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                       onMouseEnter={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '1'; }}
                       onMouseLeave={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '0'; }}>
                       <span>{displayVal}</span>{pencil}
                     </div>
+                    )
                   ) : emptyPill(fieldKey)}
                 </div>
               );
@@ -687,12 +705,16 @@ export default function MyProposalClient() {
                       {inlineButtons('height_inches', Number(inlineVal) || 0)}
                     </>
                   ) : htFt ? (
+                    fieldDisabled('height_inches') ? (
+                      <div style={{ fontSize: 14, color: '#1A1830', fontWeight: 500 }}>{htFt}</div>
+                    ) : (
                     <div onClick={() => { setInlineKey('height_inches'); setInlineVal(String(user.height_inches)); }}
                       style={{ fontSize: 14, color: '#1A1830', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                       onMouseEnter={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '1'; }}
                       onMouseLeave={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '0'; }}>
                       <span>{htFt}</span>{pencil}
                     </div>
+                    )
                   ) : emptyPill('height_inches')}
                 </div>
               );
@@ -739,6 +761,9 @@ export default function MyProposalClient() {
                       {inlineButtons(fieldKey, inlineVal)}
                     </>
                   ) : val ? (
+                    fieldDisabled(fieldKey) ? (
+                      <p style={{ fontSize: 14, color: '#1A1830', lineHeight: 1.6, margin: 0 }}>{val}</p>
+                    ) : (
                     <div onClick={() => { setInlineKey(fieldKey); setInlineVal(val); }}
                       style={{ cursor: 'pointer' }}
                       onMouseEnter={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '1'; }}
@@ -746,6 +771,7 @@ export default function MyProposalClient() {
                       <p style={{ fontSize: 14, color: '#1A1830', lineHeight: 1.6, margin: 0 }}>{val}</p>
                       {pencil}
                     </div>
+                    )
                   ) : emptyPill(fieldKey)}
                 </div>
               );
