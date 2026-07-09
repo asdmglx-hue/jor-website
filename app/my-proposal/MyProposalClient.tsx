@@ -418,11 +418,13 @@ export default function MyProposalClient() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap', width: '100%' }}>
               <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830' }}>{user.name}</div>
               <StatusBadge user={user} featuredBoost={hasFeaturedBoost} isAdmin={isAdminAccount} />
-              {user.proposal_number && <div className="hash-mobile" style={{ display: 'none', fontSize: 13, color: '#6B6893', marginLeft: 'auto', marginRight: 0 }}>#{user.proposal_number}</div>}
+              {user.proposal_number > 0 && <div className="hash-mobile" style={{ display: 'none', fontSize: 13, color: '#6B6893', marginLeft: 'auto', marginRight: 0 }}>#{user.proposal_number}</div>}
             </div>
+            {!isAdminAccount && (
             <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 2 }}>
               {user.age} yrs{user.profession ? ` • ${user.profession}` : ''}
             </div>
+            )}
             <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 8 }}>
               {user.country && user.country !== 'Pakistan' ? `${user.country} (from ${user.city})` : user.city}
             </div>
@@ -433,7 +435,7 @@ export default function MyProposalClient() {
           </div>
         </div>
         <div className="my-account-right" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-          {user.proposal_number && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', alignSelf: 'flex-end', position: 'relative', top: -12 }}>#{user.proposal_number}</div>}
+          {user.proposal_number > 0 && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', alignSelf: 'flex-end', position: 'relative', top: -12 }}>#{user.proposal_number}</div>}
           <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', alignItems: 'center' }}>
             {/* View */}
             {(['Active','Featured'].includes(getStatusLabel(user, hasFeaturedBoost))) && (isAdminAccount ? (
