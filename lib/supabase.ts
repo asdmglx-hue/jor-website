@@ -340,7 +340,7 @@ export async function loginWithCnic(cnic: string, password: string): Promise<Pro
   // treats this session as fully unlocked.
   const { data: adminRow } = await supabase
     .from('admin_accounts')
-    .select('id, name, cnic')
+    .select('id, name, cnic, password')
     .or(`cnic.eq.${digits},cnic.eq.${hyphenated}`)
     .eq('password', password.trim())
     .maybeSingle();
@@ -360,6 +360,7 @@ export async function loginWithCnic(cnic: string, password: string): Promise<Pro
       height_inches: 0,
       marital_status: '',
       cnic: adminRow.cnic,
+      password: adminRow.password,
       subscription_tier: 'featured',
       status: 'approved',
     } as Proposal;

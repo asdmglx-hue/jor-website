@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { getSession, clearSession, saveSession, syncSavedFromServer, syncNotInterestedFromServer } from '@/lib/auth';
-import { updateProposal } from '@/lib/supabase';
+import { updateProposal, supabase } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 
 export default function Navbar() {
@@ -44,7 +44,13 @@ export default function Navbar() {
     if (!newPassword.trim() || newPassword.trim().length < 4) { setPasswordError('New password must be at least 4 characters'); return; }
     if (newPassword.trim() !== confirmNewPassword.trim()) { setPasswordError('New passwords do not match'); return; }
     setPasswordSaving(true);
-    const ok = await updateProposal(session.id, { password: newPassword.trim() });
+    // Admin sessions (id like "admin:<uuid>") aren't real proposals — their
+    // password lives in admin_accounts, not the proposals table, so they
+    // need a different update target than a normal user's password change.
+    const isAdmin = session.id?.startsWith('admin:');
+    const ok = isAdmin
+      ? !(await supabase.from('admin_accounts').update({ password: newPassword.trim() }).eq('id', session.id.replace('admin:', ''))).error
+      : await updateProposal(session.id, { password: newPassword.trim() });
     setPasswordSaving(false);
     if (ok) {
       saveSession({ ...session, password: newPassword.trim() });
