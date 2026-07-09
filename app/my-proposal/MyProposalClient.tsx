@@ -23,6 +23,30 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
 
 type Tab = 'profile' | 'saved';
 
+// Small click-to-open info popover — icon opens a short explanatory box,
+// closes when clicking the icon again or anywhere else on the page.
+function InfoPopover({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener('click', close);
+    return () => window.removeEventListener('click', close);
+  }, [open]);
+  return (
+    <span style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle', marginLeft: 6 }}>
+      <button type="button" onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
+        style={{ width: 15, height: 15, borderRadius: '50%', border: '1px solid #B0ADCB', background: '#fff', color: '#6B6893', fontSize: 10, fontWeight: 700, lineHeight: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+        aria-label="More info">i</button>
+      {open && (
+        <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 20, left: 0, zIndex: 30, width: 220, background: '#1A1830', color: '#fff', fontSize: 11.5, lineHeight: 1.5, borderRadius: 10, padding: '10px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+          {text}
+        </div>
+      )}
+    </span>
+  );
+}
+
 function Badge({ children, color = '#534AB7', bg = '#EEEDFE' }: { children: React.ReactNode; color?: string; bg?: string }) {
   return <span style={{ background: bg, color, fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 20 }}>{children}</span>;
 }
@@ -570,8 +594,8 @@ export default function MyProposalClient() {
                 + Add
               </span>
             );
-            const lbl = (label: string) => (
-              <label style={{ fontSize: 11, fontWeight: 700, color: '#B0ADCB', display: 'block', marginBottom: 4, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>{label}</label>
+            const lbl = (label: string, extra?: React.ReactNode) => (
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#B0ADCB', display: 'block', marginBottom: 4, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>{label}{extra}</label>
             );
             const pencil = (
               <svg className="edit-icon" style={{ opacity: 0, transition: 'opacity 0.15s', flexShrink: 0 }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -585,8 +609,7 @@ export default function MyProposalClient() {
               const displayVal = val != null && val !== '' && !(type === 'number' && Number(val) === 0) ? String(val) : null;
               return (
                 <div style={{ marginBottom: 14 }}>
-                  {lbl(label)}
-                  {info && <div style={{ fontSize: 11.5, color: '#9CA3AF', marginTop: -4, marginBottom: 6, fontStyle: 'italic' }}>{info}</div>}
+                  {lbl(label, info ? <InfoPopover text={info} /> : undefined)}
                   {isEditing ? (
                     <>
                       {options

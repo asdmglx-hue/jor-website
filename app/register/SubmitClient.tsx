@@ -286,14 +286,38 @@ const inp: React.CSSProperties = { width: '100%', padding: '11px 13px', borderRa
 const sel: React.CSSProperties = { ...inp, cursor: 'pointer' };
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function Field({ label, required, labelExtra, children }: { label: string; required?: boolean; labelExtra?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 14 }}>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>
-        {label}{required && <span style={{ color: '#E11D48' }}> *</span>}
+        {label}{required && <span style={{ color: '#E11D48' }}> *</span>}{labelExtra}
       </label>
       {children}
     </div>
+  );
+}
+
+// Small click-to-open info popover — icon opens a short explanatory box,
+// closes when clicking the icon again or anywhere else on the page.
+function InfoPopover({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener('click', close);
+    return () => window.removeEventListener('click', close);
+  }, [open]);
+  return (
+    <span style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle', marginLeft: 6 }}>
+      <button type="button" onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
+        style={{ width: 16, height: 16, borderRadius: '50%', border: '1px solid #B0ADCB', background: '#fff', color: '#6B6893', fontSize: 10.5, fontWeight: 700, lineHeight: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+        aria-label="More info">i</button>
+      {open && (
+        <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 22, left: 0, zIndex: 30, width: 230, background: '#1A1830', color: '#fff', fontSize: 12, lineHeight: 1.5, borderRadius: 10, padding: '10px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+          {text}
+        </div>
+      )}
+    </span>
   );
 }
 
@@ -754,7 +778,6 @@ export default function SubmitClient() {
       if (form.password !== form.confirm_password) return fail('Passwords do not match', 'confirm_password');
     }
     if (step === 2) {
-      if (!profilePhoto) return fail('Profile photo is required', 'profilePhoto');
       if (!form.name.trim()) return fail('Full name is required', 'name');
       if (!form.gender) return fail('Gender is required', 'gender');
       if (!form.age || +form.age < 18 || +form.age > 80) return fail('Valid age (18–80) is required', 'age');
@@ -1075,7 +1098,7 @@ export default function SubmitClient() {
               </div>
             </div>
 
-            <Field label="Profile Photo" required>
+            <Field label="Profile Photo">
               <label style={{ display: 'block', cursor: 'pointer' }}>
                 <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => {
                   const f = e.target.files?.[0];
@@ -1215,11 +1238,8 @@ export default function SubmitClient() {
               </SubSection>
             )}
 
-            <Field label="Open to Polygamy?">
+            <Field label="Open to Polygamy?" labelExtra={<InfoPopover text="Polygamy means having more than one wife or marrying a man who already has a wife." />}>
               <Sel value={form.open_to_polygamy} onChange={v => set('open_to_polygamy', v)} options={POLYGAMY_OPTIONS} placeholder="Select" />
-              <div style={{ fontSize: 11.5, color: '#9CA3AF', marginTop: 5, fontStyle: 'italic' }}>
-                Polygamy means having more than one wife or marrying a man who already has a wife.
-              </div>
             </Field>
 
             <Field label="About Yourself">
@@ -1336,7 +1356,7 @@ export default function SubmitClient() {
 
             {/* RELIGION */}
             <SecHeader title="RELIGION" />
-            <Field label="Practice Level">
+            <Field label="Religion Practice Level">
               <Sel value={form.practice_level} onChange={v => set('practice_level', v)} options={PRACTICE_LEVELS} placeholder="Select" />
             </Field>
             {form.gender === 'Female' && (
@@ -1567,7 +1587,7 @@ export default function SubmitClient() {
                   {(form.practice_level || form.hijab_or_beard) && (
                     <>
                       <div style={{ fontSize: 11, fontWeight: 700, color: '#534AB7', marginBottom: 8, marginTop: 12 }}>RELIGION</div>
-                      {form.practice_level && R('Practice Level', form.practice_level)}
+                      {form.practice_level && R('Religion Practice Level', form.practice_level)}
                       {form.hijab_or_beard && R(form.gender === 'Female' ? 'Hijab' : 'Beard', form.hijab_or_beard)}
                     </>
                   )}
