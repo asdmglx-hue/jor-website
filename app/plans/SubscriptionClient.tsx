@@ -76,6 +76,7 @@ export default function SubscriptionClient() {
   const [selected, setSelected] = useState(-1);
   const [showPayModal, setShowPayModal] = useState(false);
   const [settings, setSettings] = useState<Record<string, string>>({});
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   // ── Coupon code state (mirrors the mobile app's payment-instructions dialog) ──
@@ -99,7 +100,10 @@ export default function SubscriptionClient() {
           (data as { key: string; value: string }[]).forEach(r => { s[r.key] = r.value; });
           setSettings(s);
         }
-      } catch (_) {}
+      } catch (_) {
+      } finally {
+        setSettingsLoaded(true);
+      }
     })();
   }, []);
 
@@ -211,7 +215,7 @@ export default function SubscriptionClient() {
       ? `https://wa.me/${adminWa}?text=${encodeURIComponent(`Hi, I want to subscribe to the ${planName} plan on Jor.\n\nMy Name: ${user.name}\nCNIC: ${user.cnic || 'N/A'}\nProposal #: ${user.proposal_number}`)}`
       : `https://wa.me/${adminWa}?text=${encodeURIComponent(`Hi, I want to subscribe to the ${planName} plan on Jor.`)}`;
 
-  if (user === undefined) return <div style={{ textAlign: 'center', padding: 60 }}>Loading...</div>;
+  if (user === undefined || !settingsLoaded) return <div style={{ textAlign: 'center', padding: 60 }}>Loading...</div>;
 
   const isActive = user ? isSubscriptionActive(user) : false;
 
