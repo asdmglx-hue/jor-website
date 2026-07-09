@@ -248,7 +248,13 @@ export default function SubscriptionClient() {
             Active · Expires {user.subscription_expiry ? new Date(user.subscription_expiry).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
           </div>
         ) : (
-          <button onClick={() => setShowPayModal(true)} style={{
+          <button onClick={() => {
+            if (selected === 0 && isFreeMode) {
+              router.push('/register');
+            } else {
+              setShowPayModal(true);
+            }
+          }} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '15px', borderRadius: 14, background: '#534AB7', color: '#fff',
             fontWeight: 800, fontSize: 16, border: 'none', cursor: 'pointer', width: '100%',
