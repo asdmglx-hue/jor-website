@@ -276,11 +276,10 @@ export default function MyProposalClient() {
     if (session.id) {
       import('@/lib/auth').then(m => m.syncSavedFromServer(session.id).then(ids => setSavedIds(ids)));
     }
-    // Checked against the live admin_view_cnic setting (not a hardcoded
-    // value) so this stays correct even if the admin credentials are
-    // later changed from the admin app.
-    supabase.from('app_settings').select('value').eq('key', 'admin_view_cnic').maybeSingle().then(({ data }) => {
-      if (data?.value && session.cnic === data.value) setIsAdminAccount(true);
+    // Checked against the live admin_accounts table (not a hardcoded value)
+    // so this stays correct as admins are added/changed from the admin app.
+    supabase.from('admin_accounts').select('cnic').eq('cnic', session.cnic || '').maybeSingle().then(({ data }) => {
+      if (data) setIsAdminAccount(true);
     });
     // Always fetch fresh data so status/plans changes are reflected
     supabase.from('proposals').select('*').eq('id', session.id).maybeSingle().then(({ data }) => {

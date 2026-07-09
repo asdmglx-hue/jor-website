@@ -330,6 +330,41 @@ export async function fetchProposalsForCategory(
 export async function loginWithCnic(cnic: string, password: string): Promise<Proposal | null> {
   const digits = cnic.replace(/-/g, '').trim();
   const hyphenated = `${digits.slice(0,5)}-${digits.slice(5,12)}-${digits.slice(12)}`;
+
+  // Admin accounts (from the admin app's "Create Admin" screen) are checked
+  // first. They're real logins backed by the admin_accounts table, not a
+  // proposal — so we synthesize a minimal Proposal-shaped session object for
+  // them, since the rest of the site (session storage, my-proposal page)
+  // expects a Proposal. subscription_tier/status are set so every locked-
+  // content check across the site (which funnels through isSubscriptionActive)
+  // treats this session as fully unlocked.
+  const { data: adminRow } = await supabase
+    .from('admin_accounts')
+    .select('id, name, cnic')
+    .or(`cnic.eq.${digits},cnic.eq.${hyphenated}`)
+    .eq('password', password.trim())
+    .maybeSingle();
+
+  if (adminRow) {
+    return {
+      id: `admin:${adminRow.id}`,
+      proposal_number: 0,
+      name: adminRow.name || 'Admin',
+      age: 0,
+      gender: 'Male',
+      city: '',
+      caste: '',
+      sect: '',
+      education: '',
+      profession: '',
+      height_inches: 0,
+      marital_status: '',
+      cnic: adminRow.cnic,
+      subscription_tier: 'featured',
+      status: 'approved',
+    } as Proposal;
+  }
+
   const { data, error } = await supabase
     .from('proposals')
     .select('*')
@@ -378,17 +413,18 @@ export function heightDisplay(inches: number): string {
 // isSubscriptionActive() checks below don't need to hit the database every
 // time. Kicked off immediately when this module loads; by the time most
 // components actually check subscription status, this has usually already
-// resolved. Checked against the live setting (not a hardcoded CNIC) so it
-// stays correct if the admin credentials are ever changed from the admin app.
-let cachedAdminCnic: string | null = null;
+// resolved. Backed by the admin_accounts table (supports multiple admins,
+// created from the admin app's "Create Admin" screen) rather than a single
+// hardcoded CNIC, so it stays correct as admins are added/changed/removed.
+let cachedAdminCnics: Set<string> = new Set();
 if (typeof window !== 'undefined') {
-  supabase.from('app_settings').select('value').eq('key', 'admin_view_cnic').maybeSingle().then(({ data }) => {
-    if (data?.value) cachedAdminCnic = data.value;
+  supabase.from('admin_accounts').select('cnic').then(({ data }) => {
+    if (data) cachedAdminCnics = new Set(data.map((r: { cnic: string }) => r.cnic));
   });
 }
 
 export function isSubscriptionActive(proposal: Proposal): boolean {
-  if (proposal.cnic && cachedAdminCnic && proposal.cnic === cachedAdminCnic) return true;
+  if (proposal.cnic && cachedAdminCnics.has(proposal.cnic)) return true;
   if (proposal.subscription_tier === 'none') return false;
   if (!proposal.subscription_expiry) return false;
   return new Date(proposal.subscription_expiry) > new Date();
