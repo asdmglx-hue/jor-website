@@ -18,7 +18,7 @@ const PLAN_ICONS: Record<string, React.ReactNode> = {
 
 // ── PlanCard (no state access — pure display) ─────────────────────────────
 function PlanCard({ plan, selected, onSelect }: {
-  plan: { name: string; price: string; duration: string; tagline: string; features: string[]; note?: string; color: string; bg: string; popular?: boolean };
+  plan: { name: string; price: string; priceDisplay: string; duration: string; tagline: string; features: string[]; note?: string; color: string; bg: string; popular?: boolean };
   selected: boolean; onSelect: () => void;
 }) {
   return (
@@ -42,7 +42,7 @@ function PlanCard({ plan, selected, onSelect }: {
           <div style={{ fontSize: 12, color: '#6B6893', marginTop: 2 }}>{plan.tagline}</div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 18, fontWeight: 900, color: plan.color }}>Rs. {plan.price}</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: plan.color }}>{plan.priceDisplay}</div>
           <div style={{ fontSize: 11, color: '#6B6893' }}>{plan.duration}</div>
         </div>
       </div>
@@ -78,6 +78,14 @@ export default function SubscriptionClient() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState<string | null>(null);
 
+  // ── Coupon code state (mirrors the mobile app's payment-instructions dialog) ──
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCouponDiscount, setAppliedCouponDiscount] = useState<number | null>(null);
+  const [appliedCouponFreeDays, setAppliedCouponFreeDays] = useState<number | null>(null);
+  const [couponMessage, setCouponMessage] = useState<string | null>(null);
+  const [couponIsError, setCouponIsError] = useState(false);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+
   useEffect(() => {
     setUser(getSession() ?? null);
     const params = new URLSearchParams(window.location.search);
@@ -102,10 +110,63 @@ export default function SubscriptionClient() {
     });
   };
 
+  // Validates the coupon against the live coupon_codes table (same table
+  // and logic the mobile apps use) and, if valid, persists it on the
+  // user's proposal row immediately — this is what the admin's approval
+  // flow actually reads to apply it, so it needs to be saved even if the
+  // person navigates away right after applying it here.
+  const applyCoupon = async () => {
+    const code = couponCode.trim();
+    if (!code) return;
+    setValidatingCoupon(true);
+    setCouponMessage(null);
+    try {
+      const { data: res, error } = await supabase
+        .from('coupon_codes')
+        .select('coupon_type, discount_percent, free_days, active, expires_at')
+        .ilike('code', code)
+        .maybeSingle();
+
+      const expired = res?.expires_at ? new Date(res.expires_at) < new Date() : false;
+      if (error || !res || res.active !== true || expired) {
+        setValidatingCoupon(false);
+        setCouponIsError(true);
+        setCouponMessage(expired ? 'This coupon has expired' : 'Invalid or inactive coupon code');
+        setAppliedCouponDiscount(null);
+        setAppliedCouponFreeDays(null);
+        return;
+      }
+
+      const type = res.coupon_type || 'percentage';
+      setValidatingCoupon(false);
+      setCouponIsError(false);
+      if (type === 'free_days' && res.free_days) {
+        setAppliedCouponFreeDays(res.free_days);
+        setAppliedCouponDiscount(null);
+        setCouponMessage(`+${res.free_days} bonus days added!`);
+      } else if (res.discount_percent) {
+        setAppliedCouponDiscount(res.discount_percent);
+        setAppliedCouponFreeDays(null);
+        setCouponMessage(`${res.discount_percent}% discount applied!`);
+      }
+
+      if (user?.id) {
+        await supabase.from('proposals').update({ applied_coupon_code: code.toUpperCase() }).eq('id', user.id);
+      }
+    } catch (_) {
+      setValidatingCoupon(false);
+      setCouponIsError(true);
+      setCouponMessage('Could not verify coupon — check your connection');
+    }
+  };
+
   // Read directly from the settings this component already fetches from
   // app_settings — these are the exact key names the admin app writes to
   // when pricing is changed there, so this now actually stays in sync
   // instead of showing values frozen at the last site build.
+  // free_mode only ever applies to the Rishta Profile (standard) plan —
+  // Featured Post is always paid, matching the mobile app's behavior.
+  const isFreeMode = settings.free_mode === 'true';
   const STD_PRICE = settings.standard_plan_price || '1,000';
   const STD_MONTHS = settings.standard_plan_days
     ? `${Math.round(Number(settings.standard_plan_days) / 30)} Month${Math.round(Number(settings.standard_plan_days) / 30) === 1 ? '' : 's'}`
@@ -115,15 +176,28 @@ export default function SubscriptionClient() {
     ? `${Number(settings.featured_post_duration) * 24} hours`
     : '24 hours';
 
+  // Standard-plan price with the applied coupon factored in — a discounted
+  // price for a percentage coupon, the normal price for a free-days coupon
+  // (that type only adds bonus days, never touches price), or the plain
+  // price if no coupon is applied. Mirrors the mobile app's _stdPriceWithCoupon().
+  const stdPriceWithCoupon = (): string => {
+    if (isFreeMode) return 'Free';
+    if (appliedCouponFreeDays != null) return `Rs. ${STD_PRICE}`;
+    const base = Number(STD_PRICE.replace(/,/g, ''));
+    if (!base || appliedCouponDiscount == null) return `Rs. ${STD_PRICE}`;
+    const discounted = Math.round(base * (100 - appliedCouponDiscount) / 100);
+    return `Rs. ${discounted.toLocaleString()}`;
+  };
+
   const plans = [
     {
-      name: 'Rishta Profile', price: STD_PRICE, duration: STD_MONTHS,
+      name: 'Rishta Profile', price: STD_PRICE, priceDisplay: isFreeMode ? 'Free' : `Rs. ${STD_PRICE}`, duration: STD_MONTHS,
       tagline: 'See all contact numbers', color: '#534AB7', bg: '#EEEDFE', popular: true,
       features: ['Publish your profile', 'Unlimited Local Proposals', 'Unlimited Overseas Proposals', 'View Contact numbers and Photos', 'Use Advanced Search Filters', `Validity for ${STD_MONTHS}`, '24 hours support'],
       note: undefined,
     },
     {
-      name: 'Featured Post', price: FT_PRICE, duration: FT_DURATION,
+      name: 'Featured Post', price: FT_PRICE, priceDisplay: `Rs. ${FT_PRICE}`, duration: FT_DURATION,
       tagline: 'Stand out. Get noticed.', color: '#E8620A', bg: '#FEEDE3', popular: false,
       features: ['Schedule Your Featured Date', 'Choose Your Featured City', 'Up to 5× more visibility', `${FT_DURATION} validity`],
       note: 'Requires Rishta Profile subscription',
@@ -176,7 +250,7 @@ export default function SubscriptionClient() {
             fontWeight: 800, fontSize: 16, border: 'none', cursor: 'pointer', width: '100%',
             marginBottom: 24, boxShadow: '0 4px 16px rgba(83,74,183,0.3)',
           }}>
-            Continue with {plans[selected].name} – Rs. {plans[selected].price}
+            Continue with {plans[selected].name} – {selected === 0 ? stdPriceWithCoupon() : plans[selected].priceDisplay}
           </button>
         )
       )}
@@ -190,7 +264,7 @@ export default function SubscriptionClient() {
           <div style={{ background: '#fff', borderRadius: 20, padding: 24, maxWidth: 440, width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 4 }}>Payment Instructions</div>
             <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 16 }}>
-              Plan: <b>{plans[selected].name}</b> · Rs. {plans[selected].price}
+              Plan: <b>{plans[selected].name}</b> · {selected === 0 ? stdPriceWithCoupon() : plans[selected].priceDisplay}
             </div>
             <div style={{ height: 1, background: '#E8E6F5', marginBottom: 16 }} />
 
@@ -248,6 +322,36 @@ export default function SubscriptionClient() {
             ) : (
               <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.6, marginBottom: 16 }}>
                 Contact admin on WhatsApp to complete your payment.
+              </div>
+            )}
+
+            {selected === 0 && !isFreeMode && (
+              <div style={{ margin: '4px 0 16px' }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#1A1830', marginBottom: 6 }}>Have a coupon code?</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value)}
+                    placeholder="Enter coupon code"
+                    style={{ flex: 1, padding: '10px 12px', borderRadius: 10, border: '1px solid #E8E6F5', fontSize: 13, textTransform: 'uppercase' }}
+                  />
+                  <button
+                    onClick={applyCoupon}
+                    disabled={validatingCoupon || !couponCode.trim()}
+                    style={{
+                      padding: '10px 16px', borderRadius: 10, border: 'none',
+                      background: validatingCoupon || !couponCode.trim() ? '#E8E6F5' : '#534AB7',
+                      color: validatingCoupon || !couponCode.trim() ? '#9895C0' : '#fff',
+                      fontWeight: 700, fontSize: 13, cursor: validatingCoupon || !couponCode.trim() ? 'default' : 'pointer',
+                    }}>
+                    {validatingCoupon ? '...' : 'Apply'}
+                  </button>
+                </div>
+                {couponMessage && (
+                  <div style={{ fontSize: 12, marginTop: 6, fontWeight: 600, color: couponIsError ? '#DC2626' : '#16A34A' }}>
+                    {couponMessage}
+                  </div>
+                )}
               </div>
             )}
 

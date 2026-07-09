@@ -48,6 +48,8 @@ const MONTHLY_INCOMES = ['Under 30K','30K – 60K','60K – 100K','100K – 200K
 const HOME_TYPES = ['Own House','Rented House'];
 const HIJAB_OPTIONS = ['Yes','No','Sometimes'];
 const BEARD_OPTIONS = ['Yes','No','Light'];
+const FAMILY_TYPE_OPTIONS = ['Joint family','Separated Family'];
+const POLYGAMY_OPTIONS = ['Yes','No'];
 const LIFESTYLE_OPTIONS = ['Active Living','Sedentary Living','Moderately Active'];
 const PROPERTY_TYPES = ['Residential','Commercial','Land','Multiple'];
 
@@ -635,8 +637,10 @@ type FormData = {
   profession: string; profession_custom: string;
   marital_status: string; marriage_number: string;
   has_kids: string; boys: string; girls: string;
+  open_to_polygamy: string;
   about: string; looking_for: string;
   // Step 2
+  family_type: string;
   father_alive: string; mother_alive: string;
   father_occupation: string; father_occupation_custom: string;
   mother_occupation: string; mother_occupation_custom: string;
@@ -667,7 +671,9 @@ const EMPTY: FormData = {
   profession: '', profession_custom: '',
   marital_status: '', marriage_number: '',
   has_kids: '', boys: '', girls: '',
+  open_to_polygamy: '',
   about: '', looking_for: '',
+  family_type: '',
   father_alive: '', mother_alive: '',
   father_occupation: '', father_occupation_custom: '',
   mother_occupation: '', mother_occupation_custom: '',
@@ -894,9 +900,11 @@ export default function SubmitClient() {
       marriage_number: form.marriage_number || undefined,
       boys: form.boys ? +form.boys : undefined,
       girls: form.girls ? +form.girls : undefined,
+      open_to_polygamy: form.open_to_polygamy || undefined,
       about: form.about || undefined,
       looking_for: form.looking_for || undefined,
       // step 2
+      family_type: form.family_type || undefined,
       father_alive: form.father_alive === 'Alive' ? true : form.father_alive === 'Deceased' ? false : undefined,
       mother_alive: form.mother_alive === 'Alive' ? true : form.mother_alive === 'Deceased' ? false : undefined,
       father_occupation: actualFatherOcc || undefined,
@@ -1207,6 +1215,13 @@ export default function SubmitClient() {
               </SubSection>
             )}
 
+            <Field label="Open to Polygamy?">
+              <Sel value={form.open_to_polygamy} onChange={v => set('open_to_polygamy', v)} options={POLYGAMY_OPTIONS} placeholder="Select" />
+              <div style={{ fontSize: 11.5, color: '#9CA3AF', marginTop: 5, fontStyle: 'italic' }}>
+                Polygamy means having more than one wife or marrying a man who already has a wife.
+              </div>
+            </Field>
+
             <Field label="About Yourself">
               <div style={{ position: 'relative' }}>
                 <textarea value={form.about} onChange={e => set('about', e.target.value.slice(0, 200))} rows={3}
@@ -1245,6 +1260,9 @@ export default function SubmitClient() {
 
             {/* FAMILY */}
             <SecHeader title="FAMILY" />
+            <Field label="Family Type">
+              <Sel value={form.family_type} onChange={v => set('family_type', v)} options={FAMILY_TYPE_OPTIONS} placeholder="Select" />
+            </Field>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="Father">
                 <Sel value={form.father_alive} onChange={v => set('father_alive', v)} options={['Alive','Deceased']} placeholder="Status" />
@@ -1451,7 +1469,7 @@ export default function SubmitClient() {
           const actualCaste = form.caste === 'Other' ? form.caste_custom : form.caste;
           const actualFatherOcc = form.father_occupation === 'Other' ? form.father_occupation_custom : form.father_occupation;
           const actualMotherOcc = form.mother_occupation === 'Other' ? form.mother_occupation_custom : form.mother_occupation;
-          const hasAdditional = !!(form.father_alive || form.mother_alive || form.father_occupation || form.has_siblings ||
+          const hasAdditional = !!(form.family_type || form.father_alive || form.mother_alive || form.father_occupation || form.has_siblings ||
             form.education || form.monthly_income || form.employment_type ||
             form.weight_kg || form.complexion || form.practice_level || form.hijab_or_beard ||
             form.has_car || form.has_other_property || form.has_disability || form.lifestyle || form.smoker);
@@ -1495,6 +1513,7 @@ export default function SubmitClient() {
               {showKids && form.has_kids && R('Has Kids', form.has_kids)}
               {showKids && form.has_kids === 'Yes' && form.boys && R('Sons', form.boys)}
               {showKids && form.has_kids === 'Yes' && form.girls && R('Daughters', form.girls)}
+              {form.open_to_polygamy && R('Open to Polygamy', form.open_to_polygamy)}
               {form.about && R('About', form.about)}
               {form.looking_for && R('Looking For', form.looking_for)}
 
@@ -1502,9 +1521,10 @@ export default function SubmitClient() {
                 <>
                   <SecHeader title="ADDITIONAL INFO" />
 
-                  {(form.father_alive || form.mother_alive || form.father_occupation || form.mother_occupation || form.has_siblings) && (
+                  {(form.family_type || form.father_alive || form.mother_alive || form.father_occupation || form.mother_occupation || form.has_siblings) && (
                     <>
                       <div style={{ fontSize: 11, fontWeight: 700, color: '#534AB7', marginBottom: 8, marginTop: 4 }}>FAMILY</div>
+                      {form.family_type && R('Family Type', form.family_type)}
                       {form.father_alive && R('Father', form.father_alive)}
                       {form.mother_alive && R('Mother', form.mother_alive)}
                       {actualFatherOcc && R("Father's Occupation", actualFatherOcc)}

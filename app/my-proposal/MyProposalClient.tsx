@@ -763,6 +763,7 @@ export default function MyProposalClient() {
                     </>}
                     {user.marital_status === 'Married' && <Field label="Looking For" fieldKey="marriage_number" options={['Second marriage','Third marriage','Fourth marriage']} />}
                   </>}
+                  <Field label="Open to Polygamy?" fieldKey="open_to_polygamy" options={['Yes','No']} />
                   <Field label="Caste" fieldKey="caste" options={CASTE_LIST} grouped={CASTE_GROUPS} />
                   <Field label="Sect" fieldKey="sect" options={['Sunni','Shia','Barelvi','Deobandi','Ahl-e-Hadith','Other']} />
                   <Field label="Practice Level" fieldKey="practice_level" options={['High','Moderate','Low']} />
@@ -773,6 +774,7 @@ export default function MyProposalClient() {
                 </>))}
 
                 {sec('Family', grid(<>
+                  <Field label="Family Type" fieldKey="family_type" options={['Joint family','Separated Family']} />
                   <BoolField label="Father Alive" fieldKey="father_alive" />
                   <BoolField label="Mother Alive" fieldKey="mother_alive" />
                   <Field label="Father Occupation" fieldKey="father_occupation" options={PROFESSION_LIST} grouped={PROFESSION_GROUPS} />

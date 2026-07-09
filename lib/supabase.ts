@@ -47,6 +47,8 @@ export type Proposal = {
   has_kids?: boolean;
   boys?: number;
   girls?: number;
+  open_to_polygamy?: string;
+  family_type?: string;
   practice_level?: string;
   hijab?: string;
   beard?: string;
