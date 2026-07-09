@@ -39,7 +39,7 @@ function InfoPopover({ text }: { text: string }) {
         style={{ width: 15, height: 15, borderRadius: '50%', border: '1px solid #B0ADCB', background: '#fff', color: '#6B6893', fontSize: 10, fontWeight: 700, lineHeight: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
         aria-label="More info">i</button>
       {open && (
-        <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 20, left: 0, zIndex: 30, width: 220, background: '#1A1830', color: '#fff', fontSize: 11.5, lineHeight: 1.5, borderRadius: 10, padding: '10px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+        <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 20, left: 0, zIndex: 30, width: 220, background: '#40359F', color: '#fff', fontSize: 11.5, fontWeight: 500, lineHeight: 1.5, textTransform: 'none', letterSpacing: 'normal', borderRadius: 10, padding: '10px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
           {text}
         </div>
       )}
