@@ -579,13 +579,14 @@ export default function MyProposalClient() {
               </svg>
             );
 
-            const Field = ({ label, fieldKey, type = 'text', options, grouped }: { label: string; fieldKey: string; type?: string; options?: string[]; grouped?: Record<string, string[]> }) => {
+            const Field = ({ label, fieldKey, type = 'text', options, grouped, info }: { label: string; fieldKey: string; type?: string; options?: string[]; grouped?: Record<string, string[]>; info?: string }) => {
               const val = user[fieldKey as keyof typeof user];
               const isEditing = inlineKey === fieldKey;
               const displayVal = val != null && val !== '' && !(type === 'number' && Number(val) === 0) ? String(val) : null;
               return (
                 <div style={{ marginBottom: 14 }}>
                   {lbl(label)}
+                  {info && <div style={{ fontSize: 11.5, color: '#9CA3AF', marginTop: -4, marginBottom: 6, fontStyle: 'italic' }}>{info}</div>}
                   {isEditing ? (
                     <>
                       {options
@@ -763,10 +764,11 @@ export default function MyProposalClient() {
                     </>}
                     {user.marital_status === 'Married' && <Field label="Looking For" fieldKey="marriage_number" options={['Second marriage','Third marriage','Fourth marriage']} />}
                   </>}
-                  <Field label="Open to Polygamy?" fieldKey="open_to_polygamy" options={['Yes','No']} />
+                  <Field label="Open to Polygamy?" fieldKey="open_to_polygamy" options={['Yes','No']}
+                    info="Polygamy means having more than one wife or marrying a man who already has a wife." />
                   <Field label="Caste" fieldKey="caste" options={CASTE_LIST} grouped={CASTE_GROUPS} />
                   <Field label="Sect" fieldKey="sect" options={['Sunni','Shia','Barelvi','Deobandi','Ahl-e-Hadith','Other']} />
-                  <Field label="Practice Level" fieldKey="practice_level" options={['High','Moderate','Low']} />
+                  <Field label="Religion Practice Level" fieldKey="practice_level" options={['High','Moderate','Low']} />
                   {user.gender === 'Female' ? <Field label="Hijab" fieldKey="hijab" options={['Yes','No','Sometimes']} /> : <Field label="Beard" fieldKey="beard" options={['Yes','No','Trimmed']} />}
                   <LangField />
                   <AboutField fieldKey="about" label="About" />
@@ -792,7 +794,7 @@ export default function MyProposalClient() {
                   <Field label="Title" fieldKey="degree_title" />
                   <Field label="Institute" fieldKey="institute" />
                   {!showDeg2 && (
-                    <div style={{ gridColumn: '1 / -1' }}>
+                    <div style={{ gridColumn: '1 / -1', marginBottom: 22 }}>
                       <button onClick={() => setShowDeg2(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#534AB7', fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0' }}>
                         <span style={{ fontSize: 16, lineHeight: 1 }}>＋</span> Add another degree
                       </button>
@@ -806,7 +808,7 @@ export default function MyProposalClient() {
                     <Field label="Title" fieldKey="degree_title_2" />
                     <Field label="Institute 2" fieldKey="institute_2" />
                     {!showDeg3 && (
-                      <div style={{ gridColumn: '1 / -1' }}>
+                      <div style={{ gridColumn: '1 / -1', marginBottom: 22 }}>
                         <button onClick={() => setShowDeg3(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#534AB7', fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0' }}>
                           <span style={{ fontSize: 16, lineHeight: 1 }}>＋</span> Add another degree
                         </button>
