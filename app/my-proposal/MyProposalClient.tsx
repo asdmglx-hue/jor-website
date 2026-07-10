@@ -6,6 +6,7 @@ import { buildProposalShareText } from '@/lib/shareText';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProposalCard from '@/components/ProposalCard';
+import PasswordInput from '@/components/PasswordInput';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 
@@ -1026,8 +1027,7 @@ export default function MyProposalClient() {
                   Reason: {deleteReason}
                 </div>
                 )}
-                <input
-                  type="password"
+                <PasswordInput
                   placeholder="Enter your password"
                   value={deletePassword}
                   onChange={e => { setDeletePassword(e.target.value); setDeleteError(''); }}

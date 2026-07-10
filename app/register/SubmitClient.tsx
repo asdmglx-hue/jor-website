@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { submitProposal, supabase } from '@/lib/supabase';
+import PasswordInput from '@/components/PasswordInput';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const CASTE_GROUPS: Record<string, string[]> = {
@@ -1077,10 +1078,10 @@ export default function SubmitClient() {
               </div>
             )}
             <Field label="Set Password" required>
-              <input value={form.password} onChange={e => set('password', e.target.value)} style={{ ...inp, ...err('password') }} placeholder="Min 4 characters" type="password" />
+              <PasswordInput value={form.password} onChange={e => set('password', e.target.value)} style={{ ...inp, ...err('password') }} placeholder="Min 4 characters" />
             </Field>
             <Field label="Confirm Password" required>
-              <input value={form.confirm_password} onChange={e => set('confirm_password', e.target.value)} style={{ ...inp, ...err('confirm_password') }} placeholder="Repeat your password" type="password" />
+              <PasswordInput value={form.confirm_password} onChange={e => set('confirm_password', e.target.value)} style={{ ...inp, ...err('confirm_password') }} placeholder="Repeat your password" />
             </Field>
           </div>
         )}

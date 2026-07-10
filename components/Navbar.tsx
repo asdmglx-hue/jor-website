@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { getSession, clearSession, saveSession, syncSavedFromServer, syncNotInterestedFromServer } from '@/lib/auth';
 import { updateProposal, supabase } from '@/lib/supabase';
+import PasswordInput from '@/components/PasswordInput';
 import { useRouter, usePathname } from 'next/navigation';
 
 export default function Navbar() {
@@ -176,23 +177,20 @@ export default function Navbar() {
         <div onClick={() => setShowPasswordModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 380, padding: 24 }}>
             <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830', marginBottom: 16 }}>Change Password</div>
-            <input
-              type="password"
+            <PasswordInput
               placeholder="Current password"
               value={currentPassword}
               onChange={e => { setCurrentPassword(e.target.value); setPasswordError(''); setPasswordSuccess(''); }}
               autoFocus
               style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid #E8E6F5', fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 10 }}
             />
-            <input
-              type="password"
+            <PasswordInput
               placeholder="New password"
               value={newPassword}
               onChange={e => { setNewPassword(e.target.value); setPasswordError(''); setPasswordSuccess(''); }}
               style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid #E8E6F5', fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 10 }}
             />
-            <input
-              type="password"
+            <PasswordInput
               placeholder="Confirm new password"
               value={confirmNewPassword}
               onChange={e => { setConfirmNewPassword(e.target.value); setPasswordError(''); setPasswordSuccess(''); }}
