@@ -1,4 +1,5 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { supabase } from '@/lib/supabase';
 
 // Same R2 bucket and validation rules as /api/upload-cnic, but this is a
 // separate endpoint deliberately kept independent from the registration
@@ -8,8 +9,16 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 // account registration.
 
 const PUBLIC_R2_BASE = 'https://pub-45b25e06fb4b4f448d2ee349c6f55922.r2.dev';
+const SITE_URL = 'https://joronline.com';
 const MAX_FILE_BYTES = 8 * 1024 * 1024; // 8MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'; // no ambiguous 0/O/1/l/I
+
+function randomCode(length = 7): string {
+  let code = '';
+  for (let i = 0; i < length; i++) code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
+  return code;
+}
 
 export async function POST(request: Request) {
   try {
@@ -41,7 +50,21 @@ export async function POST(request: Request) {
       httpMetadata: { contentType: front.type },
     });
 
-    return jsonResponse({ url: `${PUBLIC_R2_BASE}/${objectPath}` }, 200);
+    const fullUrl = `${PUBLIC_R2_BASE}/${objectPath}`;
+
+    // Shorten to a joronline.com link instead of handing admin a long raw
+    // R2 URL over WhatsApp — retries a couple of times on the astronomically
+    // unlikely chance of a code collision, then just falls back to the full
+    // URL rather than failing the whole upload over a cosmetic feature.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const code = randomCode();
+      const { error: insertError } = await supabase.from('image_links').insert({ code, target_url: fullUrl });
+      if (!insertError) {
+        return jsonResponse({ url: `${SITE_URL}/i/${code}` }, 200);
+      }
+    }
+
+    return jsonResponse({ url: fullUrl }, 200);
   } catch (err) {
     return jsonResponse({ error: 'Upload failed. Please try again.' }, 500);
   }

@@ -185,7 +185,7 @@ export default async function ProposalDetailPage({ params }: Props) {
             {p.marital_status !== 'Single' && p.marital_status !== 'Never married' && <InfoRow icon="" label="Children (Boys)" value={p.boys} />}
             {p.marital_status !== 'Single' && p.marital_status !== 'Never married' && <InfoRow icon="" label="Children (Girls)" value={p.girls} />}
             {p.open_to_polygamy && <InfoRow icon="" label="Open to Polygamy" value={p.open_to_polygamy} />}
-            <InfoRow icon="" label="Practice Level" value={p.practice_level} />
+            <InfoRow icon="" label="Religion Practice Level" value={p.practice_level} />
             {p.gender === 'Female' && <InfoRow icon="" label="Hijab" value={p.hijab} />}
             {p.gender === 'Male' && <InfoRow icon="" label="Beard" value={p.beard} />}
             <InfoRow icon="" label="Languages" value={p.languages?.join(', ')} />
