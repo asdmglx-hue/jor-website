@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { submitProposal, supabase } from '@/lib/supabase';
 import PasswordInput from '@/components/PasswordInput';
+import { compressImage } from '@/lib/compressImage';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const CASTE_GROUPS: Record<string, string[]> = {
@@ -731,6 +732,9 @@ export default function SubmitClient() {
   const [viewImg, setViewImg] = useState('');
   const [cnicFront, setCnicFront] = useState<File | null>(null);
   const [cnicBack, setCnicBack] = useState<File | null>(null);
+  const [compressingCnicFront, setCompressingCnicFront] = useState(false);
+  const [compressingCnicBack, setCompressingCnicBack] = useState(false);
+  const [compressingProfilePhoto, setCompressingProfilePhoto] = useState(false);
   const [cnicFrontPreview, setCnicFrontPreview] = useState('');
   const [cnicBackPreview, setCnicBackPreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -977,11 +981,14 @@ export default function SubmitClient() {
   if (cropSrc) return (
     <PhotoCropModal
       src={cropSrc}
-      onDone={blob => {
-        const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
-        setProfilePhoto(file);
-        setProfilePhotoPreview(URL.createObjectURL(blob));
+      onDone={async blob => {
+        const rawFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
         setCropSrc('');
+        setCompressingProfilePhoto(true);
+        const file = await compressImage(rawFile);
+        setProfilePhoto(file);
+        setProfilePhotoPreview(URL.createObjectURL(file));
+        setCompressingProfilePhoto(false);
       }}
       onCancel={() => setCropSrc('')}
     />
@@ -1111,10 +1118,15 @@ export default function SubmitClient() {
                       ? <img src={profilePhotoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B0ADCB" strokeWidth="1.5" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     }
+                    {compressingProfilePhoto && (
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(83,74,183,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div className="spin" style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%' }} />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: profilePhoto ? '#534AB7' : '#1A1830' }}>
-                      {profilePhoto ? '✓ ' + profilePhoto.name : 'Upload Profile Photo'}
+                      {compressingProfilePhoto ? 'Processing photo…' : profilePhoto ? '✓ ' + profilePhoto.name : 'Upload Profile Photo'}
                     </div>
                     <div style={{ fontSize: 12, color: '#B0ADCB', marginTop: 3 }}>Clear face photo · JPG or PNG</div>
                     <div style={{ marginTop: 8, display: 'inline-block', padding: '5px 14px', borderRadius: 8, background: '#EEEDFE', fontSize: 12, fontWeight: 700, color: '#534AB7' }}>
@@ -1427,9 +1439,13 @@ export default function SubmitClient() {
 
             <Field label="CNIC Front Photo" required>
               <label style={{ display: 'block', cursor: 'pointer' }}>
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => {
-                  const f = e.target.files?.[0];
-                  if (f) { setCnicFront(f); setCnicFrontPreview(URL.createObjectURL(f)); }
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
+                  const raw = e.target.files?.[0];
+                  if (!raw) return;
+                  setCompressingCnicFront(true);
+                  const f = await compressImage(raw);
+                  setCnicFront(f); setCnicFrontPreview(URL.createObjectURL(f));
+                  setCompressingCnicFront(false);
                 }} />
                 <div style={{ border: `2px dashed ${cnicFront ? '#534AB7' : errorField === 'cnicFront' ? '#DC2626' : '#E8E6F5'}`, borderRadius: 12, background: cnicFront ? '#EEEDFE' : errorField === 'cnicFront' ? '#FEF2F2' : '#FAFAFA', overflow: 'hidden', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                   {cnicFrontPreview
@@ -1443,15 +1459,25 @@ export default function SubmitClient() {
                   {cnicFront && (
                     <div style={{ position: 'absolute', top: 8, right: 8, background: '#534AB7', borderRadius: 20, padding: '2px 8px', fontSize: 11, color: '#fff', fontWeight: 700 }}>✓ Selected</div>
                   )}
+                  {compressingCnicFront && (
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(83,74,183,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexDirection: 'column' }}>
+                      <div className="spin" style={{ width: 22, height: 22, border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%' }} />
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Processing photo…</div>
+                    </div>
+                  )}
                 </div>
               </label>
             </Field>
 
             <Field label="CNIC Back Photo" required>
               <label style={{ display: 'block', cursor: 'pointer' }}>
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => {
-                  const f = e.target.files?.[0];
-                  if (f) { setCnicBack(f); setCnicBackPreview(URL.createObjectURL(f)); }
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
+                  const raw = e.target.files?.[0];
+                  if (!raw) return;
+                  setCompressingCnicBack(true);
+                  const f = await compressImage(raw);
+                  setCnicBack(f); setCnicBackPreview(URL.createObjectURL(f));
+                  setCompressingCnicBack(false);
                 }} />
                 <div style={{ border: `2px dashed ${cnicBack ? '#534AB7' : errorField === 'cnicBack' ? '#DC2626' : '#E8E6F5'}`, borderRadius: 12, background: cnicBack ? '#EEEDFE' : errorField === 'cnicBack' ? '#FEF2F2' : '#FAFAFA', overflow: 'hidden', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                   {cnicBackPreview
@@ -1464,6 +1490,12 @@ export default function SubmitClient() {
                   }
                   {cnicBack && (
                     <div style={{ position: 'absolute', top: 8, right: 8, background: '#534AB7', borderRadius: 20, padding: '2px 8px', fontSize: 11, color: '#fff', fontWeight: 700 }}>✓ Selected</div>
+                  )}
+                  {compressingCnicBack && (
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(83,74,183,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexDirection: 'column' }}>
+                      <div className="spin" style={{ width: 22, height: 22, border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%' }} />
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Processing photo…</div>
+                    </div>
                   )}
                 </div>
               </label>
@@ -1656,7 +1688,7 @@ export default function SubmitClient() {
           }
           {step < 5
             ? <button onClick={next} style={{ padding: '12px 28px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 14px rgba(83,74,183,0.3)' }}>{step === 4 ? 'Review →' : 'Next →'}</button>
-            : <button onClick={handleSubmit} disabled={submitting} style={{ padding: '12px 28px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1, boxShadow: '0 4px 14px rgba(83,74,183,0.3)' }}>
+            : <button onClick={handleSubmit} disabled={submitting || compressingCnicFront || compressingCnicBack || compressingProfilePhoto} style={{ padding: '12px 28px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, cursor: (submitting || compressingCnicFront || compressingCnicBack || compressingProfilePhoto) ? 'not-allowed' : 'pointer', opacity: (submitting || compressingCnicFront || compressingCnicBack || compressingProfilePhoto) ? 0.7 : 1, boxShadow: '0 4px 14px rgba(83,74,183,0.3)' }}>
                 {submitting ? 'Submitting...' : 'Submit Proposal →'}
               </button>
           }

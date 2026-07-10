@@ -384,3 +384,12 @@ body {
     padding: 10px 12px;
   }
 }
+
+/* Small loading spinner used for the "Processing photo…" indicator shown
+   while client-side image compression runs before upload. */
+.spin {
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
