@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 import Image from "next/image";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import { supabase } from "@/lib/supabase";
+import FooterWhatsAppLink from "@/components/FooterWhatsAppLink";
 
 const inter = { className: '' };
 
@@ -36,12 +36,7 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  let waNumber = '923287654333';
-  try {
-    const { data } = await supabase.from('app_settings').select('value').eq('key', 'whatsapp_number').single();
-    if (data) waNumber = (data as { value: string }).value;
-  } catch (_) {}
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>
@@ -70,7 +65,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <a href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
                   <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
                   <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
-                  <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none' }}>Contact</a>
+                  <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
                   <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</a>
                 </div>
                 <div className="footer-nav-legal" style={{ display: 'flex', gap: 24, fontSize: 14, justifyContent: 'flex-end' }}>
@@ -109,7 +104,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </div>
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 10 }}>
                   <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
-                  <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none' }}>Contact</a>
+                  <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
                   <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</a>
                 </div>
                 <div style={{ display: 'flex', gap: 20, fontSize: 13, marginBottom: 24 }}>
