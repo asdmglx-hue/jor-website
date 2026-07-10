@@ -1042,13 +1042,18 @@ export default function MyProposalClient() {
                     if (deletePassword.trim() !== user.password) { setDeleteError('Incorrect password. Please try again.'); return; }
                     setDeleting(true);
                     if (isAdminAccount) {
-                      // Admin accounts aren't proposals — hard-delete the
-                      // real admin_accounts row instead of soft-deleting.
-                      const realId = user.id.replace('admin:', '');
-                      const { error } = await supabase.from('admin_accounts').delete().eq('id', realId);
+                      // Admin accounts aren't proposals — hard-delete via a
+                      // security-definer function that re-verifies the
+                      // password server-side, rather than a direct table
+                      // write (admin_accounts no longer grants raw write
+                      // access to the anon key).
+                      const { data: ok } = await supabase.rpc('admin_account_self_delete', {
+                        p_cnic: user.cnic,
+                        p_current_password: deletePassword.trim(),
+                      });
                       setDeleting(false);
-                      if (!error) { clearSession(); router.push('/'); }
-                      else { setDeleteError('Failed to delete. Please try again.'); }
+                      if (ok) { clearSession(); router.push('/'); }
+                      else { setDeleteError('Incorrect password. Please try again.'); }
                       return;
                     }
                     // This is a soft delete only — the account moves into

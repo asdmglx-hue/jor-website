@@ -48,9 +48,17 @@ export default function Navbar() {
     // Admin sessions (id like "admin:<uuid>") aren't real proposals — their
     // password lives in admin_accounts, not the proposals table, so they
     // need a different update target than a normal user's password change.
+    // Admin accounts now go through a security-definer function that
+    // itself re-verifies the current password server-side, rather than a
+    // direct table write — the admin_accounts table no longer grants raw
+    // write access to the anon key.
     const isAdmin = session.id?.startsWith('admin:');
     const ok = isAdmin
-      ? !(await supabase.from('admin_accounts').update({ password: newPassword.trim() }).eq('id', session.id.replace('admin:', ''))).error
+      ? !!(await supabase.rpc('admin_account_self_update_password', {
+          p_cnic: session.cnic,
+          p_current_password: currentPassword.trim(),
+          p_new_password: newPassword.trim(),
+        })).data
       : await updateProposal(session.id, { password: newPassword.trim() });
     setPasswordSaving(false);
     if (ok) {
