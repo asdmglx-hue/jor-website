@@ -264,12 +264,12 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
           {AGE_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
       </div>
-      <Select label="Occupation" value={filters.profession} options={Object.keys(PROFESSIONS)} onChange={v => set('profession', v)} />
       <select value={filters.homeType || ''} onChange={e => set('homeType', e.target.value)} style={dropStyle(!!filters.homeType)}>
         <option value="">Home Type</option>
         <option value="Own House">Own House</option>
         <option value="Rented House">Rented House</option>
       </select>
+      <Select label="Occupation" value={filters.profession} options={Object.keys(PROFESSIONS)} onChange={v => set('profession', v)} />
       <Select label="Education" value={filters.education} options={EDUCATIONS} onChange={v => set('education', v)} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flex: '1 1 160px' }}>
         <select value={filters.minHeight || ''} onChange={e => onChange({ ...filters, minHeight: e.target.value ? +e.target.value : undefined })}
