@@ -377,7 +377,14 @@ export async function loginWithCnic(cnic: string, password: string): Promise<Pro
     p_cnic: digits,
     p_password: password.trim(),
   });
-  if (error || !data) return null;
+  // data?.id check is deliberate, not redundant with !data — a Postgres
+  // function returning a composite type produces a row where every field
+  // is individually null when no match is found, not a true SQL null.
+  // That "row of nulls" is still a truthy object in JS, which is exactly
+  // what let a wrong password through as a successful login before this
+  // was caught. Checking a real field, not just object truthiness, is
+  // what actually catches that case.
+  if (error || !data || !data.id) return null;
   return data as Proposal;
 }
 

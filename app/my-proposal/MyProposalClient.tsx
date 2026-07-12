@@ -282,32 +282,38 @@ export default function MyProposalClient() {
     // Admin badge is correct on the very first render instead of briefly
     // showing "Active" while an async admin_accounts lookup resolves.
     if (session.id?.startsWith('admin:')) setIsAdminAccount(true);
-    // Always fetch fresh data so status/plans changes are reflected
-    supabase.from('proposals').select('*').eq('id', session.id).maybeSingle().then(({ data }) => {
-      if (data) {
-        const fresh = data as Proposal;
-        setUser(fresh);
-        if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
-        if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
-        import('@/lib/auth').then(m => m.saveSession(fresh));
-      }
-    });
-    // Check for active featured boost today
-    const now = new Date();
-    supabase.from('featured_boosts')
-      .select('scheduled_date, is_used')
-      .eq('user_id', session.id)
-      .eq('is_used', false)
-      .then(({ data: boosts }) => {
-        if (boosts) {
-          const active = boosts.some((b: { scheduled_date: string; is_used: boolean }) => {
-            const start = new Date(b.scheduled_date);
-            const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-            return now >= start && now < end;
-          });
-          setHasFeaturedBoost(active);
+    // Admin sessions use a synthetic "admin:<uuid>" id — passing that
+    // directly into a real UUID column (proposals.id, featured_boosts.user_id)
+    // fails with an invalid-UUID error, so these are skipped entirely for
+    // admin sessions rather than querying with an id that was never real.
+    if (!session.id?.startsWith('admin:')) {
+      // Always fetch fresh data so status/plans changes are reflected
+      supabase.from('proposals').select('*').eq('id', session.id).maybeSingle().then(({ data }) => {
+        if (data) {
+          const fresh = data as Proposal;
+          setUser(fresh);
+          if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
+          if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
+          import('@/lib/auth').then(m => m.saveSession(fresh));
         }
       });
+      // Check for active featured boost today
+      const now = new Date();
+      supabase.from('featured_boosts')
+        .select('scheduled_date, is_used')
+        .eq('user_id', session.id)
+        .eq('is_used', false)
+        .then(({ data: boosts }) => {
+          if (boosts) {
+            const active = boosts.some((b: { scheduled_date: string; is_used: boolean }) => {
+              const start = new Date(b.scheduled_date);
+              const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+              return now >= start && now < end;
+            });
+            setHasFeaturedBoost(active);
+          }
+        });
+    }
   }, [router]);
 
   useEffect(() => {

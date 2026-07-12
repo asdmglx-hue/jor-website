@@ -48,7 +48,10 @@ export function toggleSaved(id: string): string[] {
   // survive clearing browser history/localStorage — mirrors the mobile app's
   // saved_proposals table exactly (not just a local-only cache).
   const session = getSession();
-  if (session?.id) {
+  // Same reasoning as the proposals/featured_boosts guard — an admin's
+  // "admin:<uuid>" id was never a real proposal id, so it can't be used
+  // in saved_proposals.user_proposal_id (a real uuid column) either.
+  if (session?.id && !session.id.startsWith('admin:')) {
     if (nowSaved) {
       supabase.from('saved_proposals')
         .upsert({ user_proposal_id: session.id, saved_proposal_id: id }, { onConflict: 'user_proposal_id,saved_proposal_id' })
@@ -68,6 +71,7 @@ export function toggleSaved(id: string): string[] {
 // local cache — call this once a logged-in session is detected (e.g. on
 // app load), so saved proposals reappear even after localStorage was wiped.
 export async function syncSavedFromServer(userProposalId: string): Promise<string[]> {
+  if (userProposalId.startsWith('admin:')) return getSavedIds();
   try {
     const { data, error } = await supabase
       .from('saved_proposals')
