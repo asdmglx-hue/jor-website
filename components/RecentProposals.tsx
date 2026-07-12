@@ -82,7 +82,7 @@ export default function RecentProposals({ initial }: { initial: Proposal[] }) {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
-      {visible.map(p => <ProposalCard key={p.id} proposal={p} onNotInterested={handleNotInterested} />)}
+      {visible.map((p, i) => <ProposalCard key={p.id} proposal={p} onNotInterested={handleNotInterested} index={i} />)}
     </div>
   );
 }

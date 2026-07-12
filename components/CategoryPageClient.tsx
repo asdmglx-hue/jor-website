@@ -113,7 +113,7 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
         <div style={{ textAlign: 'center', padding: '40px 0', color: '#B0ADCB' }}>Loading…</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginTop: 20, marginBottom: 24 }}>
-          {proposals.map(p => <ProposalCard key={p.id} proposal={p} />)}
+          {proposals.map((p, i) => <ProposalCard key={p.id} proposal={p} index={i} />)}
         </div>
       )}
     </>

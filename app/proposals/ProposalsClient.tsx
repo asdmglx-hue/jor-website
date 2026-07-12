@@ -241,7 +241,7 @@ export default function ProposalsClient() {
           ) : (
             <div style={{ width: '100%' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, alignItems: 'stretch' }}>
-                {savedProposals.map(p => <div key={p.id} style={{ display: 'flex', flexDirection: 'column' }}><ProposalCard proposal={p} onNotInterested={handleNotInterested} /></div>)}
+                {savedProposals.map((p, i) => <div key={p.id} style={{ display: 'flex', flexDirection: 'column' }}><ProposalCard proposal={p} onNotInterested={handleNotInterested} index={i} /></div>)}
               </div>
             </div>
           )}
@@ -277,7 +277,7 @@ export default function ProposalsClient() {
       ) : (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, alignItems: 'stretch' }}>
-            {visible.map(p => <div key={p.id} style={{ display: 'flex', flexDirection: 'column' }}><ProposalCard proposal={p} onNotInterested={handleNotInterested} /></div>)}
+            {visible.map((p, i) => <div key={p.id} style={{ display: 'flex', flexDirection: 'column' }}><ProposalCard proposal={p} onNotInterested={handleNotInterested} index={i} /></div>)}
           </div>
           {/* Sentinel for infinite scroll — callback ref attaches observer when this mounts */}
           <div ref={sentinelRef} style={{ height: 1 }} />

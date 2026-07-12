@@ -1054,10 +1054,11 @@ export default function MyProposalClient() {
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
-              {savedProposals.map(p => (
+              {savedProposals.map((p, i) => (
                 <ProposalCard
                   key={p.id}
                   proposal={p}
+                  index={i}
                   onSavedChange={(id, isSaved) => {
                     if (!isSaved) {
                       setSavedProposals(prev => prev.filter(pr => pr.id !== id));

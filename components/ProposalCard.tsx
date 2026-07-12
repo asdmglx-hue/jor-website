@@ -7,9 +7,9 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import ExpandableName from './ExpandableName';
 
-function Avatar({ name, photoUrl, size = 56, locked = false }: { name: string; photoUrl?: string; size?: number; locked?: boolean }) {
+function Avatar({ name, photoUrl, size = 56, locked = false, index }: { name: string; photoUrl?: string; size?: number; locked?: boolean; index?: number }) {
   const colors = ['#534AB7','#0F6E56','#E8620A','#0369A1','#E11D48'];
-  const color = colors[name.charCodeAt(0) % colors.length];
+  const color = index !== undefined ? colors[index % colors.length] : colors[name.charCodeAt(0) % colors.length];
 
   if (photoUrl) {
     return (
@@ -52,9 +52,16 @@ type Props = {
   proposal: Proposal;
   onNotInterested?: (id: string) => void;
   onSavedChange?: (id: string, isSaved: boolean) => void;
+  // Position within the list being rendered — when given, the avatar color
+  // cycles through the palette in order (card 1 = purple, 2 = green, 3 =
+  // orange, 4 = blue, 5 = red, 6 = purple again...) so all 5 colors get
+  // equal representation across the feed, instead of being picked from a
+  // hash of the person's first name (which skews toward whichever colors
+  // happen to land on common Pakistani first-name initials).
+  index?: number;
 };
 
-export default function ProposalCard({ proposal: p, onNotInterested, onSavedChange }: Props) {
+export default function ProposalCard({ proposal: p, onNotInterested, onSavedChange, index }: Props) {
   const isFeatured = p.subscription_tier === 'featured' || p.is_boosted;
   const isBasic = p.subscription_tier === 'basic';
   const cardBorder = isFeatured ? '#E8620A44' : isBasic ? '#534AB744' : '#E8E6F5';
@@ -133,7 +140,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
 
         {/* Header */}
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
-          <Avatar name={p.name} photoUrl={p.profile_photo_url} size={52} locked={!isActive} />
+          <Avatar name={p.name} photoUrl={p.profile_photo_url} size={52} locked={!isActive} index={index} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0 }}>
               <ExpandableName
