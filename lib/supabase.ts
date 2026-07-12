@@ -440,6 +440,15 @@ export function heightDisplay(inches: number): string {
   return `${ft}'${inch}"`;
 }
 
+// contact_phone / contact_phone_2 are stored as typed (e.g. "+92 0300
+// 1234567" or "+92 300 1234567" — either can end up in the DB, old or new).
+// Every place that DISPLAYS a phone number should go through this so a
+// leading trunk "0" right after the +92 country code never shows up,
+// regardless of how it was actually stored.
+export function phoneDisplay(phone: string): string {
+  return phone.replace(/^(\+92)\s*0+/, '$1 ');
+}
+
 // Cached once per page load so the frequent, synchronous
 // isSubscriptionActive() checks below don't need to hit the database every
 // time. Kicked off immediately when this module loads; by the time most

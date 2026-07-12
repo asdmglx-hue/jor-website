@@ -1,15 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { isSubscriptionActive, supabase, Proposal } from '@/lib/supabase';
+import { isSubscriptionActive, supabase, Proposal, phoneDisplay } from '@/lib/supabase';
 import { getSession, saveSession } from '@/lib/auth';
 
-export default function ContactButtons({ phone, phone2 }: { phone: string; phone2?: string }) {
+export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2 }: { phone: string; phone2?: string }) {
+  const phone = phoneDisplay(rawPhone);
+  const phone2 = rawPhone2 ? phoneDisplay(rawPhone2) : rawPhone2;
   const [revealed, setRevealed] = useState(false);
   const [isActive, setIsActive] = useState(() => {
     const session = getSession();
     return session ? isSubscriptionActive(session) : false;
   });
-  const waNumber = '92' + phone.replace(/^0/, '').replace(/\D/g, '');
+  const waNumber = phone.replace(/\D/g, '');
 
   useEffect(() => {
     const session = getSession();

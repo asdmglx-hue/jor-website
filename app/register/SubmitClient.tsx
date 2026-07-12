@@ -255,6 +255,16 @@ const DIAL_CODES: DialCode[] = [
   { flag:'🇿🇼', name:'Zimbabwe',                code:'+263' },
 ];
 
+// Combines a dial code with a locally-entered number for storage/display.
+// Pakistani numbers are usually typed with their trunk-prefix "0" (e.g.
+// 0300 1234567) — that 0 must never be kept when it's prefixed with the
+// +92 country code (should read "+92 300 1234567", not "+92 0300 1234567").
+function formatDialedPhone(dialCode: string, number: string): string {
+  const trimmed = number.trim();
+  const local = dialCode === '+92' ? trimmed.replace(/^0+/, '') : trimmed;
+  return `${dialCode} ${local}`;
+}
+
 const COUNTRIES_FLAT: string[] = [
   'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua & Barbuda','Argentina','Armenia','Australia','Austria','Azerbaijan',
   'Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan','Bolivia','Bosnia & Herzegovina','Botswana','Brazil','Brunei','Bulgaria','Burkina Faso','Burundi',
@@ -910,8 +920,8 @@ export default function SubmitClient() {
       name: form.name.trim(),
       gender: form.gender,
       age: +form.age,
-      contact_phone: `${form.phone_dial_code} ${form.phone.trim()}`,
-      contact_phone_2: form.phone2.trim() ? `${form.phone2_dial_code} ${form.phone2.trim()}` : undefined,
+      contact_phone: formatDialedPhone(form.phone_dial_code, form.phone),
+      contact_phone_2: form.phone2.trim() ? formatDialedPhone(form.phone2_dial_code, form.phone2) : undefined,
       height_inches: totalInches || undefined,
       country: form.country || undefined,
       city: form.city,
@@ -1546,8 +1556,8 @@ export default function SubmitClient() {
               {R('Age', form.age)}
               {R('Gender', form.gender)}
               {R('Height', heightDisplay)}
-              {R('Phone', form.phone ? `${form.phone_dial_code} ${form.phone}` : null)}
-              {form.phone2 && R('Second Phone', `${form.phone2_dial_code} ${form.phone2}`)}
+              {R('Phone', form.phone ? formatDialedPhone(form.phone_dial_code, form.phone) : null)}
+              {form.phone2 && R('Second Phone', formatDialedPhone(form.phone2_dial_code, form.phone2))}
               {R('CNIC', form.cnic)}
               {form.country && R('Country', form.country)}
               {R('City', form.city)}

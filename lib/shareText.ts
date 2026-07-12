@@ -1,4 +1,4 @@
-import { Proposal } from './supabase';
+import { Proposal, phoneDisplay } from './supabase';
 
 export function buildProposalShareText(p: Proposal, useEmoji: boolean, showFullPhone: boolean): string {
   const cp = String.fromCodePoint;
@@ -12,9 +12,9 @@ export function buildProposalShareText(p: Proposal, useEmoji: boolean, showFullP
   const b = (emoji: number) => useEmoji ? cp(emoji) : '•';
 
   const maskPhone = (ph: string) => `${ph.slice(0, 4)} •••• ${ph.slice(-3)}`;
-  const phone1Display = showFullPhone ? p.contact_phone : maskPhone(p.contact_phone);
+  const phone1Display = showFullPhone ? phoneDisplay(p.contact_phone) : maskPhone(phoneDisplay(p.contact_phone));
   const phone2Display = p.contact_phone_2
-    ? (showFullPhone ? p.contact_phone_2 : maskPhone(p.contact_phone_2))
+    ? (showFullPhone ? phoneDisplay(p.contact_phone_2) : maskPhone(phoneDisplay(p.contact_phone_2)))
     : null;
   const contactLines = phone2Display
     ? `*Contact 1:* ${phone1Display}\n*Contact 2:* ${phone2Display}`
