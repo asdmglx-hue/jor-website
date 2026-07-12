@@ -264,6 +264,11 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
           {AGE_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
       </div>
+      {/* Forces everything after this onto a new row — flex-wrap alone
+          only wraps once it runs out of width, so on wide screens Home
+          Type (and everything after it) would otherwise get pulled up
+          into row 1 instead of staying on row 2. */}
+      <div style={{ flexBasis: '100%', width: 0, height: 0 }} />
       <select value={filters.homeType || ''} onChange={e => set('homeType', e.target.value)} style={dropStyle(!!filters.homeType)}>
         <option value="">Home Type</option>
         <option value="Own House">Own House</option>
