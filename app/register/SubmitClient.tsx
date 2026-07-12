@@ -779,7 +779,7 @@ export default function SubmitClient() {
       const cnicDigits = form.cnic.replace(/\D/g, '');
       if (!cnicDigits) return fail('CNIC number is required', 'cnic');
       if (cnicDigits.length !== 13) return fail('Enter a complete 13-digit CNIC number', 'cnic');
-      if (!form.password.trim() || form.password.length < 4) return fail('Password must be at least 4 characters', 'password');
+      if (!form.password.trim() || form.password.length < 6) return fail('Password must be at least 6 characters', 'password');
       if (form.password !== form.confirm_password) return fail('Passwords do not match', 'confirm_password');
     }
     if (step === 2) {
@@ -1082,7 +1082,7 @@ export default function SubmitClient() {
               </div>
             )}
             <Field label="Set Password" required>
-              <PasswordInput value={form.password} onChange={e => set('password', e.target.value)} style={{ ...inp, ...err('password') }} placeholder="Min 4 characters" />
+              <PasswordInput value={form.password} onChange={e => set('password', e.target.value)} style={{ ...inp, ...err('password') }} placeholder="Min 6 characters" />
             </Field>
             <Field label="Confirm Password" required>
               <PasswordInput value={form.confirm_password} onChange={e => set('confirm_password', e.target.value)} style={{ ...inp, ...err('confirm_password') }} placeholder="Repeat your password" />
@@ -1673,7 +1673,7 @@ export default function SubmitClient() {
 
         {/* Nav buttons */}
         {error && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FEE2E2', border: '1px solid #DC262644', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#DC2626', marginTop: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#DC2626', marginTop: 20 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             {error}
           </div>
