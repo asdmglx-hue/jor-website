@@ -534,9 +534,9 @@ export default function MyProposalClient() {
             {/* Renew — only when the subscription has actually expired */}
             {isInactive && (
               <Link href="/plans?plan=rishta-profile"
-                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #534AB7', background: '#534AB7', textDecoration: 'none' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-                <span style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>Renew</span>
+                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #D1FAE5', background: '#ECFDF5', textDecoration: 'none' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#16A34A' }}>Renew</span>
               </Link>
             )}
             {/* Delete — active for admin too, deletes the admin_accounts row.
