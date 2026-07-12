@@ -202,7 +202,7 @@ export default function SubscriptionClient() {
   const plans = [
     {
       name: 'Rishta Profile', price: STD_PRICE, priceDisplay: isFreeMode ? 'Free' : `Rs. ${STD_PRICE}`, duration: STD_MONTHS,
-      tagline: 'See all contact numbers', color: '#534AB7', bg: '#EEEDFE', popular: true,
+      tagline: 'Connect with families', color: '#534AB7', bg: '#EEEDFE', popular: true,
       features: ['Publish your profile', 'Unlimited Local Proposals', 'Unlimited Overseas Proposals', 'View Contact numbers and Photos', 'Use Advanced Search Filters', `Validity for ${STD_MONTHS}`, '24 hours support'],
       note: undefined,
     },
