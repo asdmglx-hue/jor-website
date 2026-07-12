@@ -752,6 +752,59 @@ export default function SubmitClient() {
   const [error, setError] = useState('');
   const [errorField, setErrorField] = useState('');
 
+  // ── Coupon code (mirrors app/plans/SubscriptionClient.tsx + the admin
+  // app's live re-validation on approval — same coupon_codes table, same
+  // rules). Unlike the Plans page, there's no proposal row yet at this
+  // point in registration, so instead of writing straight to the DB on
+  // "Apply", the validated code is just held in state and sent along with
+  // the rest of the form on final submit (applied_coupon_code below). The
+  // admin app re-validates it live again at approval time regardless, so
+  // it can't go stale between now and then.
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
+  const [couponMessage, setCouponMessage] = useState<string | null>(null);
+  const [couponIsError, setCouponIsError] = useState(false);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+
+  const applyCoupon = async () => {
+    const code = couponCode.trim();
+    if (!code) return;
+    setValidatingCoupon(true);
+    setCouponMessage(null);
+    try {
+      const { data: res, error: couponErr } = await supabase
+        .from('coupon_codes')
+        .select('coupon_type, discount_percent, free_days, active, expires_at')
+        .ilike('code', code)
+        .maybeSingle();
+
+      const expired = res?.expires_at ? new Date(res.expires_at) < new Date() : false;
+      if (couponErr || !res || res.active !== true || expired) {
+        setValidatingCoupon(false);
+        setCouponIsError(true);
+        setCouponMessage(expired ? 'This coupon has expired' : 'Invalid or inactive coupon code');
+        setAppliedCouponCode(null);
+        return;
+      }
+
+      setValidatingCoupon(false);
+      setCouponIsError(false);
+      setAppliedCouponCode(code.toUpperCase());
+      const type = res.coupon_type || 'percentage';
+      if (type === 'free_days' && res.free_days) {
+        setCouponMessage(`+${res.free_days} bonus days will be added once you subscribe!`);
+      } else if (res.discount_percent) {
+        setCouponMessage(`${res.discount_percent}% discount will apply once you subscribe!`);
+      }
+    } catch (_) {
+      setValidatingCoupon(false);
+      setCouponIsError(true);
+      setCouponMessage('Could not verify coupon — check your connection');
+      setAppliedCouponCode(null);
+    }
+  };
+
+
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     try {
@@ -975,6 +1028,7 @@ export default function SubmitClient() {
       cnic_front_url: cnicFrontUrl,
       cnic_back_url: cnicBackUrl,
       affiliate_code: form.affiliate.trim() ? form.affiliate.trim().toUpperCase() : undefined,
+      applied_coupon_code: appliedCouponCode || undefined,
     });
 
     setSubmitting(false);
@@ -1665,6 +1719,35 @@ export default function SubmitClient() {
               ))}
 
               <SecHeader title="AFFILIATE REFERRAL" />
+
+              <Field label="Have a coupon code? (Optional)">
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="Enter coupon code if you have one"
+                    style={{ ...inp, flex: 1, textTransform: 'uppercase' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={applyCoupon}
+                    disabled={validatingCoupon || !couponCode.trim()}
+                    style={{
+                      padding: '0 18px', borderRadius: 11, border: 'none', flexShrink: 0,
+                      background: validatingCoupon || !couponCode.trim() ? '#E8E6F5' : '#534AB7',
+                      color: validatingCoupon || !couponCode.trim() ? '#9895C0' : '#fff',
+                      fontWeight: 700, fontSize: 13, cursor: validatingCoupon || !couponCode.trim() ? 'default' : 'pointer',
+                    }}>
+                    {validatingCoupon ? '...' : 'Apply'}
+                  </button>
+                </div>
+                {couponMessage && (
+                  <div style={{ fontSize: 12, marginTop: 6, fontWeight: 600, color: couponIsError ? '#DC2626' : '#16A34A' }}>
+                    {couponMessage}
+                  </div>
+                )}
+              </Field>
+
               <Field label="Referral Code (Optional)">
                 <input
                   value={form.affiliate}
