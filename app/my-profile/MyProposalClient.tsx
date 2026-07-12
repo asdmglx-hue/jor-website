@@ -464,10 +464,10 @@ export default function MyProposalClient() {
           </div>
         </div>
         <div className="my-account-right" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-          <div className="hash-desktop" style={{ display: 'flex', alignItems: 'center', gap: 8, alignSelf: 'flex-end', position: 'relative', top: -12 }}>
+          <div className="hash-desktop" style={{ display: 'flex', alignItems: 'center', gap: 14, alignSelf: 'flex-end', position: 'relative', top: -12 }}>
             {isSubscriptionActive(user) && user.subscription_expiry && (
               <span style={{ fontSize: 13, color: '#6B6893' }}>
-                Expires {new Date(user.subscription_expiry).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}
+                Subscription expires on {new Date(user.subscription_expiry).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}
               </span>
             )}
             {user.proposal_number > 0 && <span style={{ fontSize: 13, color: '#6B6893' }}>#{user.proposal_number}</span>}
