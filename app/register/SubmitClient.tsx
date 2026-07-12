@@ -814,15 +814,8 @@ export default function SubmitClient() {
     if (err) { setError(err); setErrorField(field); return; }
     if (step === 1) {
       const digits = form.cnic.replace(/-/g, '').trim();
-      const hyphenated = `${digits.slice(0,5)}-${digits.slice(5,12)}-${digits.slice(12)}`;
-      // DB stores CNIC in both formats — check both
-      const { data } = await supabase
-        .from('proposals')
-        .select('id')
-        .or(`cnic.eq.${digits},cnic.eq.${hyphenated}`)
-        .in('status', ['active', 'approved'])
-        .limit(1);
-      if (data && data.length > 0) {
+      const { data: hasActive } = await supabase.rpc('cnic_has_active_profile', { p_cnic: digits });
+      if (hasActive) {
         setError('This CNIC is already registered. Please login instead.');
         return;
       }
