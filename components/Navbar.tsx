@@ -42,7 +42,7 @@ export default function Navbar() {
     setPasswordError(''); setPasswordSuccess('');
     if (!currentPassword.trim()) { setPasswordError('Enter your current password'); return; }
     if (currentPassword.trim() !== session.password) { setPasswordError('Current password is incorrect'); return; }
-    if (!newPassword.trim() || newPassword.trim().length < 4) { setPasswordError('New password must be at least 4 characters'); return; }
+    if (!newPassword.trim() || newPassword.trim().length < 6) { setPasswordError('New password must be at least 6 characters'); return; }
     if (newPassword.trim() !== confirmNewPassword.trim()) { setPasswordError('New passwords do not match'); return; }
     setPasswordSaving(true);
     // Admin sessions (id like "admin:<uuid>") aren't real proposals — their
