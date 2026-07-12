@@ -408,6 +408,18 @@ export async function submitProposal(data: Partial<Proposal>): Promise<{ success
     p_data: { ...data, posted_at: new Date().toISOString(), updated_at: new Date().toISOString() },
   });
   if (error || !result?.id) return { success: false, error: error?.message || 'Failed to submit proposal' };
+
+  // Notify the admin device (fire-and-forget) — mirrors exactly what the
+  // mobile app already does after a successful submission. The website's
+  // registration flow never had this wired up at all, which is why a
+  // website submission never produced a "New Order" alert even though
+  // the exact same submission from the app does. The edge function looks
+  // up the admin's registered FCM token itself, so this reaches them even
+  // if the admin app is fully closed.
+  supabase.functions.invoke('notify-status-change', {
+    body: { type: 'new_order', proposal_id: result.id, name: data.name, city: data.city },
+  }).catch(() => {});
+
   return { success: true, id: result.id };
 }
 
