@@ -264,14 +264,13 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
           {AGE_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
       </div>
-      <Select label="Education" value={filters.education} options={EDUCATIONS} onChange={v => set('education', v)} />
       <Select label="Occupation" value={filters.profession} options={Object.keys(PROFESSIONS)} onChange={v => set('profession', v)} />
       <select value={filters.homeType || ''} onChange={e => set('homeType', e.target.value)} style={dropStyle(!!filters.homeType)}>
         <option value="">Home Type</option>
         <option value="Own House">Own House</option>
         <option value="Rented House">Rented House</option>
       </select>
-      <Select label="Open to Polygamy" value={filters.openToPolygamy} options={['Yes', 'No']} onChange={v => set('openToPolygamy', v)} />
+      <Select label="Education" value={filters.education} options={EDUCATIONS} onChange={v => set('education', v)} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flex: '1 1 160px' }}>
         <select value={filters.minHeight || ''} onChange={e => onChange({ ...filters, minHeight: e.target.value ? +e.target.value : undefined })}
           style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.minHeight ? '#EEEDFE' : '#fff', color: filters.minHeight ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.minHeight ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>
@@ -285,6 +284,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
           {HEIGHT_OPTIONS.map(h => <option key={h.inches} value={h.inches}>{h.label}</option>)}
         </select>
       </div>
+      <Select label="Open to Polygamy" value={filters.openToPolygamy} options={['Yes', 'No']} onChange={v => set('openToPolygamy', v)} />
     </>
   );
 
