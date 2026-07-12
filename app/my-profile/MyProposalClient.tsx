@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSession, clearSession, getSavedIds } from '@/lib/auth';
-import { fetchProposalById, heightDisplay, Proposal, updateProposal, isSubscriptionActive, supabase } from '@/lib/supabase';
+import { fetchProposalById, heightDisplay, Proposal, isSubscriptionActive, supabase } from '@/lib/supabase';
 import { buildProposalShareText } from '@/lib/shareText';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -354,7 +354,7 @@ export default function MyProposalClient() {
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from('profile-photos').getPublicUrl(path);
       const photoUrl = `${publicUrl}?t=${Date.now()}`;
-      await updateProposal(user.id, { profile_photo_url: photoUrl });
+      await supabase.rpc('update_own_proposal_secure', { p_id: user.id, p_updates: { profile_photo_url: photoUrl } });
       const updated = { ...user, profile_photo_url: photoUrl };
       setUser(updated as typeof user);
       import('@/lib/auth').then(m => m.saveSession(updated as typeof user));
@@ -378,8 +378,15 @@ export default function MyProposalClient() {
 
     setInlineSaving(true);
     try {
-      // Apply immediately to proposals table
-      const ok = await updateProposal(user.id, updates);
+      // Apply immediately to proposals table — goes through a
+      // security-definer function rather than a raw update, since a
+      // confirmed RLS/planner quirk silently drops updates to any
+      // non-'active' proposal (see delete_own_proposal_secure for the
+      // full explanation). This matters here specifically because a
+      // Pending or Paused user editing their own profile is a completely
+      // normal, common case, not an edge case.
+      const { data: updateResult } = await supabase.rpc('update_own_proposal_secure', { p_id: user.id, p_updates: updates });
+      const ok = !!updateResult;
       if (ok) {
         const updated = { ...user, ...updates };
         setUser(updated as typeof user);
@@ -493,8 +500,8 @@ export default function MyProposalClient() {
                 const isPaused = user.status === 'paused';
                 const msg = isPaused ? 'Resume your profile? It will become visible in the group again.' : 'Pause your profile? It will be hidden from the group. You can resume anytime.';
                 if (!window.confirm(msg)) return;
-                const ok = await updateProposal(user.id, { status: isPaused ? 'active' : 'paused' });
-                if (ok) { const updated = { ...user, status: isPaused ? 'active' : 'paused' }; setUser(updated as typeof user); import('@/lib/auth').then(m => m.saveSession(updated as typeof user)); }
+                const { data: updateResult } = await supabase.rpc('update_own_proposal_secure', { p_id: user.id, p_updates: { status: isPaused ? 'active' : 'paused' } });
+                if (updateResult) { const updated = { ...user, status: isPaused ? 'active' : 'paused' }; setUser(updated as typeof user); import('@/lib/auth').then(m => m.saveSession(updated as typeof user)); }
               }}
               style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', cursor: (isAdminAccount || isPendingAccount) ? 'not-allowed' : 'pointer', opacity: (isAdminAccount || isPendingAccount) ? 0.5 : 1 }}>
               {user.status === 'paused'
