@@ -18,6 +18,18 @@ const MARITAL_MALE   = ['Never married','Married','Divorced','Widowed'];
 const MARITAL_FEMALE = ['Never married','Divorced','Khula','Widowed'];
 const MARITAL_ALL    = ['Never married','Married','Divorced','Khula','Widowed'];
 
+// Age range for the filter dropdowns — matches the existing 18–80 bounds
+// that were previously enforced via input min/max attributes.
+const AGE_OPTIONS: number[] = Array.from({ length: 80 - 18 + 1 }, (_, i) => 18 + i);
+
+// Height range for the filter dropdowns, in the same total-inches unit
+// height_inches is stored in — 4'0" (48") through 7'0" (84"), labeled the
+// same ft/in way the rest of the site displays height.
+const HEIGHT_OPTIONS: { inches: number; label: string }[] = Array.from({ length: 84 - 48 + 1 }, (_, i) => {
+  const inches = 48 + i;
+  return { inches, label: `${Math.floor(inches / 12)}'${inches % 12}"` };
+});
+
 const PROFESSIONS: Record<string, string[]> = {
   'Healthcare': ['Doctor','General Physician','Dentist','Dermatologist','Pediatrician','Orthopedic Surgeon','Surgeon','ENT Specialist','Psychiatrist','Psychologist','Radiologist','Pathologist','Nurse','Nutritionist','Physiotherapist','Dental Assistant','Lab Technician','Pharmacist','Ultrasound Technician','Medical Representative','Optician','Microbiologist','Biochemist','Biomedical Engineer','Genetic Engineer'],
   'Engineering': ['Software Engineer','Civil Engineer','Mechanical Engineer','Electrical Engineer','Electronics Engineer','Chemical Engineer','Aeronautical Engineer','Agricultural Engineer','Automobile Engineer','Computer Engineer','Telecom Engineer','Textile Engineer','Industrial Engineer','Flight Engineer','Robotics Engineer','Hardware Engineer','Network Engineer','Cloud Engineer','Food Technologist','Quantity Surveyor'],
@@ -240,11 +252,17 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
       <Select label="Sect" value={filters.sect} options={SECTS} onChange={v => set('sect', v)} />
       <Select label="Marital Status" value={filters.maritalStatus} options={filters.gender === 'Male' ? MARITAL_MALE : filters.gender === 'Female' ? MARITAL_FEMALE : MARITAL_ALL} onChange={v => set('maritalStatus', v)} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flex: '1 1 160px' }}>
-        <input type="number" placeholder="Min age" min={18} max={80} value={filters.minAge || ''} onChange={e => onChange({ ...filters, minAge: +e.target.value || undefined })}
-          style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', fontSize: 13, outline: 'none', textAlign: 'center' }} />
+        <select value={filters.minAge || ''} onChange={e => onChange({ ...filters, minAge: e.target.value ? +e.target.value : undefined })}
+          style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.minAge ? '#EEEDFE' : '#fff', color: filters.minAge ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.minAge ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>
+          <option value="">Min age</option>
+          {AGE_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
+        </select>
         <span style={{ color: '#B0ADCB', fontSize: 12 }}>–</span>
-        <input type="number" placeholder="Max age" min={18} max={80} value={filters.maxAge || ''} onChange={e => onChange({ ...filters, maxAge: +e.target.value || undefined })}
-          style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', fontSize: 13, outline: 'none', textAlign: 'center' }} />
+        <select value={filters.maxAge || ''} onChange={e => onChange({ ...filters, maxAge: e.target.value ? +e.target.value : undefined })}
+          style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.maxAge ? '#EEEDFE' : '#fff', color: filters.maxAge ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.maxAge ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>
+          <option value="">Max age</option>
+          {AGE_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
+        </select>
       </div>
       <Select label="Education" value={filters.education} options={EDUCATIONS} onChange={v => set('education', v)} />
       <Select label="Occupation" value={filters.profession} options={Object.keys(PROFESSIONS)} onChange={v => set('profession', v)} />
@@ -253,12 +271,19 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
         <option value="Own House">Own House</option>
         <option value="Rented House">Rented House</option>
       </select>
+      <Select label="Open to Polygamy" value={filters.openToPolygamy} options={['Yes', 'No']} onChange={v => set('openToPolygamy', v)} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flex: '1 1 160px' }}>
-        <input type="number" placeholder="Min Height" min={4} max={7} step={0.1} value={filters.minHeight ? (filters.minHeight / 12).toFixed(1) : ''} onChange={e => onChange({ ...filters, minHeight: e.target.value ? Math.round(+e.target.value * 12) : undefined })}
-          style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', fontSize: 13, outline: 'none', textAlign: 'center' }} />
+        <select value={filters.minHeight || ''} onChange={e => onChange({ ...filters, minHeight: e.target.value ? +e.target.value : undefined })}
+          style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.minHeight ? '#EEEDFE' : '#fff', color: filters.minHeight ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.minHeight ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>
+          <option value="">Min Height</option>
+          {HEIGHT_OPTIONS.map(h => <option key={h.inches} value={h.inches}>{h.label}</option>)}
+        </select>
         <span style={{ color: '#B0ADCB', fontSize: 12 }}>–</span>
-        <input type="number" placeholder="Max Height" min={4} max={7} step={0.1} value={filters.maxHeight ? (filters.maxHeight / 12).toFixed(1) : ''} onChange={e => onChange({ ...filters, maxHeight: e.target.value ? Math.round(+e.target.value * 12) : undefined })}
-          style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', fontSize: 13, outline: 'none', textAlign: 'center' }} />
+        <select value={filters.maxHeight || ''} onChange={e => onChange({ ...filters, maxHeight: e.target.value ? +e.target.value : undefined })}
+          style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.maxHeight ? '#EEEDFE' : '#fff', color: filters.maxHeight ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.maxHeight ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>
+          <option value="">Max Height</option>
+          {HEIGHT_OPTIONS.map(h => <option key={h.inches} value={h.inches}>{h.label}</option>)}
+        </select>
       </div>
     </>
   );

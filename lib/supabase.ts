@@ -117,6 +117,7 @@ export type FilterState = {
   homeType?: string;
   minHeight?: number;
   maxHeight?: number;
+  openToPolygamy?: string;
   search?: string;
 };
 
@@ -181,6 +182,7 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   if (filters.homeType) query = query.eq('home_type', filters.homeType);
   if (filters.minHeight) query = query.gte('height_inches', filters.minHeight);
   if (filters.maxHeight) query = query.lte('height_inches', filters.maxHeight);
+  if (filters.openToPolygamy) query = query.eq('open_to_polygamy', filters.openToPolygamy);
 
   const { data, count, error } = await query;
   if (error) throw error;
