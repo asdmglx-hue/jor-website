@@ -443,20 +443,19 @@ export function heightDisplay(inches: number): string {
 // contact_phone / contact_phone_2 come from several different sources —
 // the website's registration form (always saves "+92 ..."), and the admin
 // app's manual-add / WhatsApp-AI-import screens (often save a bare local
-// number like "0332 4194917" with no country code at all). Every place
-// that DISPLAYS a phone number should go through this so the result is
-// always shown with the +92 country code and never with the local trunk
-// "0" right after it — regardless of how it was actually stored.
+// number like "0332 4194917", "03324194917" or with odd spacing, no
+// country code at all). Every place that DISPLAYS a phone number should
+// go through this so the result is always shown the same way:
+// "+92 xxx xxxxxxx" — country code, then the 10-digit local number
+// (trunk 0 dropped) grouped 3+7, regardless of how it was actually stored.
 export function phoneDisplay(phone: string): string {
   const trimmed = phone.trim();
-  if (trimmed.startsWith('+')) {
-    // Already has a country code — only strip a Pakistani trunk 0 right
-    // after +92. Other countries' numbers are left exactly as stored.
-    return trimmed.replace(/^(\+92)\s*0+/, '$1 ');
-  }
-  // No country code at all — Jor is Pakistan-only, so treat it as a
-  // Pakistani local number and add +92, dropping the trunk 0.
-  return `+92 ${trimmed.replace(/^0+/, '')}`;
+  const isPakistani = trimmed.startsWith('+92') || !trimmed.startsWith('+');
+  if (!isPakistani) return trimmed; // other countries — leave exactly as stored
+
+  const localDigits = trimmed.replace(/^\+?92/, '').replace(/\D/g, '').replace(/^0+/, '');
+  if (!localDigits) return trimmed;
+  return `+92 ${localDigits.slice(0, 3)} ${localDigits.slice(3)}`;
 }
 
 // Cached once per page load so the frequent, synchronous
