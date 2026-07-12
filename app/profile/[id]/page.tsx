@@ -107,10 +107,25 @@ export default async function ProposalDetailPage({ params }: Props) {
       { '@type': 'ListItem', position: 3, name: label },
     ],
   };
+  // Uses `label` ("Groom #1854"), never p.name — same rule the rest of
+  // this page already follows (see ProfileName.tsx) so a real name never
+  // ends up in the static HTML Google indexes.
+  const profilePageJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    dateCreated: p.posted_at,
+    dateModified: p.updated_at,
+    mainEntity: {
+      '@type': 'Person',
+      name: label,
+      description: `${p.profession}${p.education ? ', ' + p.education : ''} from ${p.city}`,
+    },
+  };
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 20px' }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profilePageJsonLd) }} />
       {/* Breadcrumb */}
       <div style={{ fontSize: 13, color: '#B0ADCB', marginBottom: 20 }}>
         <Link href="/" style={{ color: '#534AB7', textDecoration: 'none' }}>Home</Link>

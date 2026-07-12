@@ -62,10 +62,21 @@ export default async function OverseasCountryPage({ params }: Props) {
       { '@type': 'ListItem', position: 3, name: `Overseas — ${value}` },
     ],
   };
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: proposals.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://joronline.com/profile/${p.proposal_number}`,
+      name: `${p.gender === 'Male' ? 'Groom' : 'Bride'} #${p.proposal_number}`,
+    })),
+  };
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px' }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
       <div style={{ fontSize: 13, color: '#B0ADCB', marginBottom: 12 }}>
         <Link href="/" style={{ color: '#534AB7', textDecoration: 'none' }}>Home</Link>
         {' › '}
