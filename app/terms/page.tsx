@@ -18,12 +18,16 @@ export default function TermsPage() {
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '40px 20px 60px' }}>
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 12 }}>
-          <path d="M9 2h6a1 1 0 0 1 1 1v1h1a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z"/>
-          <line x1="8" y1="10" x2="16" y2="10"/>
-          <line x1="8" y1="14" x2="16" y2="14"/>
-          <line x1="8" y1="18" x2="12" y2="18"/>
-        </svg>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 2h6a1 1 0 0 1 1 1v1h1a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z"/>
+              <line x1="8" y1="10" x2="16" y2="10"/>
+              <line x1="8" y1="14" x2="16" y2="14"/>
+              <line x1="8" y1="18" x2="12" y2="18"/>
+            </svg>
+          </div>
+        </div>
         <h1 style={{ fontSize: 28, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Terms of Service</h1>
         <p style={{ fontSize: 14, color: '#6B6893' }}>Last updated: January 2026</p>
       </div>

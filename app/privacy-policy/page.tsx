@@ -18,10 +18,14 @@ export default function PrivacyPolicyPage() {
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '40px 20px 60px' }}>
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 12 }}>
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0110 0v4"/>
-        </svg>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+          </div>
+        </div>
         <h1 style={{ fontSize: 28, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Privacy Policy</h1>
         <p style={{ fontSize: 14, color: '#6B6893' }}>Last updated: January 2026</p>
       </div>
