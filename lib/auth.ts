@@ -27,6 +27,20 @@ export function getSession(): Proposal | null {
   } catch { return null; }
 }
 
+// A logged-in man should only ever browse women's proposals and vice
+// versa — matches the mobile app's identical lockedGender feature
+// (group_feed_screen.dart / filter_sheet.dart). Admin sessions (id
+// starts with 'admin:') and logged-out visitors are unrestricted, same
+// as mobile. Returns the gender the feed/filter should be locked to, or
+// null if nothing should be locked.
+export function getLockedGenderFilter(): 'Male' | 'Female' | null {
+  const session = getSession();
+  if (!session) return null;
+  if (session.id?.startsWith('admin:')) return null;
+  if (session.gender !== 'Male' && session.gender !== 'Female') return null;
+  return session.gender === 'Male' ? 'Female' : 'Male';
+}
+
 export function clearSession() {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(SESSION_KEY);

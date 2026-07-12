@@ -1,9 +1,10 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import FilterBar from './FilterBar';
 import ProposalCard from './ProposalCard';
 import { fetchProposals, FilterState, Proposal } from '@/lib/supabase';
+import { getLockedGenderFilter } from '@/lib/auth';
 
 const GENDER_TO_SLUG: Record<string, string> = { Female: 'bride', Male: 'groom' };
 
@@ -28,9 +29,38 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
   const [proposals, setProposals] = useState<Proposal[]>(initialProposals);
   const [total, setTotal] = useState(initialProposals.length);
   const [loading, setLoading] = useState(false);
-
   const basePath = locationField === 'country' ? '/proposals/overseas' : '/proposals';
   const currentValue = locationField === 'country' ? initialFilters.country : initialFilters.city;
+
+  // A logged-in (non-admin) man only browses women's proposals and vice
+  // versa — matches the mobile app's identical lockedGender feature.
+  // initialFilters/initialProposals come from a server component (city/
+  // caste pages, etc.), which can't know the visitor's session, so this
+  // corrects it client-side right after mount. On a gender-segmented page
+  // (e.g. /lahore/groom) a mismatch redirects to the correct sibling page
+  // (/lahore/bride) the same way a manual change would — otherwise the
+  // heading/URL would say "Groom" while quietly showing women's proposals.
+  // Everywhere else it's just a plain re-filter of what's already shown.
+  const [lockedGender] = useState<'Male' | 'Female' | null>(() =>
+    typeof window === 'undefined' ? null : getLockedGenderFilter()
+  );
+  useEffect(() => {
+    if (!lockedGender || initialFilters.gender === lockedGender) return;
+    if (hasGenderSegment) {
+      const slug = qualifyingSlugs[currentValue || ''];
+      const genderSlug = GENDER_TO_SLUG[lockedGender];
+      if (slug) { router.replace(`${basePath}/${slug}/${genderSlug}`); return; }
+    }
+    const next = { ...initialFilters, gender: lockedGender };
+    setFilters(next);
+    setLoading(true);
+    fetchProposals(next, 0, 24).then(({ proposals: data, total: t }) => {
+      setProposals(data);
+      setTotal(t);
+      setLoading(false);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lockedGender]);
 
   const handleChange = useCallback((next: FilterState) => {
     const nextValue = locationField === 'country' ? next.country : next.city;
@@ -78,7 +108,7 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
 
   return (
     <>
-      <FilterBar filters={filters} onChange={handleChange} total={total} />
+      <FilterBar filters={filters} onChange={handleChange} total={total} lockedGender={lockedGender} />
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px 0', color: '#B0ADCB' }}>Loading…</div>
       ) : (

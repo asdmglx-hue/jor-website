@@ -114,7 +114,7 @@ function ProfessionSelect({ value, onChange }: { value?: string; onChange: (v: s
   );
 }
 
-type Props = { filters: FilterState; onChange: (f: FilterState) => void; total: number; showSaved?: boolean; onSavedToggle?: () => void; };
+type Props = { filters: FilterState; onChange: (f: FilterState) => void; total: number; showSaved?: boolean; onSavedToggle?: () => void; lockedGender?: 'Male' | 'Female' | null; };
 
 function Select({ label, value, options, onChange }: { label: string; value?: string; options: string[]; onChange: (v: string) => void }) {
   return (
@@ -133,7 +133,7 @@ function Select({ label, value, options, onChange }: { label: string; value?: st
   );
 }
 
-export default function FilterBar({ filters, onChange, total, showSaved, onSavedToggle }: Props) {
+export default function FilterBar({ filters, onChange, total, showSaved, onSavedToggle, lockedGender }: Props) {
   const [showMore, setShowMore] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -151,7 +151,12 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const activeCount = Object.values(filters).filter(v => v !== undefined && v !== '').length;
+  // Don't count the gender filter toward the active-filter badge when it's
+  // locked — the user didn't choose it, so it shouldn't look like a filter
+  // they can/need to clear. Matches the mobile app's _effectiveCount.
+  const activeCount = Object.entries(filters).filter(([k, v]) =>
+    v !== undefined && v !== '' && !(k === 'gender' && lockedGender)
+  ).length;
 
   const set = (key: keyof FilterState, val: string) =>
     onChange({ ...filters, [key]: val || undefined });
@@ -183,7 +188,8 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
     setSelectedCity('');
     setSelectedCountry('');
     setOverseasCountries([]);
-    onChange({});
+    // A locked gender isn't a real filter choice to clear — keep it.
+    onChange(lockedGender ? { gender: lockedGender } : {});
   };
 
   const dropStyle = (active: boolean) => ({
@@ -192,7 +198,29 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
     fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', outline: 'none', flex: '1 1 auto', minWidth: 0,
   });
 
-  const genderToggle = (
+  const genderToggle = lockedGender ? (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F5F5F5', borderRadius: 10, padding: '6px 12px', cursor: 'default' }}
+      title="Locked — you can only browse the opposite gender">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6B6893" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+      </svg>
+      {lockedGender === 'Male' ? (
+        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: '#534AB7' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="10" cy="10" r="6"/><line x1="17.5" y1="5.5" x2="22" y2="2"/><line x1="22" y1="2" x2="19" y2="2"/><line x1="22" y1="2" x2="22" y2="5"/>
+          </svg>
+          Male
+        </span>
+      ) : (
+        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: '#534AB7' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="8" r="6"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="9" y1="19" x2="15" y2="19"/>
+          </svg>
+          Female
+        </span>
+      )}
+    </div>
+  ) : (
     <div style={{ display: 'flex', gap: 4, background: '#F5F5F5', borderRadius: 10, padding: 3 }}>
       {(['Male', 'Female'] as string[]).map(g => (
         <button key={g} onClick={() => set('gender', (filters.gender === g ? '' : g))} style={{

@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { fetchProposals, FilterState, Proposal, supabase } from '@/lib/supabase';
-import { getNotInterestedIds, addNotInterested } from '@/lib/auth';
+import { getNotInterestedIds, addNotInterested, getLockedGenderFilter } from '@/lib/auth';
 import ProposalCard from '@/components/ProposalCard';
 import FilterBar from '@/components/FilterBar';
 
@@ -40,8 +40,15 @@ export default function ProposalsClient() {
     try { return JSON.parse(localStorage.getItem('er_not_interested') || '[]'); } catch { return []; }
   });
   const [newCount, setNewCount] = useState(0); // realtime new proposals banner
+  // A logged-in (non-admin) man only browses women's proposals and vice
+  // versa — matches the mobile app's identical lockedGender feature. Takes
+  // priority over any ?gender= URL param, same as mobile ignoring a
+  // mismatched manual filter for a locked user.
+  const [lockedGender] = useState<'Male' | 'Female' | null>(() =>
+    typeof window === 'undefined' ? null : getLockedGenderFilter()
+  );
   const [filters, setFilters] = useState<FilterState>({
-    gender: searchParams.gender,
+    gender: lockedGender || searchParams.gender,
     city: searchParams.city,
     ...(searchParams.country ? { overseas: true, country: searchParams.country } : {}),
   });
@@ -215,7 +222,7 @@ export default function ProposalsClient() {
         </button>
       </div>
 
-      <FilterBar filters={filters} onChange={f => setFilters(f)} total={total} showSaved={showSaved} onSavedToggle={handleShowSaved} />
+      <FilterBar filters={filters} onChange={f => setFilters(f)} total={total} showSaved={showSaved} onSavedToggle={handleShowSaved} lockedGender={lockedGender} />
 
       {/* Results count — hidden when saved panel is open */}
       {!loading && !showSaved && <div style={{ fontSize: 13, fontWeight: 700, color: '#534AB7', marginBottom: 12, paddingLeft: 16 }}>{total.toLocaleString()} proposals found</div>}
