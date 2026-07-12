@@ -814,8 +814,12 @@ export default function SubmitClient() {
     if (err) { setError(err); setErrorField(field); return; }
     if (step === 1) {
       const digits = form.cnic.replace(/-/g, '').trim();
-      const { data: hasActive } = await supabase.rpc('cnic_has_active_profile', { p_cnic: digits });
-      if (hasActive) {
+      const { data: existingStatus } = await supabase.rpc('get_cnic_profile_status', { p_cnic: digits });
+      if (existingStatus === 'pending') {
+        setError('Your profile is already submitted. Please log in to check the status.');
+        return;
+      }
+      if (existingStatus) {
         setError('This CNIC is already registered. Please login instead.');
         return;
       }
