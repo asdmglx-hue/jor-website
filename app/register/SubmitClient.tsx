@@ -912,21 +912,26 @@ export default function SubmitClient() {
     return { msg: '', field: '' };
   };
 
-  const next = async () => {
+  // Shared by both the "Next →" button and the top step-tabs, so a
+  // clicked-past error (like an already-registered CNIC) can't be
+  // bypassed by clicking a tab instead of the button — the tab click
+  // previously only ran the synchronous validateStep(), which doesn't
+  // include this async database check, letting it skip straight past.
+  const validateStepAsync = async (): Promise<{ msg: string; field: string } | null> => {
     const { msg: err, field } = validateStep();
-    if (err) { setError(err); setErrorField(field); return; }
+    if (err) return { msg: err, field };
     if (step === 1) {
       const digits = form.cnic.replace(/-/g, '').trim();
       const { data: existingStatus } = await supabase.rpc('get_cnic_profile_status', { p_cnic: digits });
-      if (existingStatus === 'pending') {
-        setError('Your profile is already submitted. Please log in to check the status.');
-        return;
-      }
-      if (existingStatus) {
-        setError('This CNIC is already registered. Please login instead.');
-        return;
-      }
+      if (existingStatus === 'pending') return { msg: 'Your profile is already submitted. Please log in to check the status.', field: 'cnic' };
+      if (existingStatus) return { msg: 'This CNIC is already registered. Please login instead.', field: 'cnic' };
     }
+    return null;
+  };
+
+  const next = async () => {
+    const err = await validateStepAsync();
+    if (err) { setError(err.msg); setErrorField(err.field); return; }
     setError(''); setErrorField('');
     setStep(s => { const n = (s + 1) as 1 | 2 | 3 | 4 | 5; setMaxStep(m => Math.max(m, n)); return n; });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1133,12 +1138,12 @@ export default function SubmitClient() {
           const reachable = i + 1 !== step;
           return (
             <div key={i} style={{ flex: 1, textAlign: 'center', cursor: reachable ? 'pointer' : 'default' }}
-              onClick={() => {
+              onClick={async () => {
                 if (!reachable) return;
                 const targetStep = (i + 1) as 1 | 2 | 3 | 4 | 5;
                 if (targetStep > step) {
-                  const { msg: err, field } = validateStep();
-                  if (err) { setError(err); setErrorField(field); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                  const err = await validateStepAsync();
+                  if (err) { setError(err.msg); setErrorField(err.field); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                 }
                 setError(''); setErrorField('');
                 setStep(targetStep);
