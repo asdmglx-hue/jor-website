@@ -49,11 +49,21 @@ export default function LoginClient() {
     if (cleanCnic.length !== 13) { setError('Enter a valid 13-digit CNIC.'); return; }
     if (!password.trim()) { setError('Password is required.'); return; }
     setLoading(true); setError('');
-    const proposal = await loginWithCnic(cleanCnic, password);
-    setLoading(false);
-    if (!proposal) { setError('Incorrect CNIC or password. Please try again.'); return; }
-    saveSession(proposal);
-    router.push('/my-proposal');
+    try {
+      const proposal = await loginWithCnic(cleanCnic, password);
+      if (!proposal) { setError('Incorrect CNIC or password. Please try again.'); return; }
+      saveSession(proposal);
+      router.push('/my-proposal');
+    } catch {
+      // Network hiccup, or anything else unexpected — this previously had
+      // no catch at all, meaning a thrown error here (rather than a
+      // clean "wrong password" result) failed completely silently: no
+      // error shown, and the button stuck on "loading" forever since
+      // setLoading(false) below never even ran.
+      setError('Something went wrong. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleForgotSubmit = async () => {
