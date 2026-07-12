@@ -366,15 +366,17 @@ export async function loginWithCnic(cnic: string, password: string): Promise<Pro
     } as Proposal;
   }
 
-  const { data, error } = await supabase
-    .from('proposals')
-    .select('*')
-    .or(`cnic.eq.${digits},cnic.eq.${hyphenated}`)
-    .eq('password', password.trim())
-    .in('status', ['active', 'paused', 'pending', 'approved'])
-    .order('posted_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // Regular (non-admin) login now goes through a security-definer RPC too —
+  // a raw select here was silently invisible to any proposal that isn't
+  // status='active' under the public_view_active_proposals policy (added
+  // for the emergency proposals-visibility fix), which meant pending or
+  // paused accounts could never log in at all, always reporting "Incorrect
+  // CNIC or password" even with the right credentials. The RPC bypasses
+  // that restriction while still requiring an exact password match.
+  const { data, error } = await supabase.rpc('login_by_cnic', {
+    p_cnic: digits,
+    p_password: password.trim(),
+  });
   if (error || !data) return null;
   return data as Proposal;
 }
