@@ -479,8 +479,16 @@ export default function MyProposalClient() {
             {user.proposal_number > 0 && <span style={{ fontSize: 13, color: '#6B6893' }}>#{user.proposal_number}</span>}
           </div>
           <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', alignItems: 'center' }}>
+            {(() => {
+              // Expired accounts keep Share/Pause/View visible but disabled
+              // (nothing to share/toggle/view live while unsubscribed), and
+              // get a Renew button — Delete is the only action that stays
+              // fully live, since deleting doesn't depend on being subscribed.
+              const isInactive = getStatusLabel(user, hasFeaturedBoost) === 'Inactive';
+              const shareLocked = isAdminAccount || isPendingAccount || isInactive;
+              return (<>
             {/* Share */}
-            <button disabled={isAdminAccount || isPendingAccount} onClick={async () => {
+            <button disabled={shareLocked} onClick={async () => {
                 const session = getSession();
                 const showFullPhone = !!session && isSubscriptionActive(session);
                 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -491,27 +499,27 @@ export default function MyProposalClient() {
                 const text = buildProposalShareText(user, false, showFullPhone);
                 window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
               }}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: (isAdminAccount || isPendingAccount) ? '#F5F5F5' : '#fff', cursor: (isAdminAccount || isPendingAccount) ? 'not-allowed' : 'pointer', opacity: (isAdminAccount || isPendingAccount) ? 0.5 : 1 }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={(isAdminAccount || isPendingAccount) ? '#9CA3AF' : '#534AB7'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              <span style={{ fontSize: 10, fontWeight: 700, color: (isAdminAccount || isPendingAccount) ? '#9CA3AF' : '#534AB7' }}>Share</span>
+              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: shareLocked ? '#F5F5F5' : '#fff', cursor: shareLocked ? 'not-allowed' : 'pointer', opacity: shareLocked ? 0.5 : 1 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={shareLocked ? '#9CA3AF' : '#534AB7'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              <span style={{ fontSize: 10, fontWeight: 700, color: shareLocked ? '#9CA3AF' : '#534AB7' }}>Share</span>
             </button>
-            {/* Pause/Resume — shown for active/paused/pending, disabled for pending */}
-            {(['Active', 'Featured', 'Paused', 'Pending', 'Rejected', 'Removed'].includes(getStatusLabel(user, hasFeaturedBoost))) && <button disabled={isAdminAccount || isPendingAccount} onClick={async () => {
+            {/* Pause/Resume — shown for active/paused/pending/inactive, disabled for pending/inactive */}
+            {(['Active', 'Featured', 'Paused', 'Pending', 'Rejected', 'Removed', 'Inactive'].includes(getStatusLabel(user, hasFeaturedBoost))) && <button disabled={isAdminAccount || isPendingAccount || isInactive} onClick={async () => {
                 const isPaused = user.status === 'paused';
                 const msg = isPaused ? 'Resume your profile? It will become visible in the group again.' : 'Pause your profile? It will be hidden from the group. You can resume anytime.';
                 if (!window.confirm(msg)) return;
                 const { data: updateResult } = await supabase.rpc('update_own_proposal_secure', { p_id: user.id, p_updates: { status: isPaused ? 'active' : 'paused' } });
                 if (updateResult) { const updated = { ...user, status: isPaused ? 'active' : 'paused' }; setUser(updated as typeof user); import('@/lib/auth').then(m => m.saveSession(updated as typeof user)); }
               }}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', cursor: (isAdminAccount || isPendingAccount) ? 'not-allowed' : 'pointer', opacity: (isAdminAccount || isPendingAccount) ? 0.5 : 1 }}>
+              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: (isAdminAccount || isPendingAccount || isInactive) ? '#F5F5F5' : '#fff', cursor: (isAdminAccount || isPendingAccount || isInactive) ? 'not-allowed' : 'pointer', opacity: (isAdminAccount || isPendingAccount || isInactive) ? 0.5 : 1 }}>
               {user.status === 'paused'
-                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={(isAdminAccount || isPendingAccount) ? '#9CA3AF' : '#16A34A'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={(isAdminAccount || isPendingAccount || isInactive) ? '#9CA3AF' : '#16A34A'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
               }
-              <span style={{ fontSize: 10, fontWeight: 700, color: (isAdminAccount || isPendingAccount) ? '#9CA3AF' : (user.status === 'paused' ? '#16A34A' : '#6B7280') }}>{user.status === 'paused' ? 'Resume' : 'Pause'}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: (isAdminAccount || isPendingAccount || isInactive) ? '#9CA3AF' : (user.status === 'paused' ? '#16A34A' : '#6B7280') }}>{user.status === 'paused' ? 'Resume' : 'Pause'}</span>
             </button>}
             {/* View */}
-            {(['Active','Featured','Pending','Rejected','Removed'].includes(getStatusLabel(user, hasFeaturedBoost))) && ((isAdminAccount || isPendingAccount) ? (
+            {(['Active','Featured','Pending','Rejected','Removed','Inactive'].includes(getStatusLabel(user, hasFeaturedBoost))) && ((isAdminAccount || isPendingAccount || isInactive) ? (
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#F5F5F5', opacity: 0.5, cursor: 'not-allowed' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF' }}>View</span>
@@ -523,6 +531,14 @@ export default function MyProposalClient() {
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#534AB7' }}>View</span>
               </Link>
             ))}
+            {/* Renew — only when the subscription has actually expired */}
+            {isInactive && (
+              <Link href="/plans?plan=rishta-profile"
+                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #534AB7', background: '#534AB7', textDecoration: 'none' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>Renew</span>
+              </Link>
+            )}
             {/* Delete — active for admin too, deletes the admin_accounts row.
                 Locked specifically for genuinely Pending accounts (nothing
                 has been reviewed yet, so there's a real "are you sure"
@@ -534,6 +550,8 @@ export default function MyProposalClient() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={user.status === 'pending' ? '#9CA3AF' : '#DC2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
               <span style={{ fontSize: 10, fontWeight: 700, color: user.status === 'pending' ? '#9CA3AF' : '#DC2626' }}>Delete</span>
             </button>
+              </>);
+            })()}
           </div>
         </div>
       </div>
