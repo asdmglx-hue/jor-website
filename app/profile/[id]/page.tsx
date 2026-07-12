@@ -155,7 +155,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                   />
                 </div>
                 <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.7 }}>
-                  <div>{p.age} yrs • {p.country && p.country !== 'Pakistan' ? `${p.country} (from ${p.city})` : p.city}</div>
+                  <div>{p.age} yrs • {p.country && p.country !== 'Pakistan' ? `${p.country} (from ${p.city})` : `${p.city}, Pakistan`}</div>
                   <div>{p.caste} • {p.sect}</div>
                   <div>{p.profession}</div>
                 </div>

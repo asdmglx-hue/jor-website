@@ -455,7 +455,7 @@ export default function MyProposalClient() {
             </div>
             )}
             <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 8 }}>
-              {user.country && user.country !== 'Pakistan' ? `${user.country} (from ${user.city})` : user.city}
+              {user.country && user.country !== 'Pakistan' ? `${user.country} (from ${user.city})` : `${user.city}, Pakistan`}
             </div>
             {/* Subscription + verification badges */}
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
