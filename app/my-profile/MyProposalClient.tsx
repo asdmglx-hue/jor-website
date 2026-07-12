@@ -667,7 +667,10 @@ export default function MyProposalClient() {
             // Admin sessions can only edit their name — every other field
             // across Basic Information, Family, Education, etc. becomes
             // read-only display text instead of a clickable editor.
-            const fieldDisabled = (key: string) => isAdminAccount && key !== 'name';
+            // Gender and CNIC are locked for everyone, always — identity
+            // fields that shouldn't change after registration/verification.
+            const ALWAYS_LOCKED = ['gender', 'cnic'];
+            const fieldDisabled = (key: string) => ALWAYS_LOCKED.includes(key) || (isAdminAccount && key !== 'name');
 
             const emptyPill = (key: string) => (
               fieldDisabled(key) ? (
@@ -873,6 +876,8 @@ export default function MyProposalClient() {
                 {sec('Basic Information', grid(<>
                   <Field label="Full Name" fieldKey="name" />
                   <Field label="Age" fieldKey="age" type="number" />
+                  <Field label="Gender" fieldKey="gender" />
+                  <Field label="CNIC" fieldKey="cnic" />
                   <Field label="City" fieldKey="city" options={['Lahore','Karachi','Islamabad','Rawalpindi','Faisalabad','Multan','Gujranwala','Sialkot','Bahawalpur','Sargodha','Peshawar','Quetta','Hyderabad','Abbottabad','Other']} />
                   <Field label="Country (Overseas)" fieldKey="country" options={['Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan','Bahrain','Bangladesh','Belgium','Bosnia & Herzegovina','Brunei','Bulgaria','Cambodia','Canada','China','Colombia','Croatia','Cyprus','Czech Republic','Denmark','Egypt','Estonia','Ethiopia','Finland','France','Georgia','Germany','Ghana','Greece','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Jamaica','Japan','Jordan','Kazakhstan','Kenya','Kuwait','Latvia','Lebanon','Libya','Lithuania','Luxembourg','Malaysia','Maldives','Malta','Mexico','Moldova','Monaco','Mongolia','Morocco','Myanmar','Namibia','Nepal','Netherlands','New Zealand','Nigeria','Norway','Oman','Pakistan','Palestine','Philippines','Poland','Portugal','Qatar','Romania','Russia','Saudi Arabia','Serbia','Singapore','Slovakia','Slovenia','South Africa','South Korea','Spain','Sri Lanka','Sudan','Sweden','Switzerland','Syria','Taiwan','Tanzania','Thailand','Turkey','UAE','Uganda','Ukraine','United Kingdom','United States','Uruguay','Uzbekistan','Vietnam','Yemen','Zambia','Zimbabwe']} />
                   <Field label="Location (Area)" fieldKey="location" />
