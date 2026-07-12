@@ -170,7 +170,13 @@ export default function SubscriptionClient() {
   // instead of showing values frozen at the last site build.
   // free_mode only ever applies to the Rishta Profile (standard) plan —
   // Featured Post is always paid, matching the mobile app's behavior.
-  const isFreeMode = settings.free_mode === 'true';
+  // It's also meant as a one-time free trial per person, not something
+  // re-granted every time someone comes back: if this logged-in user
+  // already has (had) a subscription and it's expired, they're renewing,
+  // not signing up for the first time, so they see the real price even
+  // while free_mode is globally on for new signups.
+  const hasExpiredSubscription = !!(user?.subscription_expiry && new Date(user.subscription_expiry) <= new Date());
+  const isFreeMode = settings.free_mode === 'true' && !hasExpiredSubscription;
   const STD_PRICE = settings.standard_plan_price || '1,000';
   const STD_MONTHS = settings.standard_plan_days
     ? `${Math.round(Number(settings.standard_plan_days) / 30)} Month${Math.round(Number(settings.standard_plan_days) / 30) === 1 ? '' : 's'}`
