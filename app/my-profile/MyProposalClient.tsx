@@ -13,13 +13,13 @@ import type { Area } from 'react-easy-crop';
 async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
   const image = new Image();
   image.src = imageSrc;
-  await new Promise(res => { image.onload = res; });
+  await new Promise<void>((res, rej) => { image.onload = () => res(); image.onerror = () => rej(new Error('Failed to load image for cropping')); });
   const canvas = document.createElement('canvas');
   canvas.width = pixelCrop.width;
   canvas.height = pixelCrop.height;
   const ctx = canvas.getContext('2d')!;
   ctx.drawImage(image, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, pixelCrop.width, pixelCrop.height);
-  return new Promise(res => canvas.toBlob(b => res(b!), 'image/jpeg', 0.92));
+  return new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error('Failed to encode cropped image')), 'image/jpeg', 0.92));
 }
 
 type Tab = 'profile' | 'saved';

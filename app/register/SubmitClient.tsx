@@ -508,14 +508,18 @@ function PhotoCropModal({ src, onDone, onCancel }: { src: string; onDone: (blob:
   const [cropping, setCropping] = useState(false);
   const SIZE = 300;
 
+  const [loadFailed, setLoadFailed] = useState(false);
+
   useEffect(() => {
     const img = new Image();
     img.onload = () => {
+      if (!img.width || !img.height) { setLoadFailed(true); return; }
       imgRef.current = img;
       const s = Math.max(SIZE / img.width, SIZE / img.height);
       setScale(s);
       setOffset({ x: 0, y: 0 });
     };
+    img.onerror = () => setLoadFailed(true);
     img.src = src;
   }, [src]);
 
@@ -525,11 +529,18 @@ function PhotoCropModal({ src, onDone, onCancel }: { src: string; onDone: (blob:
     if (!img || !canvas) return;
     const ctx = canvas.getContext('2d')!;
     ctx.clearRect(0, 0, SIZE, SIZE);
+    // Fill white first, everywhere — JPEG has no alpha channel, so anything
+    // left transparent (e.g. corners outside the circular clip below) would
+    // otherwise be flattened to solid black on export. This also matters
+    // beyond the in-app circular mask: the raw square file is what gets used
+    // for social-share link previews (og:image), which don't apply that mask.
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, SIZE, SIZE);
     ctx.save();
     ctx.beginPath();
     ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2, 0, Math.PI * 2);
     ctx.clip();
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, SIZE, SIZE);
     const w = img.width * scale;
     const h = img.height * scale;
@@ -564,6 +575,7 @@ function PhotoCropModal({ src, onDone, onCancel }: { src: string; onDone: (blob:
   };
 
   const handleCrop = async () => {
+    if (!imgRef.current) { setLoadFailed(true); return; }
     setCropping(true);
     const canvas = canvasRef.current!;
     canvas.toBlob(blob => { if (blob) onDone(blob); }, 'image/jpeg', 0.9);
@@ -574,13 +586,20 @@ function PhotoCropModal({ src, onDone, onCancel }: { src: string; onDone: (blob:
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: SIZE, marginBottom: 16 }}>
         <button onClick={onCancel} style={{ padding: '7px 16px', borderRadius: 10, border: 'none', background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
         <span style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>Adjust Photo</span>
-        <button onClick={handleCrop} disabled={cropping} style={{ padding: '7px 16px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#7C5CFA,#5A3FD6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+        <button onClick={handleCrop} disabled={cropping || loadFailed} style={{ padding: '7px 16px', borderRadius: 10, border: 'none', background: loadFailed ? 'rgba(124,92,250,0.35)' : 'linear-gradient(135deg,#7C5CFA,#5A3FD6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: loadFailed ? 'not-allowed' : 'pointer' }}>
           {cropping ? '...' : 'Use Photo'}
         </button>
       </div>
-      <canvas ref={canvasRef} width={SIZE} height={SIZE} style={{ borderRadius: SIZE / 2, cursor: dragging ? 'grabbing' : 'grab', touchAction: 'none' }}
-        onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}
-        onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onMouseUp} />
+      {loadFailed ? (
+        <div style={{ width: SIZE, height: SIZE, borderRadius: SIZE / 2, background: 'rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', gap: 8 }}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>Couldn&apos;t load this photo. Please cancel and pick another one.</span>
+        </div>
+      ) : (
+        <canvas ref={canvasRef} width={SIZE} height={SIZE} style={{ borderRadius: SIZE / 2, cursor: dragging ? 'grabbing' : 'grab', touchAction: 'none' }}
+          onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}
+          onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onMouseUp} />
+      )}
       <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
         <input type="range" min={0.2} max={4} step={0.05} value={scale}
           onChange={e => setScale(+e.target.value)}
