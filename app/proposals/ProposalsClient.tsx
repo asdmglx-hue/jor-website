@@ -161,8 +161,11 @@ export default function ProposalsClient() {
         { event: 'UPDATE', schema: 'public', table: 'proposals' },
         (payload) => {
           const updated = payload.new as Proposal;
-          // If proposal was deactivated, remove it from view
-          if (updated.status !== 'active') {
+          const expired = !!(updated.subscription_expiry && new Date(updated.subscription_expiry) <= new Date());
+          // If proposal was deactivated OR its subscription just expired
+          // (status may still literally say 'active' until the admin app's
+          // periodic check catches up and flips it), remove it from view.
+          if (updated.status !== 'active' || expired) {
             setProposals(prev => prev.filter(p => p.id !== updated.id));
           } else {
             // Update in place

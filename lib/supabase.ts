@@ -137,11 +137,22 @@ const PROFESSION_GROUPS: Record<string, string[]> = {
 // Columns needed to render a ProposalCard (incl. share text fields)
 export const CARD_COLS ='id,proposal_number,name,age,gender,city,country,profession,caste,sect,marital_status,height_inches,boys,girls,about,looking_for,profile_photo_url,posted_at,subscription_tier,is_boosted,contact_phone,contact_phone_2,home_type,education,father_alive,mother_alive,brothers,sisters,status';
 
+// Proposals whose status is still literally 'active' in the DB but whose
+// subscription_expiry has already passed are in a brief window where the
+// admin app's periodic auto-expire check hasn't caught up and flipped
+// status to 'expired' yet. Every public-facing listing/search/count query
+// needs this on top of status='active' so an expired subscription doesn't
+// keep showing in the feed just because that background job hasn't run.
+export function notExpiredFilter(): string {
+  return `subscription_expiry.is.null,subscription_expiry.gt.${new Date().toISOString()}`;
+}
+
 export async function fetchProposals(filters: FilterState = {}, page = 0, pageSize = 16): Promise<{ proposals: Proposal[]; total: number }> {
   let query = supabase
     .from('proposals')
     .select(CARD_COLS, { count: 'exact' })
     .eq('status', 'active')
+    .or(notExpiredFilter())
     .order('is_boosted', { ascending: false })
     .order('subscription_tier', { ascending: false })
     .order('posted_at', { ascending: false })
@@ -184,6 +195,7 @@ export async function fetchRecentProposalAt(offset: number): Promise<Proposal | 
     .from('proposals')
     .select(CARD_COLS)
     .eq('status', 'active')
+    .or(notExpiredFilter())
     .order('posted_at', { ascending: false })
     .range(offset, offset);
   return (data && data[0]) ? (data[0] as Proposal) : null;
@@ -219,6 +231,7 @@ export async function fetchOverseasCountries(): Promise<string[]> {
       .from('proposals')
       .select('country')
       .eq('status', 'active')
+      .or(notExpiredFilter())
       .not('country', 'is', null)
       .neq('country', '')
       .neq('country', 'Pakistan')
@@ -274,7 +287,7 @@ export const MIN_CATEGORY_PROFILES = 5;
 
 export async function fetchCategoryCounts(dbColumn: 'city' | 'caste' | 'sect' | 'marital_status' | 'profession'): Promise<Record<string, number>> {
   const data = await fetchAllRows<Record<string, string | null>>((from, to) =>
-    supabase.from('proposals').select(dbColumn).in('status', ['active', 'paused']).range(from, to)
+    supabase.from('proposals').select(dbColumn).in('status', ['active', 'paused']).or(notExpiredFilter()).range(from, to)
   );
   const counts: Record<string, number> = {};
   for (const row of data) {
@@ -291,6 +304,7 @@ export async function fetchCountryCounts(): Promise<Record<string, number>> {
       .from('proposals')
       .select('country')
       .in('status', ['active', 'paused'])
+      .or(notExpiredFilter())
       .not('country', 'is', null)
       .neq('country', '')
       .neq('country', 'Pakistan')
@@ -320,6 +334,7 @@ export async function fetchProposalsForCategory(
     .from('proposals')
     .select(CARD_COLS)
     .eq('status', 'active')
+    .or(notExpiredFilter())
     .eq(dbColumn, value)
     .order('posted_at', { ascending: false })
     .limit(limit);

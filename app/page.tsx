@@ -1,4 +1,4 @@
-import { supabase, fetchAllRows, CARD_COLS } from '@/lib/supabase';
+import { supabase, fetchAllRows, CARD_COLS, notExpiredFilter } from '@/lib/supabase';
 import { CITIES as VALID_CITY_NAMES, normalizeCountry } from '@/lib/constants';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -30,9 +30,9 @@ export const metadata: Metadata = {
 const VALID_CITIES = new Set(VALID_CITY_NAMES.filter(c => c !== 'Other'));
 
 async function getStats() {
-  const { count: total } = await supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active');
-  const { count: male } = await supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').eq('gender', 'Male');
-  const { count: female } = await supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').eq('gender', 'Female');
+  const { count: total } = await supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter());
+  const { count: male } = await supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('gender', 'Male');
+  const { count: female } = await supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('gender', 'Female');
   return { total: total || 0, male: male || 0, female: female || 0 };
 }
 
@@ -43,7 +43,7 @@ async function getStats() {
 // generateStaticParams elsewhere on the site).
 async function getCities(): Promise<{ city: string; count: number }[]> {
   const data = await fetchAllRows<{ city: string }>((from, to) =>
-    supabase.from('proposals').select('city').eq('status', 'active').range(from, to)
+    supabase.from('proposals').select('city').eq('status', 'active').or(notExpiredFilter()).range(from, to)
   );
   const counts: Record<string, number> = {};
   for (const row of data) {
@@ -60,6 +60,7 @@ async function getCountries(): Promise<{ country: string; count: number }[]> {
       .from('proposals')
       .select('country')
       .eq('status', 'active')
+      .or(notExpiredFilter())
       .not('country', 'is', null)
       .neq('country', '')
       .neq('country', 'Pakistan')
@@ -80,17 +81,21 @@ async function getCountries(): Promise<{ country: string; count: number }[]> {
 
 async function getFeatured(): Promise<Proposal[]> {
   // Get proposals boosted via the is_boosted flag or subscription tier
+  const now = new Date().toISOString();
+  const notExpired = `subscription_expiry.is.null,subscription_expiry.gt.${now}`;
   const { data: flagged } = await supabase
     .from('proposals')
     .select(CARD_COLS)
     .eq('status', 'active')
-    .or('is_boosted.eq.true,subscription_tier.eq.featured')
+    // PostgREST nested and()/or(): (is_boosted OR featured) AND (not expired) —
+    // can't just chain a second .or() here since the boosted/featured check
+    // already uses one; this is the documented way to combine both inside it.
+    .or(`and(is_boosted.eq.true,or(${notExpired})),and(subscription_tier.eq.featured,or(${notExpired}))`)
     .order('posted_at', { ascending: false })
     .limit(6);
 
   // Also pull active boosts from featured_boosts table (used by mobile app)
   // Include boosts where: not ended AND (started OR scheduled_date has passed)
-  const now = new Date().toISOString();
   const { data: boosts } = await supabase
     .from('featured_boosts')
     .select('user_id')
@@ -103,6 +108,7 @@ async function getFeatured(): Promise<Proposal[]> {
       .from('proposals')
       .select(CARD_COLS)
       .eq('status', 'active')
+      .or(notExpiredFilter())
       .in('id', boostIds);
     const existing = new Set((flagged || []).map((p: { id: string }) => p.id));
     const extra = (boostedProposals || []).filter((p: { id: string }) => !existing.has(p.id));
@@ -117,6 +123,7 @@ async function getRecent(): Promise<Proposal[]> {
     .from('proposals')
     .select(CARD_COLS)
     .eq('status', 'active')
+    .or(notExpiredFilter())
     .order('posted_at', { ascending: false })
     .limit(9);
   return (data || []) as Proposal[];
