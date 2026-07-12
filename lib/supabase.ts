@@ -334,7 +334,7 @@ export async function loginWithCnic(cnic: string, password: string): Promise<Pro
   // Admin accounts (from the admin app's "Create Admin" screen) are checked
   // first. They're real logins backed by the admin_accounts table, not a
   // proposal — so we synthesize a minimal Proposal-shaped session object for
-  // them, since the rest of the site (session storage, my-proposal page)
+  // them, since the rest of the site (session storage, my-profile page)
   // expects a Proposal. subscription_tier/status are set so every locked-
   // content check across the site (which funnels through isSubscriptionActive)
   // treats this session as fully unlocked.

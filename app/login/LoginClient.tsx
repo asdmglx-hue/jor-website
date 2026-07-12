@@ -53,7 +53,7 @@ export default function LoginClient() {
       const proposal = await loginWithCnic(cleanCnic, password);
       if (!proposal) { setError('Incorrect CNIC or password. Please try again.'); return; }
       saveSession(proposal);
-      router.push('/my-proposal');
+      router.push('/my-profile');
     } catch {
       // Network hiccup, or anything else unexpected — this previously had
       // no catch at all, meaning a thrown error here (rather than a

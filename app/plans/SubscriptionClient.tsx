@@ -221,7 +221,7 @@ export default function SubscriptionClient() {
 
   return (
     <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 20px' }}>
-      <Link href="/my-proposal" style={{ fontSize: 13, color: '#534AB7', fontWeight: 700, textDecoration: 'none' }}>← Back to My Profile</Link>
+      <Link href="/my-profile" style={{ fontSize: 13, color: '#534AB7', fontWeight: 700, textDecoration: 'none' }}>← Back to My Profile</Link>
 
       <div style={{ textAlign: 'center', margin: '24px 0 32px' }}>
         <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Choose a Plan</h1>

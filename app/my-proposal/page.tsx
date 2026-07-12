@@ -1,4 +1,8 @@
-import type { Metadata } from 'next';
-import MyProposalClient from './MyProposalClient';
-export const metadata: Metadata = { title: 'My Proposal | Jor', description: 'View and manage your Jor rishta proposal.', robots: { index: false, follow: false } };
-export default function MyProposalPage() { return <MyProposalClient />; }
+import { redirect } from 'next/navigation';
+
+// This route was renamed to /my-profile. Kept as a redirect (rather than
+// deleted outright) so any old bookmarked or previously-indexed links to
+// /my-proposal still land somewhere real instead of 404ing.
+export default function MyProposalRedirect() {
+  redirect('/my-profile');
+}
