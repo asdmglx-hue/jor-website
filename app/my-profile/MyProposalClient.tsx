@@ -504,11 +504,15 @@ export default function MyProposalClient() {
               <span style={{ fontSize: 10, fontWeight: 700, color: (isAdminAccount || isPendingAccount) ? '#9CA3AF' : (user.status === 'paused' ? '#16A34A' : '#6B7280') }}>{user.status === 'paused' ? 'Resume' : 'Pause'}</span>
             </button>}
             {/* Delete — active for admin too, deletes the admin_accounts row.
-                Locked for pending accounts, matching the other 3 actions. */}
-            <button disabled={isPendingAccount} onClick={() => { setDeleteReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep(isAdminAccount ? 'password' : 'reason'); }}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FEE2E2', background: isPendingAccount ? '#F5F5F5' : '#FEF2F2', cursor: isPendingAccount ? 'not-allowed' : 'pointer', opacity: isPendingAccount ? 0.5 : 1 }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isPendingAccount ? '#9CA3AF' : '#DC2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-              <span style={{ fontSize: 10, fontWeight: 700, color: isPendingAccount ? '#9CA3AF' : '#DC2626' }}>Delete</span>
+                Deliberately NOT locked for Pending/Rejected like the other
+                3 actions — there's nothing to view/share/pause on an
+                account with no live profile, but someone should always be
+                able to delete their own account regardless of its
+                approval status. */}
+            <button onClick={() => { setDeleteReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep(isAdminAccount ? 'password' : 'reason'); }}
+              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FEE2E2', background: '#FEF2F2', cursor: 'pointer' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#DC2626' }}>Delete</span>
             </button>
           </div>
         </div>
