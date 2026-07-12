@@ -1419,7 +1419,7 @@ export default function SubmitClient() {
 
             {/* PHYSICAL */}
             <SecHeader title="PHYSICAL" />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: -14 }}>
               <Field label="Weight (kg)">
                 <input type="number" value={form.weight_kg} onChange={e => set('weight_kg', e.target.value)} style={inp} placeholder="e.g. 65" />
               </Field>
