@@ -466,19 +466,6 @@ export default function MyProposalClient() {
         <div className="my-account-right" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
           {user.proposal_number > 0 && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', alignSelf: 'flex-end', position: 'relative', top: -12 }}>#{user.proposal_number}</div>}
           <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', alignItems: 'center' }}>
-            {/* View */}
-            {(['Active','Featured','Pending','Rejected','Removed'].includes(getStatusLabel(user, hasFeaturedBoost))) && ((isAdminAccount || isPendingAccount) ? (
-              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#F5F5F5', opacity: 0.5, cursor: 'not-allowed' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF' }}>View</span>
-              </div>
-            ) : (
-              <Link href={`/profile/${user.proposal_number}`}
-                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#EEEDFE', textDecoration: 'none' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <span style={{ fontSize: 10, fontWeight: 700, color: '#534AB7' }}>View</span>
-              </Link>
-            ))}
             {/* Share */}
             <button disabled={isAdminAccount || isPendingAccount} onClick={async () => {
                 const session = getSession();
@@ -510,6 +497,19 @@ export default function MyProposalClient() {
               }
               <span style={{ fontSize: 10, fontWeight: 700, color: (isAdminAccount || isPendingAccount) ? '#9CA3AF' : (user.status === 'paused' ? '#16A34A' : '#6B7280') }}>{user.status === 'paused' ? 'Resume' : 'Pause'}</span>
             </button>}
+            {/* View */}
+            {(['Active','Featured','Pending','Rejected','Removed'].includes(getStatusLabel(user, hasFeaturedBoost))) && ((isAdminAccount || isPendingAccount) ? (
+              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#F5F5F5', opacity: 0.5, cursor: 'not-allowed' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF' }}>View</span>
+              </div>
+            ) : (
+              <Link href={`/profile/${user.proposal_number}`}
+                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#EEEDFE', textDecoration: 'none' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#534AB7' }}>View</span>
+              </Link>
+            ))}
             {/* Delete — active for admin too, deletes the admin_accounts row.
                 Locked specifically for genuinely Pending accounts (nothing
                 has been reviewed yet, so there's a real "are you sure"
