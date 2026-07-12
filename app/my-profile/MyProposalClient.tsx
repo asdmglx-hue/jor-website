@@ -413,10 +413,10 @@ export default function MyProposalClient() {
   if (!user) return <div style={{ textAlign: 'center', padding: 60, color: '#B0ADCB' }}>Loading...</div>;
 
   const isActive = isSubscriptionActive(user);
-  // Broadened beyond just 'pending' — a Rejected account (deleted before
-  // ever going live) should get the same all-actions-locked treatment,
-  // shown rather than hidden, matching what was built for Pending.
-  const isPendingAccount = user.status === 'pending' || getStatusLabel(user) === 'Rejected';
+  // Broadened to also cover Removed — same reasoning as Rejected: shown
+  // rather than hidden, all actions locked, since there's no live profile
+  // to view/share/pause either way.
+  const isPendingAccount = user.status === 'pending' || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed';
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '24px 20px' }}>
@@ -467,7 +467,7 @@ export default function MyProposalClient() {
           {user.proposal_number > 0 && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', alignSelf: 'flex-end', position: 'relative', top: -12 }}>#{user.proposal_number}</div>}
           <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', alignItems: 'center' }}>
             {/* View */}
-            {(['Active','Featured','Pending','Rejected'].includes(getStatusLabel(user, hasFeaturedBoost))) && ((isAdminAccount || isPendingAccount) ? (
+            {(['Active','Featured','Pending','Rejected','Removed'].includes(getStatusLabel(user, hasFeaturedBoost))) && ((isAdminAccount || isPendingAccount) ? (
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#F5F5F5', opacity: 0.5, cursor: 'not-allowed' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF' }}>View</span>
@@ -496,7 +496,7 @@ export default function MyProposalClient() {
               <span style={{ fontSize: 10, fontWeight: 700, color: (isAdminAccount || isPendingAccount) ? '#9CA3AF' : '#534AB7' }}>Share</span>
             </button>
             {/* Pause/Resume — shown for active/paused/pending, disabled for pending */}
-            {(['Active', 'Featured', 'Paused', 'Pending', 'Rejected'].includes(getStatusLabel(user, hasFeaturedBoost))) && <button disabled={isAdminAccount || isPendingAccount} onClick={async () => {
+            {(['Active', 'Featured', 'Paused', 'Pending', 'Rejected', 'Removed'].includes(getStatusLabel(user, hasFeaturedBoost))) && <button disabled={isAdminAccount || isPendingAccount} onClick={async () => {
                 const isPaused = user.status === 'paused';
                 const msg = isPaused ? 'Resume your profile? It will become visible in the group again.' : 'Pause your profile? It will be hidden from the group. You can resume anytime.';
                 if (!window.confirm(msg)) return;
@@ -511,15 +511,15 @@ export default function MyProposalClient() {
               <span style={{ fontSize: 10, fontWeight: 700, color: (isAdminAccount || isPendingAccount) ? '#9CA3AF' : (user.status === 'paused' ? '#16A34A' : '#6B7280') }}>{user.status === 'paused' ? 'Resume' : 'Pause'}</span>
             </button>}
             {/* Delete — active for admin too, deletes the admin_accounts row.
-                Deliberately NOT locked for Pending/Rejected like the other
-                3 actions — there's nothing to view/share/pause on an
-                account with no live profile, but someone should always be
-                able to delete their own account regardless of its
-                approval status. */}
-            <button onClick={() => { setDeleteReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep((isAdminAccount || getStatusLabel(user) === 'Rejected') ? 'password' : 'reason'); }}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FEE2E2', background: '#FEF2F2', cursor: 'pointer' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#DC2626' }}>Delete</span>
+                Locked specifically for genuinely Pending accounts (nothing
+                has been reviewed yet, so there's a real "are you sure"
+                value in requiring the full flow) — but deliberately NOT
+                locked for Rejected/Removed, where someone should always be
+                able to finish deleting their own already-rejected account. */}
+            <button disabled={user.status === 'pending'} onClick={() => { setDeleteReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep((isAdminAccount || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed') ? 'password' : 'reason'); }}
+              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FEE2E2', background: user.status === 'pending' ? '#F5F5F5' : '#FEF2F2', cursor: user.status === 'pending' ? 'not-allowed' : 'pointer', opacity: user.status === 'pending' ? 0.5 : 1 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={user.status === 'pending' ? '#9CA3AF' : '#DC2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              <span style={{ fontSize: 10, fontWeight: 700, color: user.status === 'pending' ? '#9CA3AF' : '#DC2626' }}>Delete</span>
             </button>
           </div>
         </div>
@@ -1059,7 +1059,7 @@ export default function MyProposalClient() {
                 <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 4 }}>
                   {isAdminAccount ? 'This cannot be undone. Enter your password to permanently delete this admin account.' : 'This cannot be undone. Enter your password to permanently delete your profile.'}
                 </div>
-                {!isAdminAccount && getStatusLabel(user) !== 'Rejected' && (
+                {!isAdminAccount && getStatusLabel(user) !== 'Rejected' && getStatusLabel(user) !== 'Removed' && (
                 <div style={{ fontSize: 12, background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 8, padding: '8px 12px', color: '#DC2626', marginBottom: 16 }}>
                   Reason: {deleteReason}
                 </div>
@@ -1073,7 +1073,7 @@ export default function MyProposalClient() {
                 />
                 {deleteError && <div style={{ fontSize: 12, color: '#DC2626', marginBottom: 10 }}>{deleteError}</div>}
                 <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-                  <button onClick={() => setDeleteStep((isAdminAccount || getStatusLabel(user) === 'Rejected') ? null : 'reason')} style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>{(isAdminAccount || getStatusLabel(user) === 'Rejected') ? 'Cancel' : 'Back'}</button>
+                  <button onClick={() => setDeleteStep((isAdminAccount || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed') ? null : 'reason')} style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>{(isAdminAccount || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed') ? 'Cancel' : 'Back'}</button>
                   <button disabled={!deletePassword || deleting} onClick={async () => {
                     if (!user) return;
                     if (deletePassword.trim() !== user.password) { setDeleteError('Incorrect password. Please try again.'); return; }
