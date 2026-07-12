@@ -574,14 +574,15 @@ function PhotoCropModal({ src, onDone, onCancel }: { src: string; onDone: (blob:
     setOffset({ x: dragStart.current.ox + t.clientX - dragStart.current.mx, y: dragStart.current.oy + t.clientY - dragStart.current.my });
   };
 
-  // The on-screen crop UI stays a small, fast-to-render 300px circle — but
-  // that same canvas was previously what got uploaded as the actual profile
-  // photo, so it looked blurry/pixelated anywhere it was shown larger than
-  // a small avatar (e.g. the full-size lightbox view, up to 90vw/90vh).
-  // EXPORT_SIZE redraws the identical crop (same scale/offset math, just
-  // multiplied up) onto a separate, much higher-resolution canvas only at
-  // the moment of upload, so the framing the user picked is unchanged but
-  // the actual exported file is sharp at real viewing sizes.
+  // The on-screen crop UI shows a circular guide purely to help center a
+  // face while framing — every avatar display on the site (ProposalCard,
+  // ProfileAvatar, My Account) already applies its own shape via CSS
+  // (objectFit: cover inside a container with its own borderRadius), so
+  // the uploaded FILE was never supposed to need a baked-in circle. Doing
+  // that anyway destroyed the corners (forced to black/white on JPEG
+  // export) and meant "view full size" could only ever show a tiny circle,
+  // never the actual complete photo. Export a full, uncropped square at
+  // high resolution instead — the on-screen framing guide is unaffected.
   const EXPORT_SIZE = 1000;
 
   const handleCrop = async () => {
@@ -595,16 +596,9 @@ function PhotoCropModal({ src, onDone, onCancel }: { src: string; onDone: (blob:
     const ctx = exportCanvas.getContext('2d')!;
     ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, EXPORT_SIZE, EXPORT_SIZE);
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(EXPORT_SIZE / 2, EXPORT_SIZE / 2, EXPORT_SIZE / 2, 0, Math.PI * 2);
-    ctx.clip();
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, EXPORT_SIZE, EXPORT_SIZE);
     const w = img.width * scale * factor;
     const h = img.height * scale * factor;
     ctx.drawImage(img, EXPORT_SIZE / 2 - w / 2 + offset.x * factor, EXPORT_SIZE / 2 - h / 2 + offset.y * factor, w, h);
-    ctx.restore();
     exportCanvas.toBlob(blob => { if (blob) onDone(blob); }, 'image/jpeg', 0.92);
   };
 
