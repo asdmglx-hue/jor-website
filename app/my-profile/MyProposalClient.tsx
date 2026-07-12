@@ -241,6 +241,7 @@ export default function MyProposalClient() {
   // Delete modal
   const [deleteStep, setDeleteStep] = useState<'reason' | 'password' | null>(null);
   const [deleteReason, setDeleteReason] = useState('');
+  const [deleteOtherReason, setDeleteOtherReason] = useState('');
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -249,7 +250,12 @@ export default function MyProposalClient() {
     'I have found a proposal from an external source.',
     'I have decided to take a break and may return later.',
     'I did not find this application useful.',
+    'Other',
   ];
+  // The actual reason sent to the server — the selected preset, or the
+  // free-text entry when "Other" is picked (mirrors the mobile app's
+  // isOther ? otherCtrl.text.trim() : selected! in subscription_screen.dart).
+  const effectiveDeleteReason = deleteReason === 'Other' ? deleteOtherReason.trim() : deleteReason;
   const [saveMsg, setSaveMsg] = useState('');
   // Inline editing
   const [inlineKey, setInlineKey] = useState<string | null>(null);
@@ -523,7 +529,7 @@ export default function MyProposalClient() {
                 value in requiring the full flow) — but deliberately NOT
                 locked for Rejected/Removed, where someone should always be
                 able to finish deleting their own already-rejected account. */}
-            <button disabled={user.status === 'pending'} onClick={() => { setDeleteReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep((isAdminAccount || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed') ? 'password' : 'reason'); }}
+            <button disabled={user.status === 'pending'} onClick={() => { setDeleteReason(''); setDeleteOtherReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep((isAdminAccount || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed') ? 'password' : 'reason'); }}
               style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FEE2E2', background: user.status === 'pending' ? '#F5F5F5' : '#FEF2F2', cursor: user.status === 'pending' ? 'not-allowed' : 'pointer', opacity: user.status === 'pending' ? 0.5 : 1 }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={user.status === 'pending' ? '#9CA3AF' : '#DC2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
               <span style={{ fontSize: 10, fontWeight: 700, color: user.status === 'pending' ? '#9CA3AF' : '#DC2626' }}>Delete</span>
@@ -1044,18 +1050,36 @@ export default function MyProposalClient() {
                 <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830', marginBottom: 4 }}>Delete Profile</div>
                 <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 16 }}>Please tell us why you want to delete your profile:</div>
                 {deleteReasons.map(r => (
-                  <div key={r} onClick={() => setDeleteReason(r)}
-                    style={{ padding: '11px 14px', borderRadius: 10, border: `1.5px solid ${deleteReason === r ? '#534AB7' : '#E8E6F5'}`, background: deleteReason === r ? '#EEEDFE' : '#fff', marginBottom: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 16, height: 16, borderRadius: 8, border: `2px solid ${deleteReason === r ? '#534AB7' : '#C4C2D8'}`, background: deleteReason === r ? '#534AB7' : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {deleteReason === r && <div style={{ width: 6, height: 6, borderRadius: 3, background: '#fff' }} />}
+                  <div key={r}>
+                    <div onClick={() => setDeleteReason(r)}
+                      style={{ padding: '11px 14px', borderRadius: 10, border: `1.5px solid ${deleteReason === r ? '#534AB7' : '#E8E6F5'}`, background: deleteReason === r ? '#EEEDFE' : '#fff', marginBottom: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 16, height: 16, borderRadius: 8, border: `2px solid ${deleteReason === r ? '#534AB7' : '#C4C2D8'}`, background: deleteReason === r ? '#534AB7' : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {deleteReason === r && <div style={{ width: 6, height: 6, borderRadius: 3, background: '#fff' }} />}
+                      </div>
+                      <span style={{ fontSize: 13, color: deleteReason === r ? '#534AB7' : '#1A1830', fontWeight: deleteReason === r ? 600 : 400 }}>{r}</span>
                     </div>
-                    <span style={{ fontSize: 13, color: deleteReason === r ? '#534AB7' : '#1A1830', fontWeight: deleteReason === r ? 600 : 400 }}>{r}</span>
+                    {r === 'Other' && deleteReason === 'Other' && (
+                      <div style={{ position: 'relative', marginBottom: 8 }}>
+                        <textarea
+                          value={deleteOtherReason}
+                          onChange={e => setDeleteOtherReason(e.target.value.slice(0, 200))}
+                          maxLength={200}
+                          rows={3}
+                          autoFocus
+                          placeholder="Please describe your reason..."
+                          style={{ width: '100%', padding: '12px 12px 28px', borderRadius: 10, border: '1.5px solid #E8E6F5', fontSize: 12.5, color: '#1A1830', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                        />
+                        <span style={{ position: 'absolute', bottom: 6, right: 10, fontSize: 10.5, color: deleteOtherReason.length >= 180 ? '#DC2626' : '#B0ADCB' }}>
+                          {deleteOtherReason.length}/200
+                        </span>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
                   <button onClick={() => setDeleteStep(null)} style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Cancel</button>
-                  <button onClick={() => { setDeletePassword(''); setDeleteError(''); setDeleteStep('password'); }} disabled={!deleteReason}
-                    style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: deleteReason ? '#DC2626' : '#F5F5F5', color: deleteReason ? '#fff' : '#B0ADCB', fontWeight: 800, fontSize: 14, cursor: deleteReason ? 'pointer' : 'not-allowed' }}>
+                  <button onClick={() => { setDeletePassword(''); setDeleteError(''); setDeleteStep('password'); }} disabled={!deleteReason || (deleteReason === 'Other' && !deleteOtherReason.trim())}
+                    style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: (deleteReason && !(deleteReason === 'Other' && !deleteOtherReason.trim())) ? '#DC2626' : '#F5F5F5', color: (deleteReason && !(deleteReason === 'Other' && !deleteOtherReason.trim())) ? '#fff' : '#B0ADCB', fontWeight: 800, fontSize: 14, cursor: (deleteReason && !(deleteReason === 'Other' && !deleteOtherReason.trim())) ? 'pointer' : 'not-allowed' }}>
                     Continue
                   </button>
                 </div>
@@ -1068,7 +1092,7 @@ export default function MyProposalClient() {
                 </div>
                 {!isAdminAccount && getStatusLabel(user) !== 'Rejected' && getStatusLabel(user) !== 'Removed' && (
                 <div style={{ fontSize: 12, background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 8, padding: '8px 12px', color: '#DC2626', marginBottom: 16 }}>
-                  Reason: {deleteReason}
+                  Reason: {effectiveDeleteReason}
                 </div>
                 )}
                 <PasswordInput
@@ -1120,7 +1144,7 @@ export default function MyProposalClient() {
                     const { data: ok } = await supabase.rpc('delete_own_proposal_secure', {
                       p_id: user.id,
                       p_password: deletePassword.trim(),
-                      p_reason: deleteReason,
+                      p_reason: effectiveDeleteReason,
                     });
                     setDeleting(false);
                     if (ok) { clearSession(); router.push('/'); }
