@@ -574,11 +574,38 @@ function PhotoCropModal({ src, onDone, onCancel }: { src: string; onDone: (blob:
     setOffset({ x: dragStart.current.ox + t.clientX - dragStart.current.mx, y: dragStart.current.oy + t.clientY - dragStart.current.my });
   };
 
+  // The on-screen crop UI stays a small, fast-to-render 300px circle — but
+  // that same canvas was previously what got uploaded as the actual profile
+  // photo, so it looked blurry/pixelated anywhere it was shown larger than
+  // a small avatar (e.g. the full-size lightbox view, up to 90vw/90vh).
+  // EXPORT_SIZE redraws the identical crop (same scale/offset math, just
+  // multiplied up) onto a separate, much higher-resolution canvas only at
+  // the moment of upload, so the framing the user picked is unchanged but
+  // the actual exported file is sharp at real viewing sizes.
+  const EXPORT_SIZE = 1000;
+
   const handleCrop = async () => {
-    if (!imgRef.current) { setLoadFailed(true); return; }
+    const img = imgRef.current;
+    if (!img) { setLoadFailed(true); return; }
     setCropping(true);
-    const canvas = canvasRef.current!;
-    canvas.toBlob(blob => { if (blob) onDone(blob); }, 'image/jpeg', 0.9);
+    const factor = EXPORT_SIZE / SIZE;
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = EXPORT_SIZE;
+    exportCanvas.height = EXPORT_SIZE;
+    const ctx = exportCanvas.getContext('2d')!;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, EXPORT_SIZE, EXPORT_SIZE);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(EXPORT_SIZE / 2, EXPORT_SIZE / 2, EXPORT_SIZE / 2, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, EXPORT_SIZE, EXPORT_SIZE);
+    const w = img.width * scale * factor;
+    const h = img.height * scale * factor;
+    ctx.drawImage(img, EXPORT_SIZE / 2 - w / 2 + offset.x * factor, EXPORT_SIZE / 2 - h / 2 + offset.y * factor, w, h);
+    ctx.restore();
+    exportCanvas.toBlob(blob => { if (blob) onDone(blob); }, 'image/jpeg', 0.92);
   };
 
   return (
