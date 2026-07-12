@@ -682,6 +682,11 @@ export default function MyProposalClient() {
                 </span>
               )
             );
+            const lockIcon = (
+              <svg style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 5, position: 'relative', top: -1 }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#B0ADCB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+              </svg>
+            );
             const lbl = (label: string, extra?: React.ReactNode) => (
               <label style={{ fontSize: 11, fontWeight: 700, color: '#B0ADCB', display: 'block', marginBottom: 4, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>{label}{extra}</label>
             );
@@ -697,7 +702,7 @@ export default function MyProposalClient() {
               const displayVal = val != null && val !== '' && !(type === 'number' && Number(val) === 0) ? String(val) : null;
               return (
                 <div style={{ marginBottom: 14 }}>
-                  {lbl(label, info ? <InfoPopover text={info} /> : undefined)}
+                  {lbl(label, ALWAYS_LOCKED.includes(fieldKey) ? lockIcon : (info ? <InfoPopover text={info} /> : undefined))}
                   {isEditing ? (
                     <>
                       {options
