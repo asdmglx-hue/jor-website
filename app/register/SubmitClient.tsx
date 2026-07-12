@@ -1572,7 +1572,7 @@ export default function SubmitClient() {
             return (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: 10, marginBottom: 10, borderBottom: '1px solid #F0EFF8' }}>
                 <span style={{ fontSize: 12, color: '#9CA3AF', flex: '0 0 42%' }}>{label}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#1A1830', textAlign: 'right', flex: '0 0 55%' }}>{String(value)}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#1A1830', textAlign: 'right', flex: '1 1 55%', minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{String(value)}</span>
               </div>
             );
           };
