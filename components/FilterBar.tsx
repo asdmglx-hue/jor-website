@@ -133,6 +133,34 @@ function Select({ label, value, options, onChange }: { label: string; value?: st
   );
 }
 
+// Small click-to-open info icon — same pattern as the one used on the
+// registration form and My Account edit screen (InfoPopover), just scaled
+// down to fit inline in the compact filter bar. Can't put this inside the
+// <select> itself (native selects can't host arbitrary HTML), so it sits
+// as its own tiny button right next to the field it explains.
+function FilterInfoIcon({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener('click', close);
+    return () => window.removeEventListener('click', close);
+  }, [open]);
+  return (
+    <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
+      <button type="button" onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
+        style={{ width: 20, height: 20, borderRadius: '50%', border: '1px solid #C4C2D8', background: '#fff', color: '#6B6893', fontSize: 11, fontWeight: 700, lineHeight: '18px', cursor: 'pointer', padding: 0 }}
+        aria-label="More info">i</button>
+      {open && (
+        <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 26, right: 0, zIndex: 210, width: 220, background: '#40359F', color: '#fff', fontSize: 12, fontWeight: 500, lineHeight: 1.5, borderRadius: 10, padding: '10px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+          {text}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function FilterBar({ filters, onChange, total, showSaved, onSavedToggle, lockedGender }: Props) {
   const [showMore, setShowMore] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -317,7 +345,10 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
           {HEIGHT_OPTIONS.map(h => <option key={h.inches} value={h.inches}>{h.label}</option>)}
         </select>
       </div>
-      <Select label="Open to Polygamy" value={filters.openToPolygamy} options={['Yes', 'No']} onChange={v => set('openToPolygamy', v)} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '1 1 auto', minWidth: 0 }}>
+        <Select label="Open to Polygamy" value={filters.openToPolygamy} options={['Yes', 'No']} onChange={v => set('openToPolygamy', v)} />
+        <FilterInfoIcon text="Polygamy means marrying more than one woman (for men) or marrying a man who already has a wife (for women)." />
+      </div>
     </>
   );
 
