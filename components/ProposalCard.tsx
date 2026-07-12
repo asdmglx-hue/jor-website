@@ -28,7 +28,7 @@ function Avatar({ name, photoUrl, size = 56, locked = false }: { name: string; p
 
   return (
     <div style={{ width: size, height: size, borderRadius: size / 2, flexShrink: 0, background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
-      <span style={{ color: '#fff', fontSize: size * 0.38, fontWeight: 800 }}>{name.charAt(0).toUpperCase()}</span>
+      <span style={{ color: '#fff', fontSize: size * 0.38, fontWeight: 800 }}>{(name || '?').charAt(0).toUpperCase()}</span>
       {locked && (
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,24,48,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

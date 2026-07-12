@@ -140,7 +140,7 @@ export default async function ProposalDetailPage({ params }: Props) {
             <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
               {/* Photo */}
               <ProfileAvatar
-                initial={p.name.charAt(0).toUpperCase()}
+                initial={(p.name || '?').charAt(0).toUpperCase()}
                 bgColor={p.gender === 'Male' ? '#534AB7' : '#E11D48'}
                 photoUrl={p.profile_photo_url}
                 maskedLabel={label}
