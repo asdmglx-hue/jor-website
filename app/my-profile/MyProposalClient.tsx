@@ -406,7 +406,10 @@ export default function MyProposalClient() {
   if (!user) return <div style={{ textAlign: 'center', padding: 60, color: '#B0ADCB' }}>Loading...</div>;
 
   const isActive = isSubscriptionActive(user);
-  const isPendingAccount = user.status === 'pending';
+  // Broadened beyond just 'pending' — a Rejected account (deleted before
+  // ever going live) should get the same all-actions-locked treatment,
+  // shown rather than hidden, matching what was built for Pending.
+  const isPendingAccount = user.status === 'pending' || getStatusLabel(user) === 'Rejected';
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '24px 20px' }}>
@@ -457,7 +460,7 @@ export default function MyProposalClient() {
           {user.proposal_number > 0 && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', alignSelf: 'flex-end', position: 'relative', top: -12 }}>#{user.proposal_number}</div>}
           <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', alignItems: 'center' }}>
             {/* View */}
-            {(['Active','Featured','Pending'].includes(getStatusLabel(user, hasFeaturedBoost))) && ((isAdminAccount || isPendingAccount) ? (
+            {(['Active','Featured','Pending','Rejected'].includes(getStatusLabel(user, hasFeaturedBoost))) && ((isAdminAccount || isPendingAccount) ? (
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#F5F5F5', opacity: 0.5, cursor: 'not-allowed' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF' }}>View</span>
@@ -486,7 +489,7 @@ export default function MyProposalClient() {
               <span style={{ fontSize: 10, fontWeight: 700, color: (isAdminAccount || isPendingAccount) ? '#9CA3AF' : '#534AB7' }}>Share</span>
             </button>
             {/* Pause/Resume — shown for active/paused/pending, disabled for pending */}
-            {(['Active', 'Featured', 'Paused', 'Pending'].includes(getStatusLabel(user, hasFeaturedBoost))) && <button disabled={isAdminAccount || isPendingAccount} onClick={async () => {
+            {(['Active', 'Featured', 'Paused', 'Pending', 'Rejected'].includes(getStatusLabel(user, hasFeaturedBoost))) && <button disabled={isAdminAccount || isPendingAccount} onClick={async () => {
                 const isPaused = user.status === 'paused';
                 const msg = isPaused ? 'Resume your profile? It will become visible in the group again.' : 'Pause your profile? It will be hidden from the group. You can resume anytime.';
                 if (!window.confirm(msg)) return;
