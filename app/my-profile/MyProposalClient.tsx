@@ -464,7 +464,14 @@ export default function MyProposalClient() {
           </div>
         </div>
         <div className="my-account-right" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-          {user.proposal_number > 0 && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', alignSelf: 'flex-end', position: 'relative', top: -12 }}>#{user.proposal_number}</div>}
+          <div className="hash-desktop" style={{ display: 'flex', alignItems: 'center', gap: 8, alignSelf: 'flex-end', position: 'relative', top: -12 }}>
+            {isSubscriptionActive(user) && user.subscription_expiry && (
+              <span style={{ fontSize: 13, color: '#6B6893' }}>
+                Expires {new Date(user.subscription_expiry).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
+            )}
+            {user.proposal_number > 0 && <span style={{ fontSize: 13, color: '#6B6893' }}>#{user.proposal_number}</span>}
+          </div>
           <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', alignItems: 'center' }}>
             {/* Share */}
             <button disabled={isAdminAccount || isPendingAccount} onClick={async () => {
