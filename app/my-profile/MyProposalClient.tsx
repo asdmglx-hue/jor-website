@@ -509,7 +509,7 @@ export default function MyProposalClient() {
                 account with no live profile, but someone should always be
                 able to delete their own account regardless of its
                 approval status. */}
-            <button onClick={() => { setDeleteReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep(isAdminAccount ? 'password' : 'reason'); }}
+            <button onClick={() => { setDeleteReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep((isAdminAccount || getStatusLabel(user) === 'Rejected') ? 'password' : 'reason'); }}
               style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FEE2E2', background: '#FEF2F2', cursor: 'pointer' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
               <span style={{ fontSize: 10, fontWeight: 700, color: '#DC2626' }}>Delete</span>
@@ -1052,7 +1052,7 @@ export default function MyProposalClient() {
                 <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 4 }}>
                   {isAdminAccount ? 'This cannot be undone. Enter your password to permanently delete this admin account.' : 'This cannot be undone. Enter your password to permanently delete your profile.'}
                 </div>
-                {!isAdminAccount && (
+                {!isAdminAccount && getStatusLabel(user) !== 'Rejected' && (
                 <div style={{ fontSize: 12, background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 8, padding: '8px 12px', color: '#DC2626', marginBottom: 16 }}>
                   Reason: {deleteReason}
                 </div>
@@ -1066,7 +1066,7 @@ export default function MyProposalClient() {
                 />
                 {deleteError && <div style={{ fontSize: 12, color: '#DC2626', marginBottom: 10 }}>{deleteError}</div>}
                 <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-                  <button onClick={() => setDeleteStep(isAdminAccount ? null : 'reason')} style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>{isAdminAccount ? 'Cancel' : 'Back'}</button>
+                  <button onClick={() => setDeleteStep((isAdminAccount || getStatusLabel(user) === 'Rejected') ? null : 'reason')} style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>{(isAdminAccount || getStatusLabel(user) === 'Rejected') ? 'Cancel' : 'Back'}</button>
                   <button disabled={!deletePassword || deleting} onClick={async () => {
                     if (!user) return;
                     if (deletePassword.trim() !== user.password) { setDeleteError('Incorrect password. Please try again.'); return; }
