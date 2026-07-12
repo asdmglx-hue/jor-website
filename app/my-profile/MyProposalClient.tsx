@@ -940,10 +940,10 @@ export default function MyProposalClient() {
                         {lbl('Disability Details')}
                         {isEditing ? (
                           <>
-                            <textarea value={inlineVal} onChange={e => setInlineVal(e.target.value.slice(0,200))} rows={3} maxLength={200}
+                            <textarea value={inlineVal} onChange={e => setInlineVal(e.target.value.slice(0,30))} rows={2} maxLength={30}
                               style={{ width: '100%', padding: '9px 12px', borderRadius: 10, border: '1.5px solid #534AB7', fontSize: 14, outline: 'none', boxSizing: 'border-box' as const, resize: 'vertical' as const }}
                               ref={el => { if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }} />
-                            <div style={{ fontSize: 11, color: '#B0ADCB', textAlign: 'right' as const, marginBottom: 4 }}>{inlineVal.length}/200</div>
+                            <div style={{ fontSize: 11, color: inlineVal.length === 30 ? '#E11D48' : '#B0ADCB', textAlign: 'right' as const, marginBottom: 4 }}>{inlineVal.length}/30</div>
                             {inlineButtons('disability_details', inlineVal)}
                           </>
                         ) : val ? (

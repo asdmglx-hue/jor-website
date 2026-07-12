@@ -1468,7 +1468,10 @@ export default function SubmitClient() {
             {form.has_disability === 'Yes' && (
               <SubSection>
                 <Field label="Brief Details (optional)">
-                  <input value={form.disability_details} onChange={e => set('disability_details', e.target.value)} style={inp} placeholder="e.g. Diabetes, managed well..." />
+                  <input value={form.disability_details} onChange={e => set('disability_details', e.target.value.slice(0, 30))} maxLength={30} style={inp} placeholder="e.g. Diabetes, managed well..." />
+                  <div style={{ textAlign: 'right', fontSize: 11, color: form.disability_details.length === 30 ? '#E11D48' : '#B0ADCB', marginTop: 4 }}>
+                    {form.disability_details.length}/30
+                  </div>
                 </Field>
               </SubSection>
             )}
