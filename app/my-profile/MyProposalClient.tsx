@@ -54,7 +54,13 @@ function Badge({ children, color = '#534AB7', bg = '#EEEDFE' }: { children: Reac
 
 function getStatusLabel(user: Proposal, featuredBoost = false): string {
   const status = user.status;
-  if (status === 'deleted') return 'Removed';
+  // The admin app doesn't set a literal 'rejected' status — its "Reject"
+  // button on a pending submission calls the same delete action as
+  // removing a live user, just tagged with deleted_from: 'orders'. That
+  // tag is what actually distinguishes "rejected before ever going live"
+  // from "removed after being live" — checking status alone can't tell
+  // them apart.
+  if (status === 'deleted') return user.deleted_from === 'orders' ? 'Rejected' : 'Removed';
   if (status === 'rejected') return 'Rejected';
   if (status === 'pending') return 'Pending';
   if (status === 'paused') return 'Paused';
