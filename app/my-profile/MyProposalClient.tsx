@@ -1093,19 +1093,21 @@ export default function MyProposalClient() {
                     // the account, since restoring a "deleted" account
                     // needs its original photos to still exist.
                     //
-                    // The password is also invalidated (set to a random,
-                    // unguessable value) here — status/deleted_from are
-                    // left completely untouched, since the admin trash
-                    // view depends on exactly those fields to show this
-                    // correctly. Randomizing the password is what actually
-                    // makes login impossible afterward: login_by_cnic
-                    // requires an exact password match, so a self-deleted
-                    // account (as opposed to one merely rejected by an
-                    // admin, which a user can still log into to see why)
-                    // can never authenticate again once they've confirmed
-                    // deletion themselves.
-                    const randomizedPassword = `deleted_${crypto.randomUUID()}`;
-                    const ok = await updateProposal(user.id, { status: 'deleted', deletion_reason: deleteReason, password: randomizedPassword });
+                    // Goes through a security-definer function rather than
+                    // a raw update — a real, confirmed Postgres/PostgREST
+                    // quirk means updates to a NON-active proposal (via the
+                    // otherwise-unconditional public_update_own_proposal
+                    // policy) were silently matching zero rows for certain
+                    // status values, verified directly against the actual
+                    // query plan. The function bypasses that entirely,
+                    // and also handles randomizing the password (making
+                    // login permanently impossible afterward) atomically
+                    // in the same operation.
+                    const { data: ok } = await supabase.rpc('delete_own_proposal_secure', {
+                      p_id: user.id,
+                      p_password: deletePassword.trim(),
+                      p_reason: deleteReason,
+                    });
                     setDeleting(false);
                     if (ok) { clearSession(); router.push('/'); }
                     else { setDeleteError('Failed to delete. Please try again.'); }
