@@ -25,7 +25,7 @@ export type Proposal = {
   gender: string;
   city: string;
   country?: string;
-  delete_reason?: string;
+  deletion_reason?: string;
   deleted_from?: string;
   caste: string;
   sect: string;

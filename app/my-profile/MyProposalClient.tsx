@@ -1092,7 +1092,20 @@ export default function MyProposalClient() {
                     // only cleaned up if/when an admin permanently deletes
                     // the account, since restoring a "deleted" account
                     // needs its original photos to still exist.
-                    const ok = await updateProposal(user.id, { status: 'deleted', delete_reason: deleteReason });
+                    //
+                    // The password is also invalidated (set to a random,
+                    // unguessable value) here — status/deleted_from are
+                    // left completely untouched, since the admin trash
+                    // view depends on exactly those fields to show this
+                    // correctly. Randomizing the password is what actually
+                    // makes login impossible afterward: login_by_cnic
+                    // requires an exact password match, so a self-deleted
+                    // account (as opposed to one merely rejected by an
+                    // admin, which a user can still log into to see why)
+                    // can never authenticate again once they've confirmed
+                    // deletion themselves.
+                    const randomizedPassword = `deleted_${crypto.randomUUID()}`;
+                    const ok = await updateProposal(user.id, { status: 'deleted', deletion_reason: deleteReason, password: randomizedPassword });
                     setDeleting(false);
                     if (ok) { clearSession(); router.push('/'); }
                     else { setDeleteError('Failed to delete. Please try again.'); }
