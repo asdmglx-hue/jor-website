@@ -1718,44 +1718,70 @@ export default function SubmitClient() {
                 </div>
               ))}
 
-              <SecHeader title="AFFILIATE REFERRAL" />
-
-              <Field label="Have a coupon code? (Optional)">
-                <div style={{ display: 'flex', gap: 8 }}>
+              {/* Coupon Code — mirrors the mobile app's boxed card exactly
+                  (same kAmber/kAmberLight colors from theme.dart). Entered
+                  here at submission; the admin re-checks it's still valid
+                  and not expired at approval time before applying it. */}
+              <div style={{ padding: 14, background: '#FEEDE3', border: '1px solid #E8620A66', borderRadius: 12, marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8620A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L4 3a1 1 0 0 0-1 1l.24 5.59a2 2 0 0 0 .59 1.41l9.58 9.59a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83Z"/>
+                    <circle cx="7.5" cy="7.5" r="1.5"/>
+                  </svg>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#E8620A' }}>Have a Coupon Code?</span>
+                </div>
+                <div style={{ fontSize: 11, color: '#6B6893', marginTop: 4, lineHeight: 1.5 }}>
+                  Get a discount or free days on your subscription — it&apos;s checked when your profile is approved.
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                   <input
                     value={couponCode}
                     onChange={e => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="Enter coupon code if you have one"
-                    style={{ ...inp, flex: 1, textTransform: 'uppercase' }}
+                    placeholder="e.g. EID2026"
+                    style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 700, color: '#E8620A', letterSpacing: 2, outline: 'none', background: '#fff', boxSizing: 'border-box' }}
                   />
                   <button
                     type="button"
                     onClick={applyCoupon}
                     disabled={validatingCoupon || !couponCode.trim()}
                     style={{
-                      padding: '0 18px', borderRadius: 11, border: 'none', flexShrink: 0,
-                      background: validatingCoupon || !couponCode.trim() ? '#E8E6F5' : '#534AB7',
-                      color: validatingCoupon || !couponCode.trim() ? '#9895C0' : '#fff',
+                      padding: '0 18px', borderRadius: 8, border: 'none', flexShrink: 0,
+                      background: validatingCoupon || !couponCode.trim() ? '#F5D9C4' : '#E8620A',
+                      color: validatingCoupon || !couponCode.trim() ? '#B98254' : '#fff',
                       fontWeight: 700, fontSize: 13, cursor: validatingCoupon || !couponCode.trim() ? 'default' : 'pointer',
                     }}>
                     {validatingCoupon ? '...' : 'Apply'}
                   </button>
                 </div>
                 {couponMessage && (
-                  <div style={{ fontSize: 12, marginTop: 6, fontWeight: 600, color: couponIsError ? '#DC2626' : '#16A34A' }}>
+                  <div style={{ fontSize: 12, marginTop: 8, fontWeight: 600, color: couponIsError ? '#DC2626' : '#16A34A' }}>
                     {couponMessage}
                   </div>
                 )}
-              </Field>
+              </div>
 
-              <Field label="Referral Code (Optional)">
+              {/* Referral Code — mirrors the mobile app's boxed card exactly
+                  (same kPurple/kPurpleLight colors from theme.dart). */}
+              <div style={{ padding: 14, background: '#EEEDFE', border: '1px solid #D4D1F7', borderRadius: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#534AB7' }}>Have a Referral Code?</span>
+                </div>
+                <div style={{ fontSize: 11, color: '#6B6893', marginTop: 4, lineHeight: 1.5 }}>
+                  If someone referred you to Jor, enter their code to support them.
+                </div>
                 <input
                   value={form.affiliate}
-                  style={inp}
-                  placeholder="Enter referral code if you have one"
                   onChange={e => set('affiliate', e.target.value.toUpperCase())}
+                  placeholder="e.g. A3K9BZ"
+                  style={{ width: '100%', marginTop: 10, padding: '10px 12px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 700, color: '#534AB7', letterSpacing: 2, outline: 'none', background: '#fff', boxSizing: 'border-box' }}
                 />
-              </Field>
+              </div>
 
               <div style={{ marginTop: 16, background: '#EEEDFE', border: '1px solid #534AB733', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
                 Once you submit your proposal, it will be reviewed and published within 24 hours.
