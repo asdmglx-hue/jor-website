@@ -802,7 +802,7 @@ export default function MyProposalClient() {
               const val = user[fieldKey];
               const isEditing = inlineKey === fieldKey;
               return (
-                <div style={{ marginBottom: 16 }}>
+                <div style={{ marginBottom: 16, minWidth: 0 }}>
                   {lbl(label)}
                   {isEditing ? (
                     <>
@@ -814,13 +814,13 @@ export default function MyProposalClient() {
                     </>
                   ) : val ? (
                     fieldDisabled(fieldKey) ? (
-                      <p style={{ fontSize: 14, color: '#1A1830', lineHeight: 1.6, margin: 0 }}>{val}</p>
+                      <p style={{ fontSize: 14, color: '#1A1830', lineHeight: 1.6, margin: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{val}</p>
                     ) : (
                     <div onClick={() => { setInlineKey(fieldKey); setInlineVal(val); }}
                       style={{ cursor: 'pointer' }}
                       onMouseEnter={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '1'; }}
                       onMouseLeave={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '0'; }}>
-                      <p style={{ fontSize: 14, color: '#1A1830', lineHeight: 1.6, margin: 0 }}>{val}</p>
+                      <p style={{ fontSize: 14, color: '#1A1830', lineHeight: 1.6, margin: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{val}</p>
                       {pencil}
                     </div>
                     )
