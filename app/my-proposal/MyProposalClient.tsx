@@ -78,7 +78,7 @@ function StatusBadge({ user, featuredBoost = false, isAdmin = false }: { user: P
   const styles: Record<string, { color: string; bg: string }> = {
     Active:   { color: '#16A34A', bg: '#DCFCE7' },
     Featured: { color: '#E8620A', bg: '#FEEDE3' },
-    Pending:  { color: '#F59E0B', bg: '#FEF3C7' },
+    Pending:  { color: '#92400E', bg: '#FEF3C7' },
     Paused:   { color: '#0F6E56', bg: '#E1F5EE' },
     Inactive: { color: '#6B7280', bg: '#F3F4F6' },
     Removed:  { color: '#E11D48', bg: '#FFE4E6' },
