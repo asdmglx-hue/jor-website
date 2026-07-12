@@ -395,11 +395,19 @@ export async function updateProposal(id: string, updates: Partial<Proposal>): Pr
 }
 
 export async function submitProposal(data: Partial<Proposal>): Promise<{ success: boolean; id?: string; error?: string }> {
-  const { data: result, error } = await supabase
-    .from('proposals')
-    .insert({ ...data, status: 'pending', posted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-    .select('id').single();
-  if (error) return { success: false, error: error.message };
+  // Goes through a security-definer RPC rather than a raw insert+select —
+  // .insert().select().single() implicitly needs the newly-inserted row
+  // to pass the SELECT policy (public_view_active_proposals, status =
+  // 'active' only), but a brand-new submission is 'pending', so it always
+  // failed with "new row violates row-level security policy" before this.
+  // Same root cause and same fix as the mobile app's submission flow —
+  // this was the one place on the website itself that never got updated
+  // to match. The RPC also force-sets status server-side regardless of
+  // what's passed in, so a submission can never self-approve.
+  const { data: result, error } = await supabase.rpc('submit_proposal_secure', {
+    p_data: { ...data, posted_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  });
+  if (error || !result?.id) return { success: false, error: error?.message || 'Failed to submit proposal' };
   return { success: true, id: result.id };
 }
 
