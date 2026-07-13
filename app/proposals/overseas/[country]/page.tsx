@@ -1,4 +1,4 @@
-import { fetchCountryCounts, fetchProposalsForCategory, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
+import { getAllCategoryData, fetchProposalsForCategory, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
 import { slugify } from '@/lib/categories';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -11,8 +11,14 @@ type Props = { params: Promise<{ country: string }> };
 // actually has profiles right now, pulled fresh from real data. A new
 // country automatically gets its own page once it crosses the threshold,
 // with zero manual maintenance needed.
+//
+// This used to call fetchCountryCounts() fresh every time (once in
+// generateStaticParams, once via resolveCountrySlug in generateMetadata,
+// once via resolveCountrySlug in the page body, and once more directly in
+// the page body) — 4 independent full-table scans of the country column
+// for a single page view. Now reads the one shared, cached result.
 async function getQualifyingCountries(): Promise<{ value: string; slug: string }[]> {
-  const counts = await fetchCountryCounts();
+  const { countryCounts: counts } = await getAllCategoryData();
   return Object.entries(counts)
     .filter(([, count]) => count >= MIN_CATEGORY_PROFILES)
     .map(([value]) => ({ value, slug: slugify(value) }));
