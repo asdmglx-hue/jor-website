@@ -1,4 +1,4 @@
-import { getAllCategoryData, fetchProposalsForCategory, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
+import { fetchCategoryCounts, fetchProposalsForCategory, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
 import { CATEGORY_ENTRIES, resolveCategoryBySlug, categoryPageTitle, CategoryEntry } from '@/lib/categories';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -11,14 +11,14 @@ type Props = { params: Promise<{ slug: string }> };
 // real profiles behind it (MIN_CATEGORY_PROFILES) — an indexed page with
 // almost nothing on it hurts more than it helps, even without being
 // combined with other filters.
-//
-// Reads from the single shared, cached getAllCategoryData() (see
-// lib/supabase.ts) instead of independently re-scanning all five
-// category columns every time this runs — this function is called from
-// generateStaticParams, and again from the page body for city pages, so
-// this used to mean 2x the full 5-column scan per city-page render.
 async function getQualifyingEntries(): Promise<CategoryEntry[]> {
-  const { cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts } = await getAllCategoryData();
+  const [cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts] = await Promise.all([
+    fetchCategoryCounts('city'),
+    fetchCategoryCounts('caste'),
+    fetchCategoryCounts('sect'),
+    fetchCategoryCounts('marital_status'),
+    fetchCategoryCounts('profession'),
+  ]);
   const countsByColumn: Record<string, Record<string, number>> = {
     city: cityCounts, caste: casteCounts, sect: sectCounts, marital_status: maritalCounts, profession: professionCounts,
   };

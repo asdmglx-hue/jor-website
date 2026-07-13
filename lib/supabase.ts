@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { unstable_cache } from 'next/cache';
 import { normalizeCountry } from './constants';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -323,38 +322,6 @@ export async function fetchCountryCounts(): Promise<Record<string, number>> {
   }
   return counts;
 }
-
-// Before this existed, every category page (/proposals/[slug],
-// /proposals/[slug]/[gender], /proposals/overseas/[country]) AND the
-// sitemap independently re-ran all five fetchCategoryCounts() calls plus
-// fetchCountryCounts() — each one a full batched scan of every active
-// proposal — every single time any of them rendered or revalidated.
-// With dozens/hundreds of category pages all on the same 300s window,
-// that meant the exact same whole-table scan repeating itself many times
-// over in rapid succession (confirmed in the project's live API logs).
-//
-// This wraps that same work in Next's shared data cache: the first
-// caller within a 300s window does the real work once, and every other
-// page/sitemap call within that window (regardless of which page
-// triggers it first) reads the already-computed result instead of
-// re-scanning the table. Freshness is unchanged — still a 300s window,
-// same as every category page already declared — this only removes the
-// redundant repeated computation *within* that window.
-export const getAllCategoryData = unstable_cache(
-  async () => {
-    const [cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts, countryCounts] = await Promise.all([
-      fetchCategoryCounts('city'),
-      fetchCategoryCounts('caste'),
-      fetchCategoryCounts('sect'),
-      fetchCategoryCounts('marital_status'),
-      fetchCategoryCounts('profession'),
-      fetchCountryCounts(),
-    ]);
-    return { cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts, countryCounts };
-  },
-  ['category-data-v1'],
-  { revalidate: 300, tags: ['category-data'] }
-);
 
 // Preview list of proposals matching one category filter — capped, since a
 // city like Lahore could have hundreds; the full interactive /proposals

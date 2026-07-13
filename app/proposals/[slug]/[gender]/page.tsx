@@ -1,4 +1,4 @@
-import { getAllCategoryData, fetchProposalsForCategory, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
+import { fetchCategoryCounts, fetchProposalsForCategory, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
 import { CATEGORY_ENTRIES, resolveCategoryBySlug } from '@/lib/categories';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -13,10 +13,8 @@ const GENDER_SLUGS: Record<string, string> = { bride: 'Female', groom: 'Male' };
 
 // Only city slugs get a /{gender} sub-route — caste/sect/profession pages
 // don't (matches a much less common real search pattern for those).
-// Reads city counts from the same shared cache as every other category
-// page, instead of its own independent scan.
 export async function generateStaticParams() {
-  const { cityCounts } = await getAllCategoryData();
+  const cityCounts = await fetchCategoryCounts('city');
   const qualifyingCities = CATEGORY_ENTRIES.filter(
     e => e.type === 'city' && (cityCounts[e.value] ?? 0) >= MIN_CATEGORY_PROFILES
   );
@@ -57,7 +55,7 @@ export default async function CityGenderPage({ params }: Props) {
 
   const label = gender === 'bride' ? 'Bride' : 'Groom';
 
-  const { cityCounts } = await getAllCategoryData();
+  const cityCounts = await fetchCategoryCounts('city');
   const qualifyingCitySlugs = Object.fromEntries(
     CATEGORY_ENTRIES.filter(e => e.type === 'city' && (cityCounts[e.value] ?? 0) >= MIN_CATEGORY_PROFILES)
       .map(e => [e.value, e.slug])

@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { getAllCategoryData, fetchAllProposalNumbers, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
+import { fetchCategoryCounts, fetchCountryCounts, fetchAllProposalNumbers, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
 import { CATEGORY_ENTRIES, slugify } from '@/lib/categories';
 
 // Refreshed at most once an hour — the sitemap doesn't need to be
@@ -25,12 +25,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Same "does this page actually have enough real profiles behind it"
   // check used by generateStaticParams on these pages — keeps the sitemap
   // from ever listing a thin/empty page that would hurt more than help.
-  // Reads the same shared, cached category data every category page
-  // already uses (see getAllCategoryData in lib/supabase.ts), instead of
-  // independently re-running all 5 category scans + a country scan again
-  // here on top of what the category pages already computed.
-  const [{ cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts, countryCounts }, proposalNumbers] = await Promise.all([
-    getAllCategoryData(),
+  const [cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts, countryCounts, proposalNumbers] = await Promise.all([
+    fetchCategoryCounts('city'),
+    fetchCategoryCounts('caste'),
+    fetchCategoryCounts('sect'),
+    fetchCategoryCounts('marital_status'),
+    fetchCategoryCounts('profession'),
+    fetchCountryCounts(),
     fetchAllProposalNumbers(),
   ]);
   const countsByColumn: Record<string, Record<string, number>> = {
