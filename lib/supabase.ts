@@ -339,67 +339,32 @@ export async function fetchCountryCounts(): Promise<Record<string, number>> {
 // Before this existed, every category page (/proposals/[slug],
 // /proposals/[slug]/[gender], /proposals/overseas/[country]) AND the
 // sitemap independently re-ran all five fetchCategoryCounts() calls plus
-// fetchCountryCounts() — each one pulling back every matching active
-// proposal's single column value just to count it in JavaScript. With
-// dozens/hundreds of category pages all doing this, that meant repeatedly
-// pulling the same large columns back to the app over and over.
+// fetchCountryCounts() — each one a full batched scan of every active
+// proposal — every single time any of them rendered or revalidated.
+// With dozens/hundreds of category pages all on the same 300s window,
+// that meant the exact same whole-table scan repeating itself many times
+// over in rapid succession (confirmed in the project's live API logs).
 //
-// This was first fixed by sharing one cached computation across all
-// callers (via Next's unstable_cache) — but live production logs later
-// showed that cross-request sharing wasn't reliably taking effect in this
-// Cloudflare Workers deployment, so the same repeated-scan pattern kept
-// happening regardless of caching.
-//
-// The actual fix: get_category_counts() (a small, additive, read-only
-// Postgres function — see the accompanying migration) does the counting
-// INSIDE the database via GROUP BY, and returns only the distinct values
-// and their counts (a couple hundred small rows total) instead of every
-// matching proposal's raw column value. This makes each call cheap on its
-// own terms — correct and low-egress even if called far more often than
-// once per cache window, so it no longer matters whether request-level
-// caching actually shares across callers. The unstable_cache wrapper is
-// kept as a harmless extra: a free win if it does share, no downside if
-// it doesn't.
+// This wraps that same work in Next's shared data cache: the first
+// caller within a 300s window does the real work once, and every other
+// page/sitemap call within that window (regardless of which page
+// triggers it first) reads the already-computed result instead of
+// re-scanning the table. Freshness is unchanged — still a 300s window,
+// same as every category page already declared — this only removes the
+// redundant repeated computation *within* that window.
 export const getAllCategoryData = unstable_cache(
   async () => {
-    const [{ data: rows, error }, countryCounts] = await Promise.all([
-      supabase.rpc('get_category_counts'),
+    const [cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts, countryCounts] = await Promise.all([
+      fetchCategoryCounts('city'),
+      fetchCategoryCounts('caste'),
+      fetchCategoryCounts('sect'),
+      fetchCategoryCounts('marital_status'),
+      fetchCategoryCounts('profession'),
       fetchCountryCounts(),
     ]);
-
-    const cityCounts: Record<string, number> = {};
-    const casteCounts: Record<string, number> = {};
-    const sectCounts: Record<string, number> = {};
-    const maritalCounts: Record<string, number> = {};
-    const professionCounts: Record<string, number> = {};
-    const byCategory: Record<string, Record<string, number>> = {
-      city: cityCounts, caste: casteCounts, sect: sectCounts, marital_status: maritalCounts, profession: professionCounts,
-    };
-
-    // Falls back to the old app-side counting only if the RPC itself is
-    // ever unavailable (e.g. mid-migration-rollout) — never silently
-    // returns empty counts, which would incorrectly hide every category
-    // page.
-    if (error || !rows) {
-      const [cc, ca, se, ma, pr] = await Promise.all([
-        fetchCategoryCounts('city'),
-        fetchCategoryCounts('caste'),
-        fetchCategoryCounts('sect'),
-        fetchCategoryCounts('marital_status'),
-        fetchCategoryCounts('profession'),
-      ]);
-      return { cityCounts: cc, casteCounts: ca, sectCounts: se, maritalCounts: ma, professionCounts: pr, countryCounts };
-    }
-
-    for (const row of rows as { category: string; value: string | null; cnt: number }[]) {
-      if (!row.value) continue;
-      const bucket = byCategory[row.category];
-      if (bucket) bucket[row.value] = Number(row.cnt);
-    }
-
     return { cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts, countryCounts };
   },
-  ['category-data-v2'],
+  ['category-data-v1'],
   { revalidate: 300, tags: ['category-data'] }
 );
 
