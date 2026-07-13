@@ -190,6 +190,18 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   return { proposals: (data as Proposal[]) || [], total: count || 0 };
 }
 
+// The one single query worth server-rendering + sharing across visitors:
+// the plain, filterless "just opened /proposals" view. Deliberately NOT
+// used for any URL-filtered or session-personalized view — this only
+// exists to give a fresh, unfiltered visitor an instantly-painted first
+// screen instead of a blank page + live client fetch. See
+// app/proposals/page.tsx for how (and when) this is actually used.
+export const getDefaultProposalsFeed = unstable_cache(
+  async () => fetchProposals({}, 0, 16),
+  ['default-proposals-feed-v1'],
+  { revalidate: 15, tags: ['default-proposals-feed'] }
+);
+
 // Fetches a single proposal at `offset` in the same "most recently posted"
 // order as the homepage's Recently Added section — used to backfill a
 // replacement card when one gets dismissed as not interested.

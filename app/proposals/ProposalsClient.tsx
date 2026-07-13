@@ -1,10 +1,18 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { fetchProposals, FilterState, Proposal, supabase } from '@/lib/supabase';
 import { getNotInterestedIds, addNotInterested, getLockedGenderFilter } from '@/lib/auth';
 import ProposalCard from '@/components/ProposalCard';
 import FilterBar from '@/components/FilterBar';
+
+// Standard SSR-safe layout effect: identical to useLayoutEffect in the
+// browser (runs synchronously before paint, so a state update inside it
+// is reflected in the very first thing the user sees — no flash of
+// intermediate content), but falls back to a no-op-on-server useEffect so
+// Next doesn't log its usual (harmless, but noisy) "useLayoutEffect does
+// nothing on the server" warning during SSR.
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 function Spinner({ size = 36 }: { size?: number }) {
   return (
@@ -19,7 +27,7 @@ function Spinner({ size = 36 }: { size?: number }) {
 
 const PAGE_SIZE = 16;
 
-export default function ProposalsClient() {
+export default function ProposalsClient({ initialData }: { initialData: { proposals: Proposal[]; total: number } | null }) {
   // useSearchParams reads the URL directly in the browser — works fine in
   // a static export, unlike the previous server-passed searchParams prop,
   // which required per-request server rendering (not possible/needed here
@@ -30,10 +38,28 @@ export default function ProposalsClient() {
     city: urlParams.get('city') ?? undefined,
     country: urlParams.get('country') ?? undefined,
   };
-  const [proposals, setProposals] = useState<Proposal[]>([]);
-  const [total, setTotal] = useState(0);
+
+  // Whether the server's cached, filterless default feed (see
+  // getDefaultProposalsFeed in lib/supabase.ts and app/proposals/page.tsx)
+  // is even a candidate to paint immediately, instead of starting from an
+  // empty list + spinner like every filtered view already does.
+  //
+  // Deliberately based ONLY on things identical between the server's
+  // render and the client's initial hydration render — initialData
+  // (a plain prop) and the URL's query params (the same request-derived
+  // values on both sides). It must NOT depend on lockedGender here: that
+  // comes from localStorage, which the server can never see, so branching
+  // this specific value on it would make the server's HTML and the
+  // client's very first render disagree — a real hydration mismatch, not
+  // just a cosmetic one, since it would change which cards actually get
+  // painted. The lockedGender correction happens separately below, after
+  // hydration, in a way that can't cause that problem.
+  const canUseServerInitial = initialData !== null && !searchParams.gender && !searchParams.city && !searchParams.country;
+
+  const [proposals, setProposals] = useState<Proposal[]>(canUseServerInitial ? initialData!.proposals : []);
+  const [total, setTotal] = useState(canUseServerInitial ? initialData!.total : 0);
   const [page, setPage] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!canUseServerInitial);
   const [loadingMore, setLoadingMore] = useState(false);
   const [notInterestedIds, setNotInterestedIds] = useState<string[]>(() => {
     if (typeof window === 'undefined') return [];
@@ -54,6 +80,36 @@ export default function ProposalsClient() {
   });
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
+
+  // Whether the mount effect below (which normally always triggers a live
+  // fetch) should skip that very first call and just keep showing what's
+  // already in state. Only true when we're painting the server's cached
+  // default feed AND (now that we're actually running in the browser, so
+  // lockedGender is the real value, not the server's always-null one) the
+  // visitor isn't gender-locked either — i.e. the cached generic feed is
+  // genuinely what they should see. This ref is only ever read inside an
+  // effect, never used to decide what gets rendered, so — unlike
+  // canUseServerInitial above — it's fine for this to use lockedGender.
+  const skipInitialLoadRef = useRef(canUseServerInitial && !lockedGender);
+
+  // Covers the one remaining gap: a logged-in, gender-locked visitor who
+  // lands on /proposals with no URL filters. canUseServerInitial (above)
+  // had no way to know that during hydration without risking a mismatch,
+  // so it painted the generic cached feed same as it would for anyone
+  // else. This runs BEFORE the browser actually paints that (a layout
+  // effect fires synchronously pre-paint, unlike a normal effect), so a
+  // gender-locked visitor never actually sees the wrong-gender cards flash
+  // on screen — they go straight to the loading spinner, then their own
+  // correctly-filtered results, exactly like any other filtered view.
+  useIsomorphicLayoutEffect(() => {
+    if (canUseServerInitial && lockedGender) {
+      setLoading(true);
+    }
+    // Only meant to run once, synchronously, before the first paint —
+    // not meant to react to later changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const loadingMoreRef = useRef(false);
   const pageRef = useRef(0);
   const totalRef = useRef(0);
@@ -114,7 +170,17 @@ export default function ProposalsClient() {
     }
   }, []);
 
-  useEffect(() => { setPage(0); load(filters, 0); }, [filters, load]);
+  useEffect(() => {
+    // Only ever skips the very first run (mount) — consumed immediately
+    // so every real filter change afterward behaves exactly as it always
+    // has, with a live fetch.
+    if (skipInitialLoadRef.current) {
+      skipInitialLoadRef.current = false;
+      return;
+    }
+    setPage(0);
+    load(filters, 0);
+  }, [filters, load]);
 
   useEffect(() => { pageRef.current = page; }, [page]);
   useEffect(() => { totalRef.current = total; }, [total]);
