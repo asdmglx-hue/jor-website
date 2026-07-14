@@ -10,13 +10,14 @@ import AnimatedCounter from '@/components/AnimatedCounter';
 import type { Proposal } from '@/lib/supabase';
 import type { Metadata } from 'next';
 
-// Regenerated in the background at most once a minute — the homepage
-// wants to feel current (Recently Added, live counters) without needing
-// a full site rebuild for every single new proposal. Kept at 60s
-// deliberately (freshness requirement) — getCities() below no longer
-// pulls 1000+ rows on every rebuild, so this frequency is far cheaper
-// than it used to be even unchanged.
-export const revalidate = 60;
+// Regenerated in the background at most once every 5 minutes — the
+// homepage wants to feel current (Recently Added, live counters) without
+// needing a full site rebuild for every single new proposal. Raised from
+// 60s to 300s (matches the rest of the site) now that getCities() below
+// no longer pulls 1000+ rows on every rebuild — less need for a very
+// tight window, and fewer rebuild events means less Cloudflare CPU usage
+// and Supabase egress overall.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Jor – Find Your Perfect Rishta in Pakistan",
