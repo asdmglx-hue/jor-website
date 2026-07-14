@@ -34,10 +34,17 @@ type Props = { params: Promise<{ id: string }> };
 // No generateStaticParams here anymore — with 1256+ profiles, pre-building
 // every single one at every deploy was the single biggest source of slow
 // builds. Instead, each profile page now renders on-demand the first time
-// anyone visits it, then stays cached for 5 minutes before the next
+// anyone visits it, then stays cached for 15 minutes before the next
 // visitor triggers a background refresh. New profiles work immediately,
 // with no rebuild needed at all.
-export const revalidate = 300;
+//
+// Raised from 5 to 15 minutes specifically to help with Error 1102 on
+// this page — every rebuild is a chance for Cloudflare's free-plan 10ms
+// CPU limit to get hit on a slower request (cold start, etc); tripling
+// the interval directly cuts how often that risk comes up for an
+// already-cached profile. Personal details here don't need minute-level
+// freshness the way the homepage's live counters do.
+export const revalidate = 900;
 
 // React's cache() deduplicates calls with the same argument within one
 // render pass — so generateMetadata and the page component below share a

@@ -12,7 +12,10 @@ import type { Metadata } from 'next';
 
 // Regenerated in the background at most once a minute — the homepage
 // wants to feel current (Recently Added, live counters) without needing
-// a full site rebuild for every single new proposal.
+// a full site rebuild for every single new proposal. Kept at 60s
+// deliberately (freshness requirement) — getCities() below no longer
+// pulls 1000+ rows on every rebuild, so this frequency is far cheaper
+// than it used to be even unchanged.
 export const revalidate = 60;
 
 export const metadata: Metadata = {
@@ -36,21 +39,21 @@ async function getStats() {
   return { total: total || 0, male: male || 0, female: female || 0 };
 }
 
-// fetchAllRows fetches every matching row in batches — without it, this
-// silently caps at Supabase's default 1000-row limit once the site has
-// more active profiles than that, quietly undercounting cities without
-// any error (this is exactly what caused ~171 profiles to go missing from
-// generateStaticParams elsewhere on the site).
+// Was previously pulling every single active proposal row (1000+ and
+// growing) down to the Worker just to count them by city in JavaScript —
+// on every single rebuild, which for the homepage happens as often as
+// once a minute. That's real, and growing, CPU work, not just cold-start
+// overhead, and was a genuine contributor to occasionally hitting
+// Cloudflare's per-request CPU time limit (Error 1102). get_city_counts()
+// does the exact same grouping/filtering, but as a single GROUP BY query
+// in Postgres — a few dozen rows back instead of a thousand-plus, and the
+// counting itself happens in the database instead of in the Worker.
 async function getCities(): Promise<{ city: string; count: number }[]> {
-  const data = await fetchAllRows<{ city: string }>((from, to) =>
-    supabase.from('proposals').select('city').eq('status', 'active').or(notExpiredFilter()).range(from, to)
-  );
-  const counts: Record<string, number> = {};
-  for (const row of data) {
-    if (row.city && VALID_CITIES.has(row.city)) counts[row.city] = (counts[row.city] || 0) + 1;
-  }
-  return Object.entries(counts)
-    .map(([city, count]) => ({ city, count }))
+  const { data, error } = await supabase.rpc('get_city_counts');
+  if (error || !data) return [];
+  return (data as { city: string; count: number }[])
+    .filter(row => VALID_CITIES.has(row.city))
+    .map(row => ({ city: row.city, count: Number(row.count) }))
     .sort((a, b) => b.count - a.count);
 }
 
