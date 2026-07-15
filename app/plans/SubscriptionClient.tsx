@@ -210,10 +210,11 @@ export default function SubscriptionClient() {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowPayModal(false); }}
         >
-          <div style={{ background: '#fff', borderRadius: 20, padding: 24, maxWidth: 440, width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: '#fff', borderRadius: 20, maxWidth: 440, width: '100%', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: 24, overflowY: 'auto' }}>
             <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 4 }}>Payment Instructions</div>
             <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 16 }}>
-              Plan: <b>{plans[selected].name}</b> · {selected === 0 ? stdPriceWithCoupon() : plans[selected].priceDisplay}
+              Plan: <b style={{ color: plans[selected].color }}>{plans[selected].name}</b> · {selected === 0 ? stdPriceWithCoupon() : plans[selected].priceDisplay}
             </div>
             <div style={{ height: 1, background: '#E8E6F5', marginBottom: 16 }} />
 
@@ -285,6 +286,7 @@ export default function SubscriptionClient() {
                 Close
               </button>
             </div>
+          </div>
           </div>
         </div>
       )}
