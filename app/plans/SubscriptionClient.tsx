@@ -4,6 +4,7 @@ import { getSession, saveSession } from '@/lib/auth';
 import { redeemCode, isSubscriptionActive, Proposal, supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import PaymentProofModal from './PaymentProofModal';
 
 const ADMIN_WHATSAPP = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '923000000000';
 
@@ -75,6 +76,7 @@ export default function SubscriptionClient() {
   const [user, setUser] = useState<Proposal | null | undefined>(undefined);
   const [selected, setSelected] = useState(-1);
   const [showPayModal, setShowPayModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -215,11 +217,6 @@ export default function SubscriptionClient() {
   ];
 
   const adminWa = settings['whatsapp_number'] || ADMIN_WHATSAPP;
-
-  const whatsappMsg = (planName: string) =>
-    user
-      ? `https://wa.me/${adminWa}?text=${encodeURIComponent(`Hi, I want to subscribe to the ${planName} plan on Jor.\n\nMy Name: ${user.name}\nCNIC: ${user.cnic || 'N/A'}\nProposal #: ${user.proposal_number}`)}`
-      : `https://wa.me/${adminWa}?text=${encodeURIComponent(`Hi, I want to subscribe to the ${planName} plan on Jor.`)}`;
 
   if (user === undefined || !settingsLoaded) return <div style={{ textAlign: 'center', padding: 60 }}>Loading...</div>;
 
@@ -372,10 +369,11 @@ export default function SubscriptionClient() {
             )}
 
             <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-              <a href={whatsappMsg(plans[selected].name)} target="_blank" rel="noopener noreferrer"
-                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '11px', borderRadius: 12, background: '#25D366', color: '#fff', fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>
-                WhatsApp Admin
-              </a>
+              <button onClick={() => { setShowPayModal(false); setShowUploadModal(true); }}
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload Payment Proof
+              </button>
               <button onClick={() => setShowPayModal(false)}
                 style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1px solid #E8E6F5', background: '#F8F7FF', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
                 Close
@@ -384,6 +382,16 @@ export default function SubscriptionClient() {
           </div>
         </div>
       )}
+
+      <PaymentProofModal
+        open={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        planName={selected >= 0 ? plans[selected].name : ''}
+        isStandard={selected === 0}
+        initialCnic={user?.cnic}
+        ftPriceInt={Number(FT_PRICE.replace(/,/g, '')) || 200}
+        adminWa={adminWa}
+      />
     </div>
   );
 }
