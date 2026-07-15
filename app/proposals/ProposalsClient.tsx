@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { fetchProposals, FilterState, Proposal, supabase } from '@/lib/supabase';
+import { fetchProposals, FilterState, Proposal, supabase, TIME_CHIPS, chipDateRange } from '@/lib/supabase';
 import { getNotInterestedIds, addNotInterested, getLockedGenderFilter } from '@/lib/auth';
 import ProposalCard from '@/components/ProposalCard';
 import FilterBar from '@/components/FilterBar';
@@ -14,6 +14,48 @@ function Spinner({ size = 36 }: { size?: number }) {
         <animateTransform attributeName="transform" type="rotate" from="0 18 18" to="360 18 18" dur="0.8s" repeatCount="indefinite"/>
       </path>
     </svg>
+  );
+}
+
+// Time filter dropdown — All / New / 1 Month / 2 Months / 3+ Months, same
+// bucket definitions as the mobile app's feed chips (see chipDateRange in
+// lib/supabase.ts). A dropdown fits the available header space better than
+// mobile's horizontal chip row.
+function TimeFilterDropdown({ value, onChange }: { value: number; onChange: (i: number) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  return (
+    <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10,
+        border: `1.5px solid ${value !== 0 ? '#534AB7' : '#E8E6F5'}`,
+        background: value !== 0 ? '#EEEDFE' : '#fff', color: value !== 0 ? '#534AB7' : '#6B6893',
+        fontWeight: 700, fontSize: 12.5, cursor: 'pointer', whiteSpace: 'nowrap',
+      }}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        {TIME_CHIPS[value]}
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, background: '#fff', border: '1px solid #E8E6F5', borderRadius: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', zIndex: 50, minWidth: 130, overflow: 'hidden' }}>
+          {TIME_CHIPS.map((label, i) => (
+            <div key={label} onClick={() => { onChange(i); setOpen(false); }}
+              style={{ padding: '9px 14px', fontSize: 12.5, cursor: 'pointer',
+                color: value === i ? '#534AB7' : '#1A1830', fontWeight: value === i ? 700 : 400,
+                background: value === i ? '#EEEDFE' : 'transparent' }}
+              onMouseEnter={e => { if (value !== i) (e.currentTarget as HTMLElement).style.background = '#F8F7FF'; }}
+              onMouseLeave={e => { if (value !== i) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+              {label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -54,6 +96,25 @@ export default function ProposalsClient() {
   });
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
+
+  // ── Time filter (All / New / 1 Month / 2 Months / 3+ Months) ─────────────
+  const [timeChip, setTimeChip] = useState(0);
+  const handleTimeChip = (chip: number) => {
+    setTimeChip(chip);
+    const range = chipDateRange(chip);
+    setFilters(prev => ({ ...prev, postedAfter: range.postedAfter, postedBefore: range.postedBefore }));
+  };
+  // FilterBar's "Clear filters" resets the whole FilterState object (not
+  // just its own fields), which drops postedAfter/postedBefore too — keep
+  // this dropdown's highlighted option in sync with that instead of it
+  // silently staying on a chip that's no longer actually applied.
+  useEffect(() => {
+    if (filters.postedAfter === undefined && filters.postedBefore === undefined && timeChip !== 0) {
+      setTimeChip(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.postedAfter, filters.postedBefore]);
+
   const loadingMoreRef = useRef(false);
   const pageRef = useRef(0);
   const totalRef = useRef(0);
@@ -224,8 +285,13 @@ export default function ProposalsClient() {
 
       <FilterBar filters={filters} onChange={f => setFilters(f)} total={total} showSaved={showSaved} onSavedToggle={handleShowSaved} lockedGender={lockedGender} />
 
-      {/* Results count — hidden when saved panel is open */}
-      {!loading && !showSaved && <div style={{ fontSize: 13, fontWeight: 700, color: '#534AB7', marginBottom: 12, paddingLeft: 16 }}>{total.toLocaleString()} proposals found</div>}
+      {/* Results count + time filter — hidden when saved panel is open */}
+      {!loading && !showSaved && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingLeft: 16, paddingRight: 4, gap: 12 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#534AB7' }}>{total.toLocaleString()} proposals found</div>
+          <TimeFilterDropdown value={timeChip} onChange={handleTimeChip} />
+        </div>
+      )}
 
       {/* Saved proposals view */}
       {showSaved && (

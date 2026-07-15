@@ -119,6 +119,12 @@ export type FilterState = {
   maxHeight?: number;
   openToPolygamy?: string;
   search?: string;
+  // "New / 1 Month / 2 Months / 3+ Months" time filter — posted_at bounds,
+  // ISO strings. Mirrors the mobile app's chip-based date filter exactly
+  // (group_feed_screen.dart's _chipDateRange()), so results agree between
+  // web and mobile for the same selection.
+  postedAfter?: string;
+  postedBefore?: string;
 };
 
 
@@ -146,6 +152,27 @@ export const CARD_COLS ='id,proposal_number,name,age,gender,city,country,profess
 // keep showing in the feed just because that background job hasn't run.
 export function notExpiredFilter(): string {
   return `subscription_expiry.is.null,subscription_expiry.gt.${new Date().toISOString()}`;
+}
+
+// "New / 1 Month / 2 Months / 3+ Months" time filter — same 5 buckets and
+// index order as the mobile app's chip list (minus 'Saved', which the
+// website handles separately via its own heart-icon toggle).
+export const TIME_CHIPS = ['All', 'New', '1 Month', '2 Months', '3+ Months'];
+
+// Returns the postedAfter/postedBefore ISO bounds for a TIME_CHIPS index.
+// Mirrors group_feed_screen.dart's _chipDateRange() exactly (that function's
+// cases 0/2/3/4/5 map to this function's 0/1/2/3/4), so "New" / "1 Month" /
+// etc. mean precisely the same posted_at window on both platforms.
+export function chipDateRange(chip: number): { postedAfter?: string; postedBefore?: string } {
+  const now = Date.now();
+  const daysAgo = (d: number) => new Date(now - d * 24 * 60 * 60 * 1000).toISOString();
+  switch (chip) {
+    case 1: return { postedAfter: daysAgo(7) };                              // New
+    case 2: return { postedAfter: daysAgo(30), postedBefore: daysAgo(7) };   // 1 Month
+    case 3: return { postedAfter: daysAgo(60), postedBefore: daysAgo(30) };  // 2 Months
+    case 4: return { postedBefore: daysAgo(90) };                           // 3+ Months (open-ended)
+    default: return {};                                                     // All
+  }
 }
 
 export async function fetchProposals(filters: FilterState = {}, page = 0, pageSize = 16): Promise<{ proposals: Proposal[]; total: number }> {
@@ -183,6 +210,8 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   if (filters.minHeight) query = query.gte('height_inches', filters.minHeight);
   if (filters.maxHeight) query = query.lte('height_inches', filters.maxHeight);
   if (filters.openToPolygamy) query = query.eq('open_to_polygamy', filters.openToPolygamy);
+  if (filters.postedAfter) query = query.gte('posted_at', filters.postedAfter);
+  if (filters.postedBefore) query = query.lte('posted_at', filters.postedBefore);
 
   const { data, count, error } = await query;
   if (error) throw error;
