@@ -145,7 +145,8 @@ export function addNotInterested(id: string): string[] {
   // app already relies on, so this survives clearing browser history.
   const session = getSession();
   if (session?.cnic) {
-    supabase.rpc('append_not_interested', { p_cnic: session.cnic, p_proposal_id: id }).then(() => {});
+    const expiryMs = Date.now() + NOT_INTERESTED_DAYS * 24 * 60 * 60 * 1000;
+    supabase.rpc('append_not_interested', { p_cnic: session.cnic, p_proposal_id: id, p_expiry_ms: expiryMs }).then(() => {});
   }
   return getNotInterestedIds();
 }
