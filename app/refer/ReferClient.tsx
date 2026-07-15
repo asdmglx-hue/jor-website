@@ -139,7 +139,7 @@ export default function ReferClient() {
       </div>
 
       <div style={{ background: '#EEEDFE', borderRadius: 14, padding: '16px 18px', fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-        <strong>How it works:</strong> Share your code with others. When someone subscribes using your code, you earn Rs {stats.rate} per referral. Contact admin to withdraw your earnings.
+        <strong>How it works:</strong> Share your code with others. When someone subscribes using your code, you earn Rs {stats.rate} per referral. Contact support to withdraw your earnings.
       </div>
     </div>
   );
@@ -158,7 +158,7 @@ export default function ReferClient() {
           </div>
           <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Request Submitted!</div>
           <div style={{ fontSize: 14, color: '#6B6893', lineHeight: 1.6, marginBottom: 6 }}>Your affiliate code is <strong style={{ color: '#534AB7', letterSpacing: 2 }}>{joinCode}</strong></div>
-          <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.5 }}>Admin will contact you soon. Use your code to start referring people to Jor and earn Rs {commissionRate} per referral.</div>
+          <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.5 }}>We will contact you soon. Use your code to start referring people to Jor and earn Rs {commissionRate} per referral.</div>
         </div>
       ) : (
         <div style={card}>

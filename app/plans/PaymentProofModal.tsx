@@ -190,7 +190,7 @@ export default function PaymentProofModal({
       onClick={(e) => { if (e.target === e.currentTarget && !submitting) onClose(); }}
     >
       <div style={{ background: '#fff', borderRadius: 20, padding: 24, maxWidth: 440, width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
-        <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 6 }}>Upload Payment Proof</div>
+        <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 6 }}>Upload Receipt</div>
         <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.4, marginBottom: 18 }}>
           Enter your CNIC and attach your payment receipt for verification.
         </div>

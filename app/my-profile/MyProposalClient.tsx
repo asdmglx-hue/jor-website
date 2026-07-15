@@ -603,7 +603,7 @@ export default function MyProposalClient() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
             <div>
               <div style={{ fontSize: 14, fontWeight: 800, color: '#991B1B', marginBottom: 2 }}>Profile Rejected</div>
-              <div style={{ fontSize: 13, color: '#DC2626', lineHeight: 1.5 }}>Your profile was not approved. Contact admin for more information.</div>
+              <div style={{ fontSize: 13, color: '#DC2626', lineHeight: 1.5 }}>Your profile was not approved. Contact support for more information.</div>
             </div>
           </div>
         );
@@ -612,7 +612,7 @@ export default function MyProposalClient() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
             <div>
               <div style={{ fontSize: 14, fontWeight: 800, color: '#991B1B', marginBottom: 2 }}>Profile Removed</div>
-              <div style={{ fontSize: 13, color: '#DC2626', lineHeight: 1.5 }}>Your profile has been removed by the admin. Please contact support for assistance.</div>
+              <div style={{ fontSize: 13, color: '#DC2626', lineHeight: 1.5 }}>Your profile has been removed. Please contact support for assistance.</div>
             </div>
           </div>
         );

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 const features = [
   {
-    color: '#0F6E56', bg: '#E1F5EE', title: 'Verified Profiles', desc: 'Admin verifies CNIC before posting',
+    color: '#0F6E56', bg: '#E1F5EE', title: 'Verified Profiles', desc: 'We verify CNIC before posting',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
   },
   {
@@ -28,7 +28,7 @@ const features = [
 
 const values = [
   {
-    title: 'Trust First', desc: 'Every proposal goes through admin review before it goes live. We don\'t just list people — we verify them.',
+    title: 'Trust First', desc: 'Every proposal goes through a review before it goes live. We don\'t just list people — we verify them.',
     icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
   },
   {
@@ -97,7 +97,7 @@ export default function AboutPage() {
       <div style={{ background: '#FAF9FF', border: '1px solid #E8E6F5', borderRadius: 20, padding: '28px', marginBottom: 32 }}>
         <h2 style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', marginBottom: 20 }}>How It Works</h2>
         {[
-          { step: '1', title: 'Post Your Rishta', desc: 'Fill out a detailed profile through the Jor app. Admin reviews within 24 hours.' },
+          { step: '1', title: 'Post Your Rishta', desc: 'Fill out a detailed profile through the Jor app. Reviewed within 24 hours.' },
           { step: '2', title: 'Subscribe to Browse', desc: 'Get a subscription to unlock contact numbers, photos, and advanced filters.' },
           { step: '3', title: 'Connect Directly', desc: 'Contact the family directly — no middleman, no hidden fees.' },
         ].map(item => (
