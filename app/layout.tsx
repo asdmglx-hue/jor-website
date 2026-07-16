@@ -70,13 +70,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
                   <a href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</a>
                   <a href="/blog" style={{ color: '#fff', textDecoration: 'none' }}>Blog</a>
-                  <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
-                  <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
                   <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</a>
                 </div>
                 <div className="footer-nav-legal" style={{ display: 'flex', gap: 24, fontSize: 14, justifyContent: 'flex-end' }}>
                   <a href="/privacy-policy" style={{ color: '#6B6893', textDecoration: 'none' }}>Privacy Policy</a>
                   <a href="/terms" style={{ color: '#6B6893', textDecoration: 'none' }}>Terms of Service</a>
+                  <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
+                  <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
                 </div>
               </div>
             </div>
