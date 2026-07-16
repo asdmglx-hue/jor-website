@@ -142,7 +142,15 @@ const PROFESSION_GROUPS: Record<string, string[]> = {
 };
 
 // Columns needed to render a ProposalCard (incl. share text fields)
-export const CARD_COLS ='id,proposal_number,name,age,gender,city,country,profession,caste,sect,marital_status,height_inches,boys,girls,about,looking_for,profile_photo_url,posted_at,subscription_tier,is_boosted,contact_phone,contact_phone_2,home_type,education,father_alive,mother_alive,brothers,sisters,status';
+// Columns for the proposal-card / listing views specifically — kept to
+// exactly what ProposalCard.tsx and its parent pages actually read.
+// Previously included boys, girls, home_type, education, father_alive,
+// mother_alive, brothers, sisters, and a second phone number — none of
+// which any listing page ever displays. Those live on the full proposal
+// row (fetched separately via select('*') on the single-profile page),
+// so nothing is lost — this just stops sending them on every card, on
+// every browse/category/homepage load, where they were never used.
+export const CARD_COLS ='id,proposal_number,name,age,gender,city,country,profession,caste,sect,marital_status,height_inches,about,looking_for,profile_photo_url,posted_at,subscription_tier,is_boosted,contact_phone,status';
 
 // Proposals whose status is still literally 'active' in the DB but whose
 // subscription_expiry has already passed are in a brief window where the
