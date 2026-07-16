@@ -398,6 +398,37 @@ body {
    Visual nod to what "Jor" itself means (a bond/pairing): a single line
    runs the full height of the story list, with a small knot marking each
    story's connection to it, alternating left/right like a garland. */
+.testi-scroll-wrap {
+  position: relative;
+}
+.testi-scroll {
+  /* Roughly 6 story cards tall (card height + row gap), then scrolls —
+     tune this if card copy length changes noticeably. */
+  max-height: 1700px;
+  overflow-y: auto;
+  padding: 4px 0;
+  /* Scrollbar hidden on purpose — mouse-wheel/touch scrolling over this
+     box still works exactly like scrolling the page itself (that's just
+     native overflow:auto behavior), it just doesn't show its own
+     scrollbar track so it doesn't read as a separate boxed-in widget. */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
+}
+.testi-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, new Edge */
+}
+.testi-scroll-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 56px;
+  background: linear-gradient(180deg, rgba(250, 249, 255, 0) 0%, #FAF9FF 85%);
+  pointer-events: none;
+}
+.testi-timeline {
+  position: relative;
+}
 .testi-thread-line {
   position: absolute;
   left: 50%;
@@ -447,10 +478,12 @@ body {
 }
 
 @media (max-width: 768px) {
+  .testi-scroll { max-height: 1560px; }
   .testi-thread-line { left: 22px; }
   .testi-row-left, .testi-row-right { justify-content: flex-start; }
   .testi-card { width: calc(100% - 46px); margin-left: 46px; }
   .testi-knot { left: 22px; }
   .testi-hero h1 { padding: 0 4px; }
 }
+
 

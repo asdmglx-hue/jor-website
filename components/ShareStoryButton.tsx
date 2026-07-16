@@ -18,7 +18,7 @@ export default function ShareStoryButton() {
     })();
   }, []);
 
-  const text = "Hi Jor! I'd love to share my rishta story for your testimonials page.";
+  const text = "Hi Jor! I'd love to share my rishta story for your Stories page.";
 
   return (
     <a

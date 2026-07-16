@@ -1,15 +1,17 @@
 import type { Metadata } from 'next';
+import type { CSSProperties } from 'react';
 import { supabase, notExpiredFilter } from '@/lib/supabase';
 import AboutCta from '@/components/AboutCta';
 import ShareStoryButton from '@/components/ShareStoryButton';
 import AnimatedCounter from '@/components/AnimatedCounter';
+import StoryScrollBox from '@/components/StoryScrollBox';
 
 // Same cadence as the homepage — the live family count below doesn't need
 // to be second-fresh, just not stale for long.
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: 'Real Rishta Stories | Jor',
+  title: 'Stories | Jor',
   description: "Real families, real rishtas — a few of the stories that started on Jor, Pakistan's trusted matrimonial platform.",
   robots: { index: true, follow: true },
 };
@@ -24,11 +26,11 @@ async function getFamilyCount(): Promise<number> {
 }
 
 // ── Sample stories ───────────────────────────────────────────────────────
-// Placeholder content — names shortened to initials/first-names in the
-// style real matrimonial testimonials use to protect members' privacy.
-// Swap these for real submissions (the "Share your story" WhatsApp button
-// below is the intended intake channel) before this goes live.
-type Story = { quote: string; names: string; initials: string; city: string; when: string };
+// Fallback content, only shown if the 'testimonials' table has nothing
+// published yet — names shortened to initials/first-names in the style
+// real matrimonial testimonials use to protect members' privacy. Once the
+// admin app's Content tab has real entries, those take over automatically.
+type Story = { quote: string; names: string; initials: string; city: string; when: string; color?: string };
 
 const STORIES: Story[] = [
   {
@@ -57,17 +59,32 @@ const STORIES: Story[] = [
   },
 ];
 
-const MONOGRAM_TONES = [
-  { bg: '#534AB7', fg: '#fff' },
-  { bg: '#0F6E56', fg: '#fff' },
-  { bg: '#E8620A', fg: '#fff' },
-  { bg: '#3D35A0', fg: '#fff' },
-  { bg: '#1A1830', fg: '#fff' },
-  { bg: '#534AB7', fg: '#fff' },
-];
+// Same 5-color rotation ProposalCard.tsx uses for its avatar initials —
+// matches the rest of the site instead of inventing a separate palette
+// just for this page. There, index-based rotation is used whenever a
+// position within a list is available (which it always is here), with a
+// name-hash fallback only for standalone cards with no list position.
+const AVATAR_COLORS = ['#534AB7', '#0F6E56', '#E8620A', '#0369A1', '#E11D48'];
 
-export default async function TestimonialsPage() {
-  const familyCount = await getFamilyCount();
+async function getStories(): Promise<Story[]> {
+  try {
+    const { data } = await supabase
+      .from('testimonials')
+      .select('quote, names, initials, city, when_label, color')
+      .eq('is_published', true)
+      .order('sort_order', { ascending: true });
+    if (data && data.length > 0) {
+      return (data as { quote: string; names: string; initials: string; city: string; when_label: string; color: string | null }[])
+        .map(r => ({ quote: r.quote, names: r.names, initials: r.initials, city: r.city, when: r.when_label, color: r.color || undefined }));
+    }
+  } catch (_) {
+    // Table not created yet, or unreachable — fall back to sample content.
+  }
+  return STORIES;
+}
+
+export default async function StoriesPage() {
+  const [familyCount, stories] = await Promise.all([getFamilyCount(), getStories()]);
 
   return (
     <div>
@@ -90,11 +107,15 @@ export default async function TestimonialsPage() {
           Real stories, real rishtas
         </div>
 
+        {/* No manual <br> — text-wrap: balance lets the browser pick its
+            own break points so short trailing words never end up stranded
+            alone on a line, at any viewport width. */}
         <h1 style={{
           fontFamily: "'Fraunces', Georgia, serif", fontStyle: 'italic', fontWeight: 500,
           fontSize: 'clamp(26px, 4.4vw, 40px)', lineHeight: 1.28, color: '#1A1830', margin: '0 0 16px',
+          textWrap: 'balance' as CSSProperties['textWrap'],
         }}>
-          Every rishta starts as two separate stories.<br className="hero-br" /> These are the ones that became one.
+          Every rishta starts as two separate stories. These are the ones that became one.
         </h1>
         <p style={{ fontSize: 15.5, color: '#6B6893', lineHeight: 1.6, margin: '0 auto 24px', maxWidth: 520 }}>
           A few of the families who found each other on Jor — shared, lightly edited, in their own words.
@@ -110,39 +131,54 @@ export default async function TestimonialsPage() {
       </section>
 
       {/* ── Story thread ─────────────────────────────────────────────── */}
-      <section className="testi-timeline" style={{ maxWidth: 900, margin: '56px auto 0', padding: '0 20px', position: 'relative' }}>
-        <div className="testi-thread-line" aria-hidden="true" />
-        {STORIES.map((story, i) => {
-          const side = i % 2 === 0 ? 'left' : 'right';
-          const tone = MONOGRAM_TONES[i % MONOGRAM_TONES.length];
-          return (
-            <div key={story.names} className={`testi-row testi-row-${side}`}>
-              <div className="testi-knot" style={{ background: tone.bg }} />
-              <article className="testi-card" style={{
-                background: '#fff', border: '1px solid #E8E6F5', borderRadius: 20,
-                padding: '24px 26px', boxShadow: '0 10px 30px rgba(83,74,183,0.07)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                  <div className="testi-monogram" style={{ background: tone.bg, color: tone.fg }}>{story.initials}</div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1A1830' }}>{story.names}</div>
-                    <div style={{ fontSize: 12, color: '#B0ADCB' }}>{story.city}</div>
-                  </div>
+      {/* Sized to fit exactly 6 stories tall (StoryScrollBox measures the
+          real rendered height client-side, rather than guessing a fixed
+          pixel value), then scrolls — keeps a long story list from
+          turning the whole page into an endless scroll. The scrollbar
+          itself is hidden, but it's still plain native overflow
+          scrolling underneath, so hover-to-scroll and handing off into
+          the page's own scroll at the top/bottom edge both just work,
+          in both directions, with no extra JS needed for that part. The
+          thread line lives inside the scroll box so it moves with the
+          content instead of staying pinned. */}
+      <section className="testi-scroll-wrap" style={{ maxWidth: 900, margin: '56px auto 0', padding: '0 20px' }}>
+        <StoryScrollBox>
+          <div className="testi-timeline">
+            <div className="testi-thread-line" aria-hidden="true" />
+            {stories.map((story, i) => {
+              const side = i % 2 === 0 ? 'left' : 'right';
+              const tone = { bg: story.color || AVATAR_COLORS[i % AVATAR_COLORS.length], fg: '#fff' };
+              return (
+                <div key={`${story.names}-${i}`} className={`testi-row testi-row-${side}`}>
+                  <div className="testi-knot" style={{ background: tone.bg }} />
+                  <article className="testi-card" style={{
+                    background: '#fff', border: '1px solid #E8E6F5', borderRadius: 20,
+                    padding: '24px 26px', boxShadow: '0 10px 30px rgba(83,74,183,0.07)',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                      <div className="testi-monogram" style={{ background: tone.bg, color: tone.fg }}>{story.initials}</div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: '#1A1830' }}>{story.names}</div>
+                        <div style={{ fontSize: 12, color: '#B0ADCB' }}>{story.city}</div>
+                      </div>
+                    </div>
+                    <p style={{
+                      fontFamily: "'Fraunces', Georgia, serif", fontStyle: 'italic', fontWeight: 500,
+                      fontSize: 17, lineHeight: 1.55, color: '#1A1830', margin: '0 0 14px',
+                    }}>
+                      “{story.quote}”
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#0F6E56' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      {story.when}
+                    </div>
+                  </article>
                 </div>
-                <p style={{
-                  fontFamily: "'Fraunces', Georgia, serif", fontStyle: 'italic', fontWeight: 500,
-                  fontSize: 17, lineHeight: 1.55, color: '#1A1830', margin: '0 0 14px',
-                }}>
-                  “{story.quote}”
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#0F6E56' }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  {story.when}
-                </div>
-              </article>
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        </StoryScrollBox>
+        {stories.length > 6 && <div className="testi-scroll-fade" aria-hidden="true" />}
       </section>
 
       <p style={{ textAlign: 'center', fontSize: 12, color: '#B0ADCB', maxWidth: 480, margin: '8px auto 64px', padding: '0 20px', lineHeight: 1.6 }}>

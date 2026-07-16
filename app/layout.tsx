@@ -65,9 +65,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* Right: nav links stacked — desktop only */}
               <div className="footer-nav-right footer-nav-desktop" style={{ textAlign: 'right' }}>
                 <div className="footer-nav-main" style={{ display: 'flex', gap: 32, fontSize: 15, fontWeight: 500, color: '#fff', marginBottom: 8, justifyContent: 'flex-end' }}>
-                  <a href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Browse Proposals</a>
+                  <a href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Proposals</a>
                   <a href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
                   <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
+                  <a href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</a>
                   <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
                   <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
                   <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</a>
@@ -102,9 +103,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* Nav links — mobile only, shown after app badges */}
               <div className="footer-nav-mobile-copy">
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 8 }}>
-                  <a href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Browse Proposals</a>
+                  <a href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Proposals</a>
                   <a href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
                   <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
+                  <a href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</a>
                 </div>
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 10 }}>
                   <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
