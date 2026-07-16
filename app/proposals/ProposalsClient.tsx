@@ -1,10 +1,15 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { fetchProposals, FilterState, Proposal, supabase, TIME_CHIPS, chipDateRange } from '@/lib/supabase';
 import { getNotInterestedIds, addNotInterested, getLockedGenderFilter } from '@/lib/auth';
 import ProposalCard from '@/components/ProposalCard';
 import FilterBar from '@/components/FilterBar';
+
+// Matches the same mapping used on the dedicated category pages — 'bride'
+// / 'groom' are the real search terms people use, not the underlying DB
+// values.
+const GENDER_TO_SLUG: Record<string, string> = { Female: 'bride', Male: 'groom' };
 
 function Spinner({ size = 36 }: { size?: number }) {
   return (
@@ -61,7 +66,17 @@ function TimeFilterDropdown({ value, onChange }: { value: number; onChange: (i: 
 
 const PAGE_SIZE = 16;
 
-export default function ProposalsClient() {
+type Props = {
+  // { realValue: urlSlug } per category type — e.g. categorySlugs.city['Lahore'] === 'lahore'.
+  // Only values with enough real profiles behind them appear here at all
+  // (see MIN_CATEGORY_PROFILES) — anything absent just filters in place,
+  // exactly as before this feature existed.
+  categorySlugs: Record<string, Record<string, string>>;
+  countrySlugs: Record<string, string>;
+};
+
+export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) {
+  const router = useRouter();
   // useSearchParams reads the URL directly in the browser — works fine in
   // a static export, unlike the previous server-passed searchParams prop,
   // which required per-request server rendering (not possible/needed here
@@ -262,6 +277,56 @@ export default function ProposalsClient() {
     setLoadingSaved(false);
   };
 
+  // When a filter change amounts to exactly one simple, well-known
+  // category value — nothing else combined in — send the visitor to
+  // that value's own dedicated, indexed page instead of just filtering
+  // this one in place. Better for SEO (a real page Google already knows
+  // about, rather than a query-string variant of this one) and faster
+  // (that page is cached; this one always fetches fresh). Any combination
+  // of filters, or a value that doesn't have its own page yet, still just
+  // filters right here exactly as before — nothing about that changes.
+  const handleFilterChange = (next: FilterState) => {
+    const identityFields: (keyof FilterState)[] = ['city', 'caste', 'sect', 'maritalStatus', 'profession', 'country'];
+    const setIdentityFields = identityFields.filter(f => next[f]);
+    const otherFiltersSet = !!(
+      next.minAge || next.maxAge || next.education || next.homeType ||
+      next.minHeight || next.maxHeight || next.openToPolygamy || next.search ||
+      next.postedAfter || next.postedBefore
+    );
+
+    if (setIdentityFields.length === 1 && !otherFiltersSet) {
+      const field = setIdentityFields[0];
+      const value = next[field] as string;
+
+      if (field === 'city') {
+        const slug = categorySlugs.city?.[value];
+        if (slug) {
+          // City is the only category type with a bride/groom sub-page —
+          // safe to fold a gender selection into the URL here specifically.
+          const genderSlug = next.gender ? GENDER_TO_SLUG[next.gender] : undefined;
+          router.push(genderSlug ? `/proposals/${slug}/${genderSlug}` : `/proposals/${slug}`);
+          return;
+        }
+      } else if (!next.gender) {
+        // Every other category type has no gender sub-page — only redirect
+        // when gender isn't also part of the selection, so a gender
+        // filter is never silently lost by redirecting somewhere that
+        // can't represent it in the URL.
+        if (field === 'country') {
+          const slug = countrySlugs[value];
+          if (slug) { router.push(`/proposals/overseas/${slug}`); return; }
+        } else {
+          const slug = categorySlugs[field]?.[value];
+          if (slug) { router.push(`/proposals/${slug}`); return; }
+        }
+      }
+    }
+
+    // Combined filters, or a value without a dedicated page yet — same
+    // behavior as before this feature existed.
+    setFilters(next);
+  };
+
   const handleNotInterested = (id: string) => {
     setNotInterestedIds(addNotInterested(id));
     backfill(1);
@@ -283,7 +348,7 @@ export default function ProposalsClient() {
         </button>
       </div>
 
-      <FilterBar filters={filters} onChange={f => setFilters(f)} total={total} showSaved={showSaved} onSavedToggle={handleShowSaved} lockedGender={lockedGender} />
+      <FilterBar filters={filters} onChange={handleFilterChange} total={total} showSaved={showSaved} onSavedToggle={handleShowSaved} lockedGender={lockedGender} />
 
       {/* Results count + time filter — hidden when saved panel is open */}
       {!loading && !showSaved && (

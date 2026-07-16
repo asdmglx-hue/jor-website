@@ -1,5 +1,5 @@
-import { fetchCategoryCounts, fetchProposalsForCategory, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
-import { CATEGORY_ENTRIES, resolveCategoryBySlug, categoryPageTitle, CategoryEntry } from '@/lib/categories';
+import { fetchProposalsForCategory, getQualifyingCategoryEntries } from '@/lib/supabase';
+import { resolveCategoryBySlug, categoryPageTitle } from '@/lib/categories';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -7,26 +7,8 @@ import CategoryPageClient from '@/components/CategoryPageClient';
 
 type Props = { params: Promise<{ slug: string }> };
 
-// Only generates a page for a category value that actually has enough
-// real profiles behind it (MIN_CATEGORY_PROFILES) — an indexed page with
-// almost nothing on it hurts more than it helps, even without being
-// combined with other filters.
-async function getQualifyingEntries(): Promise<CategoryEntry[]> {
-  const [cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts] = await Promise.all([
-    fetchCategoryCounts('city'),
-    fetchCategoryCounts('caste'),
-    fetchCategoryCounts('sect'),
-    fetchCategoryCounts('marital_status'),
-    fetchCategoryCounts('profession'),
-  ]);
-  const countsByColumn: Record<string, Record<string, number>> = {
-    city: cityCounts, caste: casteCounts, sect: sectCounts, marital_status: maritalCounts, profession: professionCounts,
-  };
-  return CATEGORY_ENTRIES.filter(e => (countsByColumn[e.dbColumn]?.[e.value] ?? 0) >= MIN_CATEGORY_PROFILES);
-}
-
 export async function generateStaticParams() {
-  const entries = await getQualifyingEntries();
+  const entries = await getQualifyingCategoryEntries();
   return entries.map(e => ({ slug: e.slug }));
 }
 
@@ -67,7 +49,7 @@ export default async function CategoryPage({ params }: Props) {
   // caste/sect/profession pages, so only computed when actually needed.
   let qualifyingCitySlugs: Record<string, string> = {};
   if (entry.type === 'city') {
-    const qualifying = await getQualifyingEntries();
+    const qualifying = await getQualifyingCategoryEntries();
     qualifyingCitySlugs = Object.fromEntries(qualifying.filter(e => e.type === 'city').map(e => [e.value, e.slug]));
   }
 

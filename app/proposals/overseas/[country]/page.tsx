@@ -1,4 +1,4 @@
-import { fetchCountryCounts, fetchProposalsForCategory, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
+import { fetchProposalsForCategory, getQualifyingCountries } from '@/lib/supabase';
 import { slugify } from '@/lib/categories';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -6,17 +6,6 @@ import Link from 'next/link';
 import CategoryPageClient from '@/components/CategoryPageClient';
 
 type Props = { params: Promise<{ country: string }> };
-
-// Countries aren't a fixed list like cities/castes — they're whatever
-// actually has profiles right now, pulled fresh from real data. A new
-// country automatically gets its own page once it crosses the threshold,
-// with zero manual maintenance needed.
-async function getQualifyingCountries(): Promise<{ value: string; slug: string }[]> {
-  const counts = await fetchCountryCounts();
-  return Object.entries(counts)
-    .filter(([, count]) => count >= MIN_CATEGORY_PROFILES)
-    .map(([value]) => ({ value, slug: slugify(value) }));
-}
 
 export async function generateStaticParams() {
   const countries = await getQualifyingCountries();

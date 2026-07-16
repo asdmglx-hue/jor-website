@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { normalizeCountry } from './constants';
+import { CATEGORY_ENTRIES, CategoryEntry, slugify } from './categories';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -367,6 +368,35 @@ export async function fetchCountryCounts(): Promise<Record<string, number>> {
     counts[c] = (counts[c] || 0) + row.cnt;
   }
   return counts;
+}
+
+// Which category values (city/caste/sect/maritalStatus/profession) actually
+// have enough real profiles to deserve their own SEO page — shared by the
+// category page routes AND the main /proposals browse page, so both agree
+// on exactly the same set of "this value has a dedicated page" answers.
+// Previously duplicated separately in each page file; kept in one place now
+// so they can never quietly drift apart from each other.
+export async function getQualifyingCategoryEntries(): Promise<CategoryEntry[]> {
+  const [cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts] = await Promise.all([
+    fetchCategoryCounts('city'),
+    fetchCategoryCounts('caste'),
+    fetchCategoryCounts('sect'),
+    fetchCategoryCounts('marital_status'),
+    fetchCategoryCounts('profession'),
+  ]);
+  const countsByColumn: Record<string, Record<string, number>> = {
+    city: cityCounts, caste: casteCounts, sect: sectCounts, marital_status: maritalCounts, profession: professionCounts,
+  };
+  return CATEGORY_ENTRIES.filter(e => (countsByColumn[e.dbColumn]?.[e.value] ?? 0) >= MIN_CATEGORY_PROFILES);
+}
+
+// Same idea for overseas countries — not a fixed list like the above, so
+// this reads real counts fresh rather than filtering a constant array.
+export async function getQualifyingCountries(): Promise<{ value: string; slug: string }[]> {
+  const counts = await fetchCountryCounts();
+  return Object.entries(counts)
+    .filter(([, count]) => count >= MIN_CATEGORY_PROFILES)
+    .map(([value]) => ({ value, slug: slugify(value) }));
 }
 
 // Preview list of proposals matching one category filter — capped, since a
