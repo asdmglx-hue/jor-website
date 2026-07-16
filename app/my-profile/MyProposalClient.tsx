@@ -355,11 +355,19 @@ export default function MyProposalClient() {
     setUploadingPhoto(true);
     try {
       const blob = await getCroppedImg(cropSrc, croppedAreaPixels);
-      const path = `${user.id}.jpg`;
-      const { error } = await supabase.storage.from('profile-photos').upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
-      if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage.from('profile-photos').getPublicUrl(path);
-      const photoUrl = `${publicUrl}?t=${Date.now()}`;
+      // Uploads via the same secure server-side R2 endpoint already used
+      // during registration, instead of uploading straight to Supabase
+      // Storage from the browser — keeps every profile photo on R2 (zero
+      // egress fees) instead of split across two different storage
+      // providers, and keeps any storage credentials server-side only.
+      const cnicDigits = (user.cnic || '').replace(/\D/g, '') || user.id;
+      const photoForm = new FormData();
+      photoForm.append('cnic', cnicDigits);
+      photoForm.append('photo', new File([blob], 'profile.jpg', { type: 'image/jpeg' }));
+      const res = await fetch('/api/upload-profile-photo', { method: 'POST', body: photoForm });
+      const uploaded = await res.json().catch(() => ({}));
+      if (!res.ok || !uploaded.url) throw new Error(uploaded.error || 'Upload failed');
+      const photoUrl = `${uploaded.url}?t=${Date.now()}`;
       await supabase.rpc('update_own_proposal_secure', { p_id: user.id, p_updates: { profile_photo_url: photoUrl } });
       const updated = { ...user, profile_photo_url: photoUrl };
       setUser(updated as typeof user);
