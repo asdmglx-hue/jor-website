@@ -10,9 +10,12 @@ import StoryScrollBox from '@/components/StoryScrollBox';
 // to be second-fresh, just not stale for long.
 export const revalidate = 300;
 
+const SITE = 'https://joronline.com';
+
 export const metadata: Metadata = {
   title: 'Stories | Jor',
   description: "Real families, real rishtas — a few of the stories that started on Jor, Pakistan's trusted matrimonial platform.",
+  alternates: { canonical: `${SITE}/stories` },
   robots: { index: true, follow: true },
 };
 
