@@ -126,6 +126,7 @@ export default function SubscriptionClient() {
     ? `${Math.round(Number(settings.standard_plan_days) / 30)} Month${Math.round(Number(settings.standard_plan_days) / 30) === 1 ? '' : 's'}`
     : '3 Months';
   const FT_PRICE = settings.featured_post_price || '200';
+  const MAX_FEATURED_PER_CITY = Number(settings.max_featured_per_city) || 5;
   const FT_DURATION = settings.featured_post_duration
     ? `${Number(settings.featured_post_duration) * 24} hours`
     : '24 hours';
@@ -298,6 +299,7 @@ export default function SubscriptionClient() {
         isStandard={selected === 0}
         initialCnic={user?.cnic}
         ftPriceInt={Number(FT_PRICE.replace(/,/g, '')) || 200}
+        maxFeaturedPerCity={MAX_FEATURED_PER_CITY}
         adminWa={adminWa}
       />
     </div>

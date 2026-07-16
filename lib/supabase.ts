@@ -520,6 +520,39 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// ── Featured Post — per-city/date slot availability ─────────────────────────
+// Mirrors the mobile app's check exactly (SupabaseService.featuredSlotUsage /
+// isFeaturedSlotAvailable in libuser): a city's Featured slots on a given day
+// are capped by the admin's 'max_featured_per_city' app_settings value.
+// Only already-scheduled/active boosts (featured_boosts, not yet used/
+// expired) count as taken — a request that's only been sent over WhatsApp
+// and not yet approved by admin does NOT hold a slot, and once a scheduled
+// boost is removed (or an active one's window ends and it's marked used) it
+// stops counting automatically since this always reads the live table.
+export async function featuredSlotUsage(city: string, date: string): Promise<number> {
+  const dayStart = new Date(`${date}T00:00:00.000Z`);
+  const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+
+  try {
+    const { count } = await supabase
+      .from('featured_boosts')
+      .select('id', { count: 'exact', head: true })
+      .eq('city', city)
+      .eq('is_used', false)
+      .gte('scheduled_date', dayStart.toISOString())
+      .lt('scheduled_date', dayEnd.toISOString());
+    return count || 0;
+  } catch (_) {
+    // If this can't be read, don't block the user over it.
+    return 0;
+  }
+}
+
+export async function isFeaturedSlotAvailable(city: string, date: string, maxPerCity: number): Promise<boolean> {
+  const used = await featuredSlotUsage(city, date);
+  return used < maxPerCity;
+}
+
 export function isSubscriptionActive(proposal: Proposal): boolean {
   if (proposal.cnic && cachedAdminCnics.has(proposal.cnic)) return true;
   if (proposal.subscription_tier === 'none') return false;

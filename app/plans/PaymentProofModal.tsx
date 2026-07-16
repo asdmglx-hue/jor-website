@@ -1,12 +1,12 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { compressImage } from '@/lib/compressImage';
-import { supabase } from '@/lib/supabase';
+import { supabase, isFeaturedSlotAvailable } from '@/lib/supabase';
 import { CITIES } from '@/lib/constants';
 
 const MAX_FEATURED_SLOTS = 5;
 
-type FeaturedSlot = { city: string; date: string }; // date is yyyy-mm-dd from <input type="date">
+type FeaturedSlot = { city: string; date: string; checking?: boolean }; // date is yyyy-mm-dd from <input type="date">
 
 // ── Searchable city dropdown ────────────────────────────────────────────
 // Flat, filtered-as-you-type list over the same CITIES used by the
@@ -93,7 +93,7 @@ function maxDateStr(): string {
 }
 
 export default function PaymentProofModal({
-  open, onClose, planName, isStandard, initialCnic, ftPriceInt, adminWa,
+  open, onClose, planName, isStandard, initialCnic, ftPriceInt, maxFeaturedPerCity, adminWa,
 }: {
   open: boolean;
   onClose: () => void;
@@ -101,6 +101,7 @@ export default function PaymentProofModal({
   isStandard: boolean;
   initialCnic?: string;
   ftPriceInt: number;
+  maxFeaturedPerCity: number;
   adminWa: string;
 }) {
   const [cnic, setCnic] = useState('');
@@ -127,6 +128,42 @@ export default function PaymentProofModal({
   const updateSlot = (i: number, patch: Partial<FeaturedSlot>) => {
     setSlots(prev => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
     setErrorMsg(null);
+    void checkSlot(i, patch);
+  };
+
+  // Once a slot has both a city and a date, verify a Featured spot is still
+  // open for that city on that day (checked against the admin's "Max
+  // Featured per city" setting). If it's full, the date is cleared so the
+  // user has to pick a different one rather than submitting a request
+  // that's guaranteed to be rejected later.
+  const checkSlot = async (i: number, patch: Partial<FeaturedSlot>) => {
+    setSlots(prev => {
+      const merged = { ...prev[i], ...patch };
+      const city = merged.city, date = merged.date;
+      if (!city || !date) return prev;
+      // Kick off the async check below; mark this slot as checking now.
+      return prev.map((s, idx) => (idx === i ? { ...s, checking: true } : s));
+    });
+
+    const merged = { ...slots[i], ...patch };
+    const city = merged.city, date = merged.date;
+    if (!city || !date) return;
+
+    let available = true;
+    try {
+      available = await isFeaturedSlotAvailable(city, date, maxFeaturedPerCity);
+    } catch (_) {
+      // Network hiccup — don't block the user; the final re-check right
+      // before submit will still catch a full slot.
+    }
+    setSlots(prev => prev.map((s, idx) => {
+      if (idx !== i) return s;
+      if (!available) return { ...s, date: '', checking: false };
+      return { ...s, checking: false };
+    }));
+    if (!available) {
+      setErrorMsg(`No Featured slots left in ${city} on that date. Please select another date.`);
+    }
   };
   const removeSlot = (i: number) => setSlots(prev => prev.filter((_, idx) => idx !== i));
   const addSlot = () => setSlots(prev => (prev.length < MAX_FEATURED_SLOTS ? [...prev, { city: '', date: '' }] : prev));
@@ -139,6 +176,25 @@ export default function PaymentProofModal({
 
     setSubmitting(true);
     setErrorMsg(null);
+
+    // Final re-check right before submitting — slots can fill up between
+    // when the user picked them and now, so re-verify every one rather
+    // than trusting the earlier per-field checks.
+    if (!isStandard) {
+      for (let i = 0; i < slots.length; i++) {
+        const s = slots[i];
+        let available = true;
+        try {
+          available = await isFeaturedSlotAvailable(s.city, s.date, maxFeaturedPerCity);
+        } catch (_) {}
+        if (!available) {
+          setSubmitting(false);
+          setSlots(prev => prev.map((slot, idx) => (idx === i ? { ...slot, date: '' } : slot)));
+          setErrorMsg(`No Featured slots left in ${s.city} on that date. Please select another date.`);
+          return;
+        }
+      }
+    }
 
     try {
       const formData = new FormData();
@@ -270,6 +326,9 @@ export default function PaymentProofModal({
                 )}
               </div>
             ))}
+            {slots.some(s => s.checking) && (
+              <div style={{ fontSize: 11.5, color: '#6B6893', marginTop: -4, marginBottom: 8 }}>Checking slot availability…</div>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               {slots.length < MAX_FEATURED_SLOTS ? (
                 <button type="button" onClick={addSlot}
@@ -289,9 +348,9 @@ export default function PaymentProofModal({
         )}
 
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-          <button onClick={handleSubmit} disabled={submitting}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px', borderRadius: 12, border: 'none', background: submitting ? '#B0ADCB' : '#534AB7', color: '#fff', fontWeight: 700, fontSize: 14, cursor: submitting ? 'default' : 'pointer' }}>
-            {submitting ? 'Sending…' : 'Send'}
+          <button onClick={handleSubmit} disabled={submitting || slots.some(s => s.checking)}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px', borderRadius: 12, border: 'none', background: (submitting || slots.some(s => s.checking)) ? '#B0ADCB' : '#534AB7', color: '#fff', fontWeight: 700, fontSize: 14, cursor: (submitting || slots.some(s => s.checking)) ? 'default' : 'pointer' }}>
+            {submitting ? 'Sending…' : (slots.some(s => s.checking) ? 'Checking availability…' : 'Send')}
           </button>
           <button onClick={onClose} disabled={submitting}
             style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1px solid #E8E6F5', background: '#F8F7FF', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: submitting ? 'default' : 'pointer' }}>
