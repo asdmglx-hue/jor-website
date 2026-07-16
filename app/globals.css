@@ -404,14 +404,17 @@ body {
 .testi-scroll {
   /* Roughly 2 story cards tall (card height + row gap) as a fallback
      before StoryScrollBox's JS measures the exact height on mount, then
-     scrolls — tune this if card copy length changes noticeably. */
+     scrolls — tune this if card copy length changes noticeably. No
+     padding on this element itself — StoryScrollBox's wheel handler
+     reads its scrollHeight/clientHeight directly, and padding here would
+     throw that math off by a few px, which is exactly what caused the
+     "stuck until you move the pointer" bug. */
   max-height: 620px;
   overflow-y: auto;
-  padding: 4px 0;
   /* Scrollbar hidden on purpose — mouse-wheel/touch scrolling over this
-     box still works exactly like scrolling the page itself (that's just
-     native overflow:auto behavior), it just doesn't show its own
-     scrollbar track so it doesn't read as a separate boxed-in widget. */
+     box still works exactly like scrolling the page itself, it just
+     doesn't show its own scrollbar track so it doesn't read as a
+     separate boxed-in widget. */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* legacy Edge/IE */
 }
