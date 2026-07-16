@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { fetchProposals, FilterState, Proposal, supabase, TIME_CHIPS, chipDateRange } from '@/lib/supabase';
 import { getNotInterestedIds, addNotInterested, getLockedGenderFilter } from '@/lib/auth';
 import ProposalCard from '@/components/ProposalCard';
@@ -76,7 +76,6 @@ type Props = {
 };
 
 export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) {
-  const router = useRouter();
   // useSearchParams reads the URL directly in the browser — works fine in
   // a static export, unlike the previous server-passed searchParams prop,
   // which required per-request server rendering (not possible/needed here
@@ -304,7 +303,7 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
           // City is the only category type with a bride/groom sub-page —
           // safe to fold a gender selection into the URL here specifically.
           const genderSlug = next.gender ? GENDER_TO_SLUG[next.gender] : undefined;
-          router.push(genderSlug ? `/proposals/${slug}/${genderSlug}` : `/proposals/${slug}`);
+          window.location.href = genderSlug ? `/proposals/${slug}/${genderSlug}` : `/proposals/${slug}`;
           return;
         }
       } else if (!next.gender) {
@@ -314,10 +313,10 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
         // can't represent it in the URL.
         if (field === 'country') {
           const slug = countrySlugs[value];
-          if (slug) { router.push(`/proposals/overseas/${slug}`); return; }
+          if (slug) { window.location.href = `/proposals/overseas/${slug}`; return; }
         } else {
           const slug = categorySlugs[field]?.[value];
-          if (slug) { router.push(`/proposals/${slug}`); return; }
+          if (slug) { window.location.href = `/proposals/${slug}`; return; }
         }
       }
     }

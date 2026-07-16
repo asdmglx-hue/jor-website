@@ -1,6 +1,5 @@
 'use client';
 import { useState, useCallback, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import FilterBar from './FilterBar';
 import ProposalCard from './ProposalCard';
 import { fetchProposals, FilterState, Proposal } from '@/lib/supabase';
@@ -8,13 +7,21 @@ import { getLockedGenderFilter } from '@/lib/auth';
 
 const GENDER_TO_SLUG: Record<string, string> = { Female: 'bride', Male: 'groom' };
 
+// Every field that can be "this page's own identity" — not just city.
+// Previously only city/country were recognized here, which meant
+// changing the caste/sect/profession/marital-status filter on a page
+// built around one of those never actually navigated anywhere — it just
+// silently filtered in place while the heading (rendered by the parent
+// server page, from the URL) stayed on the old value.
+type IdentityField = 'city' | 'caste' | 'sect' | 'maritalStatus' | 'profession' | 'country';
+
 type Props = {
   initialProposals: Proposal[];
   initialFilters: FilterState;
   // Which field is this page's own identity — changing it means
   // navigating to a different page entirely, not just re-filtering this
   // one, so the heading and URL can never disagree with what's shown.
-  locationField: 'city' | 'country';
+  locationField: IdentityField;
   // Every value in that field that actually has its own dedicated page —
   // anything not in this map falls back to the filtered browse view.
   qualifyingSlugs: Record<string, string>;
@@ -24,13 +31,12 @@ type Props = {
 };
 
 export default function CategoryPageClient({ initialProposals, initialFilters, locationField, qualifyingSlugs, hasGenderSegment }: Props) {
-  const router = useRouter();
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [proposals, setProposals] = useState<Proposal[]>(initialProposals);
   const [total, setTotal] = useState(initialProposals.length);
   const [loading, setLoading] = useState(false);
   const basePath = locationField === 'country' ? '/proposals/overseas' : '/proposals';
-  const currentValue = locationField === 'country' ? initialFilters.country : initialFilters.city;
+  const currentValue = initialFilters[locationField];
 
   // A logged-in (non-admin) man only browses women's proposals and vice
   // versa — matches the mobile app's identical lockedGender feature.
@@ -49,7 +55,7 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
     if (hasGenderSegment) {
       const slug = qualifyingSlugs[currentValue || ''];
       const genderSlug = GENDER_TO_SLUG[lockedGender];
-      if (slug) { router.replace(`${basePath}/${slug}/${genderSlug}`); return; }
+      if (slug) { window.location.href = `${basePath}/${slug}/${genderSlug}`; return; }
     }
     const next = { ...initialFilters, gender: lockedGender };
     setFilters(next);
@@ -63,24 +69,41 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
   }, [lockedGender]);
 
   const handleChange = useCallback((next: FilterState) => {
-    const nextValue = locationField === 'country' ? next.country : next.city;
+    const nextValue = next[locationField];
 
-    // The page's own location field changed — navigate to the right
-    // dedicated page instead of quietly filtering in place.
+    // The page's own identity value changed to something else — navigate
+    // to the right dedicated page instead of quietly filtering in place.
+    // A real, full page load (not client-side routing) so the new page's
+    // heading and content are always guaranteed fresh, never a leftover
+    // from the page being navigated away from.
     if (nextValue && nextValue !== currentValue) {
       const slug = qualifyingSlugs[nextValue];
-      const genderSlug = hasGenderSegment && next.gender ? GENDER_TO_SLUG[next.gender] : undefined;
+      const genderSlug = locationField === 'city' && hasGenderSegment && next.gender ? GENDER_TO_SLUG[next.gender] : undefined;
       if (slug) {
-        router.push(genderSlug ? `${basePath}/${slug}/${genderSlug}` : `${basePath}/${slug}`);
+        window.location.href = genderSlug ? `${basePath}/${slug}/${genderSlug}` : `${basePath}/${slug}`;
       } else {
         // No dedicated page for this value yet — fall back to the
         // filterable browse view rather than a broken link.
         const params = new URLSearchParams();
         if (locationField === 'country') { params.set('country', nextValue); params.set('overseas', 'true'); }
-        else params.set('city', nextValue);
+        else params.set(locationField, nextValue);
         if (next.gender) params.set('gender', next.gender);
-        router.push(`/proposals?${params.toString()}`);
+        window.location.href = `/proposals?${params.toString()}`;
       }
+      return;
+    }
+
+    // The page's own identity value was cleared entirely (not changed to
+    // another value, just removed) — this page's URL and heading only
+    // ever mean one specific value, so there's no "identity-less" version
+    // of it to filter in place to. Go back to the general browse page,
+    // carrying over anything else that was still set.
+    if (!nextValue && currentValue) {
+      const params = new URLSearchParams();
+      Object.entries(next).forEach(([k, v]) => {
+        if (v !== undefined && v !== '' && k !== locationField) params.set(k, String(v));
+      });
+      window.location.href = params.toString() ? `/proposals?${params.toString()}` : '/proposals';
       return;
     }
 
@@ -90,7 +113,7 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
       const slug = qualifyingSlugs[currentValue || ''];
       const genderSlug = next.gender ? GENDER_TO_SLUG[next.gender] : undefined;
       if (slug) {
-        router.push(genderSlug ? `${basePath}/${slug}/${genderSlug}` : `${basePath}/${slug}`);
+        window.location.href = genderSlug ? `${basePath}/${slug}/${genderSlug}` : `${basePath}/${slug}`;
         return;
       }
     }
@@ -104,7 +127,7 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
       setTotal(t);
       setLoading(false);
     });
-  }, [locationField, hasGenderSegment, initialFilters, currentValue, qualifyingSlugs, basePath, router]);
+  }, [locationField, hasGenderSegment, initialFilters, currentValue, qualifyingSlugs, basePath]);
 
   return (
     <>

@@ -44,14 +44,17 @@ export default async function CategoryPage({ params }: Props) {
 
   const title = categoryPageTitle(entry);
 
-  // Only needed so the filter bar can correctly send someone to another
-  // city's own dedicated page if they change it — not relevant for
-  // caste/sect/profession pages, so only computed when actually needed.
-  let qualifyingCitySlugs: Record<string, string> = {};
-  if (entry.type === 'city') {
-    const qualifying = await getQualifyingCategoryEntries();
-    qualifyingCitySlugs = Object.fromEntries(qualifying.filter(e => e.type === 'city').map(e => [e.value, e.slug]));
-  }
+  // Every value of THIS SAME category type that has its own dedicated
+  // page — so the filter bar can correctly send someone to another
+  // caste/sect/city/etc.'s own page if they change it, not just cities.
+  // Previously only computed for city pages, which meant changing the
+  // filter on a caste/sect/profession/marital-status page never actually
+  // navigated anywhere — it silently filtered in place while the heading
+  // (fixed from the URL) stayed on the old value.
+  const qualifying = await getQualifyingCategoryEntries();
+  const qualifyingSlugs = Object.fromEntries(
+    qualifying.filter(e => e.type === entry.type).map(e => [e.value, e.slug])
+  );
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -97,8 +100,8 @@ export default async function CategoryPage({ params }: Props) {
       <CategoryPageClient
         initialProposals={proposals}
         initialFilters={entry.type === 'city' ? { city: entry.value } : { [entry.dbColumn === 'marital_status' ? 'maritalStatus' : entry.dbColumn]: entry.value }}
-        locationField="city"
-        qualifyingSlugs={qualifyingCitySlugs}
+        locationField={entry.type}
+        qualifyingSlugs={qualifyingSlugs}
       />
     </div>
   );
