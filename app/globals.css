@@ -411,6 +411,14 @@ body {
      "stuck until you move the pointer" bug. */
   max-height: 620px;
   overflow-y: auto;
+  /* Without this, the browser's own native scroll-chaining can leak into
+     the page's scroll WHILE this box still has room left — running
+     alongside StoryScrollBox's manual forwarding rather than instead of
+     it, which is what caused the page to visibly move at the same time
+     as the box. This makes StoryScrollBox's JS the only thing that
+     decides when to hand off to the page (once the box is genuinely
+     maxed), instead of the browser doing some of that on its own too. */
+  overscroll-behavior-y: contain;
   /* Scrollbar hidden on purpose — mouse-wheel/touch scrolling over this
      box still works exactly like scrolling the page itself, it just
      doesn't show its own scrollbar track so it doesn't read as a
