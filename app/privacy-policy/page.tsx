@@ -4,6 +4,7 @@ import FooterWhatsAppLink from '@/components/FooterWhatsAppLink';
 export const metadata: Metadata = {
   title: 'Privacy Policy | Jor – Pakistan\'s Trusted Matrimonial Platform',
   description: 'Learn how Jor collects, uses, and protects your personal information on Pakistan\'s trusted rishta platform.',
+  alternates: { canonical: 'https://joronline.com/privacy-policy' },
   robots: { index: true, follow: true },
 };
 

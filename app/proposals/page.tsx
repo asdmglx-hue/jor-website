@@ -5,6 +5,7 @@ import ProposalsClient from './ProposalsClient';
 export const metadata: Metadata = {
   title: 'Browse Rishta Proposals | Jor',
   description: 'Browse thousands of verified rishta proposals from across Pakistan. Filter by city, caste, sect, profession and more.',
+  alternates: { canonical: 'https://joronline.com/proposals' },
 };
 
 export default function ProposalsPage() {

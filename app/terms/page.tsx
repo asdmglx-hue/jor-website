@@ -4,6 +4,7 @@ import FooterWhatsAppLink from '@/components/FooterWhatsAppLink';
 export const metadata: Metadata = {
   title: 'Terms of Service | Jor – Pakistan\'s Trusted Matrimonial Platform',
   description: 'Read the terms and conditions for using Jor, Pakistan\'s trusted rishta and matrimonial platform.',
+  alternates: { canonical: 'https://joronline.com/terms' },
   robots: { index: true, follow: true },
 };
 

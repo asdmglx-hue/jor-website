@@ -5,6 +5,7 @@ import AboutCta from '@/components/AboutCta';
 export const metadata: Metadata = {
   title: 'About Jor | Pakistan\'s Trusted Matrimonial Platform',
   description: 'Learn about Jor — a trusted matrimonial platform connecting families across Pakistan with verified rishta proposals.',
+  alternates: { canonical: 'https://joronline.com/about' },
 };
 
 const features = [

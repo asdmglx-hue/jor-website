@@ -22,6 +22,7 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Jor – Find Your Perfect Rishta in Pakistan",
   description: "Browse thousands of verified rishta proposals from Pakistan and overseas. Filter by city, caste, sect, profession & more. Also available on Play Store & App Store.",
+  alternates: { canonical: 'https://joronline.com' },
 };
 
 // The known-good set of real Pakistani cities — same list the SEO city
