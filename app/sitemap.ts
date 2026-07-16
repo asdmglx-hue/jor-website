@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { fetchCategoryCounts, fetchCountryCounts, fetchAllProposalNumbers, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
+import { fetchCategoryCounts, fetchCountryCounts, fetchAllProposalNumbers, fetchAllBlogSlugs, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
 import { CATEGORY_ENTRIES, slugify } from '@/lib/categories';
 
 // Refreshed at most once an hour — the sitemap doesn't need to be
@@ -17,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/register`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/plans`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/stories`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${BASE}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.7 },
     { url: `${BASE}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/refer`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE}/privacy-policy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
@@ -77,5 +78,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticPages, ...categoryPages, ...cityGenderPages, ...overseasPages, ...profilePages];
+  const blogSlugs = await fetchAllBlogSlugs();
+  const blogPages: MetadataRoute.Sitemap = blogSlugs.map(post => ({
+    url: `${BASE}/blog/${post.slug}`,
+    lastModified: new Date(post.published_at),
+    changeFrequency: 'monthly',
+    priority: 0.6,
+  }));
+
+  return [...staticPages, ...categoryPages, ...cityGenderPages, ...overseasPages, ...profilePages, ...blogPages];
 }

@@ -69,6 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <a href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
                   <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
                   <a href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</a>
+                  <a href="/blog" style={{ color: '#fff', textDecoration: 'none' }}>Blog</a>
                   <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
                   <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
                   <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</a>
@@ -107,6 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <a href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
                   <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
                   <a href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</a>
+                  <a href="/blog" style={{ color: '#fff', textDecoration: 'none' }}>Blog</a>
                 </div>
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 10 }}>
                   <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>

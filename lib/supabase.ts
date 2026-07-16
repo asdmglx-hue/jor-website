@@ -559,3 +559,57 @@ export function isSubscriptionActive(proposal: Proposal): boolean {
   if (!proposal.subscription_expiry) return false;
   return new Date(proposal.subscription_expiry) > new Date();
 }
+
+// ── Blog ──────────────────────────────────────────────────────────────────
+// Every field the admin app auto-fills (slug, excerpt, meta_description,
+// keywords, read_time_minutes) is computed once at save time there — this
+// side just reads whatever ended up in the row.
+export type BlogPost = {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  meta_title: string;
+  meta_description: string;
+  keywords: string[];
+  category: string;
+  author: string;
+  cover_image_url: string | null;
+  read_time_minutes: number;
+  published_at: string;
+};
+
+const BLOG_COLS = 'id,title,slug,content,excerpt,meta_title,meta_description,keywords,category,author,cover_image_url,read_time_minutes,published_at';
+
+export async function fetchBlogPosts(limit = 50): Promise<BlogPost[]> {
+  const { data } = await supabase
+    .from('blog_posts')
+    .select(BLOG_COLS)
+    .eq('is_published', true)
+    .lte('published_at', new Date().toISOString())
+    .order('published_at', { ascending: false })
+    .limit(limit);
+  return (data || []) as BlogPost[];
+}
+
+export async function fetchBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  const { data } = await supabase
+    .from('blog_posts')
+    .select(BLOG_COLS)
+    .eq('slug', slug)
+    .eq('is_published', true)
+    .lte('published_at', new Date().toISOString())
+    .maybeSingle();
+  return (data as BlogPost | null) || null;
+}
+
+// Sitemap only needs the slug + when it was last meaningfully updated.
+export async function fetchAllBlogSlugs(): Promise<{ slug: string; published_at: string }[]> {
+  const { data } = await supabase
+    .from('blog_posts')
+    .select('slug, published_at')
+    .eq('is_published', true)
+    .lte('published_at', new Date().toISOString());
+  return (data || []) as { slug: string; published_at: string }[];
+}
