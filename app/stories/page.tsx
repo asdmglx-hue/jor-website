@@ -131,7 +131,7 @@ export default async function StoriesPage() {
       </section>
 
       {/* ── Story thread ─────────────────────────────────────────────── */}
-      {/* Sized to fit exactly 6 stories tall (StoryScrollBox measures the
+      {/* Sized to fit exactly 2 stories tall (StoryScrollBox measures the
           real rendered height client-side, rather than guessing a fixed
           pixel value), then scrolls — keeps a long story list from
           turning the whole page into an endless scroll. The scrollbar
@@ -178,7 +178,7 @@ export default async function StoriesPage() {
             })}
           </div>
         </StoryScrollBox>
-        {stories.length > 6 && <div className="testi-scroll-fade" aria-hidden="true" />}
+        {stories.length > 2 && <div className="testi-scroll-fade" aria-hidden="true" />}
       </section>
 
       <p style={{ textAlign: 'center', fontSize: 12, color: '#B0ADCB', maxWidth: 480, margin: '8px auto 64px', padding: '0 20px', lineHeight: 1.6 }}>
