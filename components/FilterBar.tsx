@@ -332,15 +332,15 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
       </select>
       <Select label="Occupation" value={filters.profession} options={Object.keys(PROFESSIONS)} onChange={v => set('profession', v)} />
       <Select label="Education" value={filters.education} options={EDUCATIONS} onChange={v => set('education', v)} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flex: '1 1 160px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '2 1 220px' }}>
         <select value={filters.minHeight || ''} onChange={e => onChange({ ...filters, minHeight: e.target.value ? +e.target.value : undefined })}
-          style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.minHeight ? '#EEEDFE' : '#fff', color: filters.minHeight ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.minHeight ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>
+          style={{ flex: 1, minWidth: 0, padding: '8px 10px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.minHeight ? '#EEEDFE' : '#fff', color: filters.minHeight ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.minHeight ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>
           <option value="">Min Height</option>
           {HEIGHT_OPTIONS.map(h => <option key={h.inches} value={h.inches}>{h.label}</option>)}
         </select>
         <span style={{ color: '#B0ADCB', fontSize: 12 }}>–</span>
         <select value={filters.maxHeight || ''} onChange={e => onChange({ ...filters, maxHeight: e.target.value ? +e.target.value : undefined })}
-          style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.maxHeight ? '#EEEDFE' : '#fff', color: filters.maxHeight ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.maxHeight ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>
+          style={{ flex: 1, minWidth: 0, padding: '8px 10px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.maxHeight ? '#EEEDFE' : '#fff', color: filters.maxHeight ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.maxHeight ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>
           <option value="">Max Height</option>
           {HEIGHT_OPTIONS.map(h => <option key={h.inches} value={h.inches}>{h.label}</option>)}
         </select>
