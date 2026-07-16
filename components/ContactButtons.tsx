@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { isSubscriptionActive, supabase, Proposal, phoneDisplay } from '@/lib/supabase';
 import { getSession, saveSession } from '@/lib/auth';
 
@@ -69,7 +70,7 @@ export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2 }: {
           </svg>
           WhatsApp
         </div>
-        <a href="/plans?plan=rishta-profile" style={{
+        <Link href="/plans?plan=rishta-profile" style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           width: '100%', padding: '11px', borderRadius: 12, boxSizing: 'border-box',
           background: '#534AB7', color: '#fff', fontWeight: 700, fontSize: 13,
@@ -80,7 +81,7 @@ export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2 }: {
             <path d="M7 11V7a5 5 0 0110 0v4"/>
           </svg>
           Subscribe to View Contact
-        </a>
+        </Link>
       </div>
     );
   }

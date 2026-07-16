@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 
 import Image from "next/image";
+import Link from "next/link";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import FooterWhatsAppLink from "@/components/FooterWhatsAppLink";
@@ -65,18 +66,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* Right: nav links stacked — desktop only */}
               <div className="footer-nav-right footer-nav-desktop" style={{ textAlign: 'right' }}>
                 <div className="footer-nav-main" style={{ display: 'flex', gap: 32, fontSize: 15, fontWeight: 500, color: '#fff', marginBottom: 8, justifyContent: 'flex-end' }}>
-                  <a href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Proposals</a>
-                  <a href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
-                  <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
-                  <a href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</a>
-                  <a href="/blog" style={{ color: '#fff', textDecoration: 'none' }}>Blog</a>
-                  <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</a>
+                  <Link href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Proposals</Link>
+                  <Link href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</Link>
+                  <Link href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</Link>
+                  <Link href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</Link>
+                  <Link href="/blog" style={{ color: '#fff', textDecoration: 'none' }}>Blog</Link>
+                  <Link href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</Link>
                 </div>
                 <div className="footer-nav-legal" style={{ display: 'flex', gap: 24, fontSize: 15, fontWeight: 500, justifyContent: 'flex-end' }}>
-                  <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
+                  <Link href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</Link>
                   <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
-                  <a href="/privacy-policy" style={{ color: '#fff', textDecoration: 'none' }}>Privacy Policy</a>
-                  <a href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>Terms of Service</a>
+                  <Link href="/privacy-policy" style={{ color: '#fff', textDecoration: 'none' }}>Privacy Policy</Link>
+                  <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>Terms of Service</Link>
                 </div>
               </div>
             </div>
@@ -91,33 +92,33 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
               {/* App badges */}
               <div className="footer-app-badges" style={{ display: 'flex', gap: 12 }}>
-                <a href="/get-android" style={{ display: 'inline-block' }}>
+                <Link href="/get-android" style={{ display: 'inline-block' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/google_play.png" alt="Get it on Google Play" style={{ height: 32, width: 'auto' }} />
-                </a>
-                <a href="/get-ios" style={{ display: 'inline-block' }}>
+                </Link>
+                <Link href="/get-ios" style={{ display: 'inline-block' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/app_store.png" alt="Download on App Store" style={{ height: 32, width: 'auto' }} />
-                </a>
+                </Link>
               </div>
 
               {/* Nav links — mobile only, shown after app badges */}
               <div className="footer-nav-mobile-copy">
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 8 }}>
-                  <a href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Proposals</a>
-                  <a href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
-                  <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
-                  <a href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</a>
-                  <a href="/blog" style={{ color: '#fff', textDecoration: 'none' }}>Blog</a>
+                  <Link href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Proposals</Link>
+                  <Link href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</Link>
+                  <Link href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</Link>
+                  <Link href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</Link>
+                  <Link href="/blog" style={{ color: '#fff', textDecoration: 'none' }}>Blog</Link>
                 </div>
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 10 }}>
-                  <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
+                  <Link href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</Link>
                   <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
-                  <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</a>
+                  <Link href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</Link>
                 </div>
                 <div style={{ display: 'flex', gap: 20, fontSize: 13, marginBottom: 24 }}>
-                  <a href="/privacy-policy" style={{ color: '#6B6893', textDecoration: 'none' }}>Privacy Policy</a>
-                  <a href="/terms" style={{ color: '#6B6893', textDecoration: 'none' }}>Terms of Service</a>
+                  <Link href="/privacy-policy" style={{ color: '#6B6893', textDecoration: 'none' }}>Privacy Policy</Link>
+                  <Link href="/terms" style={{ color: '#6B6893', textDecoration: 'none' }}>Terms of Service</Link>
                 </div>
               </div>
 

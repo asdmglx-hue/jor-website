@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { submitProposal, supabase } from '@/lib/supabase';
 import PasswordInput from '@/components/PasswordInput';
 import { compressImage } from '@/lib/compressImage';
@@ -1116,9 +1117,9 @@ export default function SubmitClient() {
       <p style={{ color: '#6B6893', marginBottom: 24, lineHeight: 1.6 }}>
         Your proposal has been received and is under review. It will be published within 24 hours once approved. If you haven't paid yet, please complete the payment.
       </p>
-      <a href="/" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: 12, background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>
+      <Link href="/" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: 12, background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>
         Back to Home
-      </a>
+      </Link>
     </div>
   );
 
@@ -1187,7 +1188,7 @@ export default function SubmitClient() {
             </Field>
             {error.includes('already registered') && (
               <div style={{ marginTop: -8, marginBottom: 14, fontSize: 13 }}>
-                <a href="/login" style={{ color: '#534AB7', fontWeight: 700, textDecoration: 'none' }}>→ Go to Login</a>
+                <Link href="/login" style={{ color: '#534AB7', fontWeight: 700, textDecoration: 'none' }}>→ Go to Login</Link>
               </div>
             )}
             <Field label="Set Password" required>
