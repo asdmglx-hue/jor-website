@@ -393,3 +393,64 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── Testimonials page — the connecting "thread" timeline ────────────────
+   Visual nod to what "Jor" itself means (a bond/pairing): a single line
+   runs the full height of the story list, with a small knot marking each
+   story's connection to it, alternating left/right like a garland. */
+.testi-thread-line {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: linear-gradient(180deg, #D4D1F7 0%, #534AB7 12%, #534AB7 88%, #D4D1F7 100%);
+  z-index: 0;
+}
+.testi-row {
+  display: flex;
+  align-items: center;
+  position: relative;
+  margin-bottom: 56px;
+}
+.testi-row:last-child { margin-bottom: 0; }
+.testi-row-left { justify-content: flex-start; }
+.testi-row-right { justify-content: flex-end; }
+.testi-card {
+  width: 44%;
+  position: relative;
+  z-index: 1;
+}
+.testi-knot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 3px solid #FAF9FF;
+  z-index: 2;
+  box-shadow: 0 0 0 2px rgba(83, 74, 183, 0.15);
+}
+.testi-monogram {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .testi-thread-line { left: 22px; }
+  .testi-row-left, .testi-row-right { justify-content: flex-start; }
+  .testi-card { width: calc(100% - 46px); margin-left: 46px; }
+  .testi-knot { left: 22px; }
+  .testi-hero h1 { padding: 0 4px; }
+}
+
