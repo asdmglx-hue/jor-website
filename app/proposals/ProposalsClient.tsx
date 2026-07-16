@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { fetchProposals, FilterState, Proposal, supabase, TIME_CHIPS, chipDateRange } from '@/lib/supabase';
 import { getNotInterestedIds, addNotInterested, getLockedGenderFilter } from '@/lib/auth';
 import ProposalCard from '@/components/ProposalCard';
@@ -76,6 +76,14 @@ type Props = {
 };
 
 export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) {
+  const router = useRouter();
+  // Navigates without a full page reload (header/footer stay put) while
+  // still guaranteeing the destination shows genuinely fresh content —
+  // see the identical helper and explanation in CategoryPageClient.tsx.
+  const navigateFresh = useCallback((url: string) => {
+    router.push(url);
+    router.refresh();
+  }, [router]);
   // useSearchParams reads the URL directly in the browser — works fine in
   // a static export, unlike the previous server-passed searchParams prop,
   // which required per-request server rendering (not possible/needed here
@@ -303,7 +311,7 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
           // City is the only category type with a bride/groom sub-page —
           // safe to fold a gender selection into the URL here specifically.
           const genderSlug = next.gender ? GENDER_TO_SLUG[next.gender] : undefined;
-          window.location.href = genderSlug ? `/proposals/${slug}/${genderSlug}` : `/proposals/${slug}`;
+          navigateFresh(genderSlug ? `/proposals/${slug}/${genderSlug}` : `/proposals/${slug}`);
           return;
         }
       } else if (!next.gender) {
@@ -313,10 +321,10 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
         // can't represent it in the URL.
         if (field === 'country') {
           const slug = countrySlugs[value];
-          if (slug) { window.location.href = `/proposals/overseas/${slug}`; return; }
+          if (slug) { navigateFresh(`/proposals/overseas/${slug}`); return; }
         } else {
           const slug = categorySlugs[field]?.[value];
-          if (slug) { window.location.href = `/proposals/${slug}`; return; }
+          if (slug) { navigateFresh(`/proposals/${slug}`); return; }
         }
       }
     }

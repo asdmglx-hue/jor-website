@@ -1,5 +1,6 @@
 'use client';
 import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import FilterBar from './FilterBar';
 import ProposalCard from './ProposalCard';
 import { fetchProposals, FilterState, Proposal } from '@/lib/supabase';
@@ -31,12 +32,25 @@ type Props = {
 };
 
 export default function CategoryPageClient({ initialProposals, initialFilters, locationField, qualifyingSlugs, hasGenderSegment }: Props) {
+  const router = useRouter();
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [proposals, setProposals] = useState<Proposal[]>(initialProposals);
   const [total, setTotal] = useState(initialProposals.length);
   const [loading, setLoading] = useState(false);
   const basePath = locationField === 'country' ? '/proposals/overseas' : '/proposals';
   const currentValue = initialFilters[locationField];
+
+  // Navigates without reloading the whole page (header/footer stay put,
+  // no visible flash) while still guaranteeing the destination's content
+  // is genuinely fresh rather than a cached leftover from a previous
+  // visit to a similar page — router.push() alone occasionally served a
+  // stale version when moving between two structurally-similar pages
+  // (e.g. one city page to another); the explicit refresh() right after
+  // closes that gap without giving up the smooth, app-like navigation.
+  const navigateFresh = useCallback((url: string) => {
+    router.push(url);
+    router.refresh();
+  }, [router]);
 
   // A logged-in (non-admin) man only browses women's proposals and vice
   // versa — matches the mobile app's identical lockedGender feature.
@@ -55,7 +69,7 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
     if (hasGenderSegment) {
       const slug = qualifyingSlugs[currentValue || ''];
       const genderSlug = GENDER_TO_SLUG[lockedGender];
-      if (slug) { window.location.href = `${basePath}/${slug}/${genderSlug}`; return; }
+      if (slug) { navigateFresh(`${basePath}/${slug}/${genderSlug}`); return; }
     }
     const next = { ...initialFilters, gender: lockedGender };
     setFilters(next);
@@ -73,14 +87,11 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
 
     // The page's own identity value changed to something else — navigate
     // to the right dedicated page instead of quietly filtering in place.
-    // A real, full page load (not client-side routing) so the new page's
-    // heading and content are always guaranteed fresh, never a leftover
-    // from the page being navigated away from.
     if (nextValue && nextValue !== currentValue) {
       const slug = qualifyingSlugs[nextValue];
       const genderSlug = locationField === 'city' && hasGenderSegment && next.gender ? GENDER_TO_SLUG[next.gender] : undefined;
       if (slug) {
-        window.location.href = genderSlug ? `${basePath}/${slug}/${genderSlug}` : `${basePath}/${slug}`;
+        navigateFresh(genderSlug ? `${basePath}/${slug}/${genderSlug}` : `${basePath}/${slug}`);
       } else {
         // No dedicated page for this value yet — fall back to the
         // filterable browse view rather than a broken link.
@@ -88,7 +99,7 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
         if (locationField === 'country') { params.set('country', nextValue); params.set('overseas', 'true'); }
         else params.set(locationField, nextValue);
         if (next.gender) params.set('gender', next.gender);
-        window.location.href = `/proposals?${params.toString()}`;
+        navigateFresh(`/proposals?${params.toString()}`);
       }
       return;
     }
@@ -103,7 +114,7 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
       Object.entries(next).forEach(([k, v]) => {
         if (v !== undefined && v !== '' && k !== locationField) params.set(k, String(v));
       });
-      window.location.href = params.toString() ? `/proposals?${params.toString()}` : '/proposals';
+      navigateFresh(params.toString() ? `/proposals?${params.toString()}` : '/proposals');
       return;
     }
 
@@ -113,7 +124,7 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
       const slug = qualifyingSlugs[currentValue || ''];
       const genderSlug = next.gender ? GENDER_TO_SLUG[next.gender] : undefined;
       if (slug) {
-        window.location.href = genderSlug ? `${basePath}/${slug}/${genderSlug}` : `${basePath}/${slug}`;
+        navigateFresh(genderSlug ? `${basePath}/${slug}/${genderSlug}` : `${basePath}/${slug}`);
         return;
       }
     }
@@ -127,7 +138,7 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
       setTotal(t);
       setLoading(false);
     });
-  }, [locationField, hasGenderSegment, initialFilters, currentValue, qualifyingSlugs, basePath]);
+  }, [locationField, hasGenderSegment, initialFilters, currentValue, qualifyingSlugs, basePath, navigateFresh]);
 
   return (
     <>
