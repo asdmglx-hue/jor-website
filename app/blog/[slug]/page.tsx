@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -9,6 +10,72 @@ import BlogShareButton from '@/components/BlogShareButton';
 export const revalidate = 300;
 
 const SITE = 'https://joronline.com';
+
+// ── Lightweight content formatting ───────────────────────────────────────
+// Deliberately not a full markdown library — the admin app's content field
+// is a single plain-text box, and it should stay that way (simple to
+// write in, nothing to configure). This just recognizes a handful of
+// plain-text conventions someone would naturally type anyway, and turns
+// them into real semantic HTML: "## " and "### " become actual <h2>/<h3>
+// headings (which matters for SEO — Google uses heading structure to
+// pick featured snippets, and a wall of undifferentiated paragraphs
+// can't be excerpted the same way), "**bold**" becomes <strong>,
+// "[text](url)" becomes a real link, and a block of "- " lines becomes
+// a proper <ul>. Anything that doesn't match these patterns still just
+// renders as a plain paragraph, exactly as before.
+
+function renderInline(text: string, keyPrefix: string): ReactNode[] {
+  const tokens: ReactNode[] = [];
+  const pattern = /\*\*(.+?)\*\*|\[([^\]]+)\]\(([^)]+)\)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let i = 0;
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) tokens.push(text.slice(lastIndex, match.index));
+    if (match[1] !== undefined) {
+      tokens.push(<strong key={`${keyPrefix}-b-${i++}`}>{match[1]}</strong>);
+    } else {
+      const label = match[2];
+      const href = match[3];
+      const external = !href.startsWith('/');
+      tokens.push(
+        <a key={`${keyPrefix}-l-${i++}`} href={href} style={{ color: '#534AB7', fontWeight: 700, textDecoration: 'underline' }}
+          target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined}>
+          {label}
+        </a>
+      );
+    }
+    lastIndex = pattern.lastIndex;
+  }
+  if (lastIndex < text.length) tokens.push(text.slice(lastIndex));
+  return tokens;
+}
+
+function renderContent(content: string): ReactNode {
+  const blocks = content.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
+  return blocks.map((block, i) => {
+    if (block.startsWith('### ')) {
+      return <h3 key={i} style={{ fontSize: 19, fontWeight: 800, color: '#1A1830', margin: '28px 0 12px' }}>{renderInline(block.slice(4), `h3-${i}`)}</h3>;
+    }
+    if (block.startsWith('## ')) {
+      return <h2 key={i} style={{ fontSize: 22, fontWeight: 800, color: '#1A1830', margin: '32px 0 14px' }}>{renderInline(block.slice(3), `h2-${i}`)}</h2>;
+    }
+    const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+    const isList = lines.length > 0 && lines.every(l => l.startsWith('- ') || l.startsWith('* '));
+    if (isList) {
+      return (
+        <ul key={i} style={{ margin: '0 0 20px', paddingLeft: 22 }}>
+          {lines.map((l, li) => (
+            <li key={li} style={{ fontSize: 16, lineHeight: 1.8, color: '#1A1830', marginBottom: 6 }}>
+              {renderInline(l.replace(/^[-*]\s+/, ''), `li-${i}-${li}`)}
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    return <p key={i} style={{ margin: '0 0 20px' }}>{renderInline(block, `p-${i}`)}</p>;
+  });
+}
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -79,8 +146,6 @@ export default async function BlogPostPage({ params }: Props) {
     mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE}/blog/${post.slug}` },
   };
 
-  const paragraphs = post.content.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
-
   return (
     <article style={{ maxWidth: 720, margin: '0 auto', padding: '40px 20px 64px' }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -103,13 +168,18 @@ export default async function BlogPostPage({ params }: Props) {
 
       {post.cover_image_url && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={post.cover_image_url} alt={post.title} style={{ width: '100%', borderRadius: 16, marginBottom: 28, display: 'block' }} />
+        <img
+          src={post.cover_image_url}
+          alt={post.title}
+          width={1200}
+          height={630}
+          fetchPriority="high"
+          style={{ width: '100%', height: 'auto', aspectRatio: '1200 / 630', objectFit: 'cover', borderRadius: 16, marginBottom: 28, display: 'block' }}
+        />
       )}
 
       <div style={{ fontSize: 16, lineHeight: 1.8, color: '#1A1830' }}>
-        {paragraphs.map((para, i) => (
-          <p key={i} style={{ margin: '0 0 20px' }}>{para}</p>
-        ))}
+        {renderContent(post.content)}
       </div>
 
       <div style={{ margin: '32px 0', paddingTop: 24, borderTop: '1px solid #E8E6F5' }}>

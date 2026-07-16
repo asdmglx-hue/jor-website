@@ -87,12 +87,21 @@ export default async function BlogIndexPage() {
                 style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 18, overflow: 'hidden' }}
               >
                 <div style={{
-                  height: 140, background: post.cover_image_url ? undefined : CARD_COLORS[i % CARD_COLORS.length],
-                  backgroundImage: post.cover_image_url ? `url(${post.cover_image_url})` : undefined,
-                  backgroundSize: 'cover', backgroundPosition: 'center',
+                  height: 140, width: '100%', position: 'relative', overflow: 'hidden',
+                  background: post.cover_image_url ? '#F1F0FB' : CARD_COLORS[i % CARD_COLORS.length],
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  {!post.cover_image_url && (
+                  {post.cover_image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={post.cover_image_url}
+                      alt={post.title}
+                      width={400}
+                      height={140}
+                      loading="lazy"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  ) : (
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeOpacity="0.5" strokeWidth="1.5"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
                   )}
                 </div>
