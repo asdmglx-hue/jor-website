@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSession, clearSession, getSavedIds } from '@/lib/auth';
-import { fetchProposalById, heightDisplay, Proposal, isSubscriptionActive, supabase } from '@/lib/supabase';
+import { fetchProposalById, heightDisplay, Proposal, isSubscriptionActive, supabase, PROFILE_DETAIL_COLS } from '@/lib/supabase';
 import { buildProposalShareText } from '@/lib/shareText';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -299,10 +299,17 @@ export default function MyProposalClient() {
     // fails with an invalid-UUID error, so these are skipped entirely for
     // admin sessions rather than querying with an id that was never real.
     if (!session.id?.startsWith('admin:')) {
-      // Always fetch fresh data so status/plans changes are reflected
-      supabase.from('proposals').select('*').eq('id', session.id).maybeSingle().then(({ data }) => {
+      // Always fetch fresh data so status/plans changes are reflected.
+      // Uses the same safe column list as public profile views — cnic and
+      // password aren't re-fetched here (the database no longer allows
+      // fetching them via a plain table query at all, even for a
+      // person's own row, since Postgres grants can't distinguish "my
+      // row" from "anyone's row" without real Supabase Auth). They're
+      // preserved from what login already stored locally instead of
+      // being silently wiped out by this refresh.
+      supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle().then(({ data }) => {
         if (data) {
-          const fresh = data as Proposal;
+          const fresh = { ...session, ...data } as Proposal;
           setUser(fresh);
           if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
           if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
