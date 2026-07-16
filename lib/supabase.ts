@@ -147,7 +147,14 @@ const PROFESSION_GROUPS: Record<string, string[]> = {
 // Previously included boys, girls, home_type, education, father_alive,
 // mother_alive, brothers, sisters, and a second phone number — none of
 // which any listing page ever displays. Those live on the full proposal
-// row (fetched separately via select('*') on the single-profile page),
+// Full-detail column list for the public single-profile view page.
+// Deliberately NOT select('*') — the proposals table also holds fields
+// that should never reach a public visitor's browser (password, cnic,
+// the base64-encoded CNIC/photo images, admin_notes, email, and various
+// internal tracking fields). This mirrors exactly what the 'anon' role
+// is now granted at the database level, so a query here can never
+// silently start requesting something the database will refuse anyway.
+export const PROFILE_DETAIL_COLS = 'id,proposal_number,name,age,gender,city,country,caste,sect,education,institute,degree_title,degree_title_2,degree_title_3,institute_2,institute_3,profession,employment_type,salary_start,salary_end,monthly_income,height_inches,weight_kg,complexion,marital_status,marriage_number,boys,girls,total_kids,has_kids,practice_level,hijab,beard,open_to_polygamy,father_alive,mother_alive,father_occupation,mother_occupation,sisters,brothers,total_siblings,has_siblings,family_type,home_type,house_size,has_car,car_name,has_generator,has_solar,has_servant,other_property,has_other_property,looking_for,about,languages,smokes,drinks,physically_active,has_disability,disability_details,contact_phone,contact_phone_2,phone_verified,profile_photo_url,posted_at,updated_at,status,subscription_tier,is_boosted,location';
 // so nothing is lost — this just stops sending them on every card, on
 // every browse/category/homepage load, where they were never used.
 export const CARD_COLS ='id,proposal_number,name,age,gender,city,country,profession,caste,sect,marital_status,height_inches,about,looking_for,profile_photo_url,posted_at,subscription_tier,is_boosted,contact_phone,status';
@@ -285,7 +292,7 @@ export async function fetchOverseasCountries(): Promise<string[]> {
 }
 
 export async function fetchProposalById(id: string): Promise<Proposal | null> {
-  const { data, error } = await supabase.from('proposals').select('*').eq('id', id).in('status', ['active', 'paused']).single();
+  const { data, error } = await supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', id).in('status', ['active', 'paused']).single();
   if (error) return null;
   return data as Proposal;
 }
@@ -295,7 +302,7 @@ export async function fetchProposalById(id: string): Promise<Proposal | null> {
 export async function fetchProposalByNumber(proposalNumber: number): Promise<Proposal | null> {
   try {
     const { data, error } = await withTimeout<{ data: unknown; error: unknown }>(
-      supabase.from('proposals').select('*').eq('proposal_number', proposalNumber).in('status', ['active', 'paused']).single(),
+      supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('proposal_number', proposalNumber).in('status', ['active', 'paused']).single(),
       20000,
       `fetchProposalByNumber(${proposalNumber})`
     );
@@ -324,38 +331,40 @@ export async function fetchAllProposalNumbers(): Promise<number[]> {
 // are actually worth generating (see MIN_CATEGORY_PROFILES).
 export const MIN_CATEGORY_PROFILES = 5;
 
+// NOTE: previously wrapped in unstable_cache to share these calculations
+// across all 240 category pages instead of each one recomputing
+// independently — reverted after it caused the Cloudflare build itself
+// to hang during static generation (the R2-backed cache handler isn't
+// attached during the build step, only once actually deployed). Worth
+// revisiting with a build-safe caching approach later; for now, plain
+// functions so deploys work reliably.
+// Counts computed by the database itself (a single GROUP BY per call)
+// instead of downloading every matching row and counting it up in
+// JavaScript. Same filtering rules as before (active/paused status,
+// not-yet-expired subscription) — this only changes how the count is
+// computed, not what gets counted; verified to return identical
+// results to the old method before this was deployed.
 export async function fetchCategoryCounts(dbColumn: 'city' | 'caste' | 'sect' | 'marital_status' | 'profession'): Promise<Record<string, number>> {
-  const data = await fetchAllRows<Record<string, string | null>>((from, to) =>
-    supabase.from('proposals').select(dbColumn).in('status', ['active', 'paused']).or(notExpiredFilter()).range(from, to)
-  );
+  const { data, error } = await supabase.rpc('get_proposal_category_counts', { p_column: dbColumn });
+  if (error || !data) return {};
   const counts: Record<string, number> = {};
-  for (const row of data) {
-    const v = row[dbColumn];
-    if (v) counts[v] = (counts[v] || 0) + 1;
+  for (const row of data as { value: string; cnt: number }[]) {
+    counts[row.value] = row.cnt;
   }
   return counts;
 }
 
-// Same idea, for overseas countries (a dynamic list, not a fixed constant).
+// Same idea, for overseas countries. The database returns raw country
+// values with their counts; the small UK/USA/UAE alias-merging logic
+// stays in TypeScript (normalizeCountry), applied here to the much
+// smaller aggregated result instead of 1000+ individual rows.
 export async function fetchCountryCounts(): Promise<Record<string, number>> {
-  const data = await fetchAllRows<{ country: string | null }>((from, to) =>
-    supabase
-      .from('proposals')
-      .select('country')
-      .in('status', ['active', 'paused'])
-      .or(notExpiredFilter())
-      .not('country', 'is', null)
-      .neq('country', '')
-      .neq('country', 'Pakistan')
-      .neq('country', 'Other')
-      .range(from, to)
-  );
+  const { data, error } = await supabase.rpc('get_proposal_country_counts');
+  if (error || !data) return {};
   const counts: Record<string, number> = {};
-  for (const row of data) {
-    if (row.country) {
-      const c = normalizeCountry(row.country);
-      counts[c] = (counts[c] || 0) + 1;
-    }
+  for (const row of data as { value: string; cnt: number }[]) {
+    const c = normalizeCountry(row.value);
+    counts[c] = (counts[c] || 0) + row.cnt;
   }
   return counts;
 }
