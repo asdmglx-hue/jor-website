@@ -62,19 +62,33 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo-footer.png" alt="Jor" style={{ height: 90, width: 160, objectFit: 'contain', objectPosition: 'left center', marginLeft: -18, transform: 'scale(0.8)', transformOrigin: 'left center' }} />
 
-              {/* Right: nav links stacked — desktop only */}
+              {/* Right: nav links grouped into columns — desktop only.
+                  Was one long row of 8 links, which got cramped once
+                  Stories and Blog were added. Grouped by what each link
+                  actually is (content to browse / account actions /
+                  company info) instead of one flat list. Mobile keeps
+                  its own separate, unchanged block further down. */}
               <div className="footer-nav-right footer-nav-desktop" style={{ textAlign: 'right' }}>
-                <div className="footer-nav-main" style={{ display: 'flex', gap: 32, fontSize: 15, fontWeight: 500, color: '#fff', marginBottom: 8, justifyContent: 'flex-end' }}>
-                  <a href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Proposals</a>
-                  <a href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
-                  <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
-                  <a href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</a>
-                  <a href="/blog" style={{ color: '#fff', textDecoration: 'none' }}>Blog</a>
-                  <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
-                  <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
-                  <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</a>
+                <div className="footer-nav-groups" style={{ display: 'flex', gap: 40, justifyContent: 'flex-end', marginBottom: 4 }}>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#6B6893', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Explore</div>
+                    <a href="/proposals" style={{ display: 'block', color: '#fff', textDecoration: 'none', fontSize: 14.5, fontWeight: 500, marginBottom: 10 }}>Proposals</a>
+                    <a href="/stories" style={{ display: 'block', color: '#fff', textDecoration: 'none', fontSize: 14.5, fontWeight: 500, marginBottom: 10 }}>Stories</a>
+                    <a href="/blog" style={{ display: 'block', color: '#fff', textDecoration: 'none', fontSize: 14.5, fontWeight: 500 }}>Blog</a>
+                  </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#6B6893', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Account</div>
+                    <a href="/register" style={{ display: 'block', color: '#fff', textDecoration: 'none', fontSize: 14.5, fontWeight: 500, marginBottom: 10 }}>Register</a>
+                    <a href="/plans" style={{ display: 'block', color: '#fff', textDecoration: 'none', fontSize: 14.5, fontWeight: 500, marginBottom: 10 }}>Plans</a>
+                    <a href="/refer" style={{ display: 'block', color: '#fff', textDecoration: 'none', fontSize: 14.5, fontWeight: 500 }}>Affiliate</a>
+                  </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#6B6893', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Company</div>
+                    <a href="/about" style={{ display: 'block', color: '#fff', textDecoration: 'none', fontSize: 14.5, fontWeight: 500, marginBottom: 10 }}>About</a>
+                    <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
+                  </div>
                 </div>
-                <div className="footer-nav-legal" style={{ display: 'flex', gap: 24, fontSize: 14, justifyContent: 'flex-end' }}>
+                <div className="footer-nav-legal" style={{ display: 'flex', gap: 24, fontSize: 14, justifyContent: 'flex-end', marginTop: 20 }}>
                   <a href="/privacy-policy" style={{ color: '#6B6893', textDecoration: 'none' }}>Privacy Policy</a>
                   <a href="/terms" style={{ color: '#6B6893', textDecoration: 'none' }}>Terms of Service</a>
                 </div>
