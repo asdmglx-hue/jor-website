@@ -5,31 +5,26 @@ const VISIBLE_COUNT = 2;
 
 // This box needs to feel like part of the page's own scroll, not a
 // separate walled-off widget — scroll down through it, and once it's
-// exhausted, keep going straight into the rest of the page in the exact
-// same gesture; scroll back up from below it and it un-scrolls itself the
-// same way. Plain native `overflow-y: auto` gets partway there but has a
-// real, well-known gap: once a wheel/trackpad gesture is already
-// "captured" by this inner box, browsers (Safari and trackpad-driven
-// momentum scrolling especially) don't reliably hand the remainder of
-// that same gesture off to the page — you have to end the gesture and
-// move the pointer before scrolling resumes. That's exactly the "stuck
-// until I reposition the pointer" and "doesn't work scrolling back up"
-// behavior this replaces.
+// exhausted, keep going straight into the rest of the page in the same
+// gesture; scroll back up from below it and it un-scrolls itself the
+// same way.
 //
-// The fix: handle every wheel tick manually. Scroll the box itself while
-// it has room; the instant a tick would overflow past its top or bottom,
-// spill just the leftover amount into the page's own scroll — in that
-// same event, not the next one — so there's no dead zone to get stuck in
-// and no dependence on the browser's own (unreliable, here) scroll
-// chaining.
+// The wrinkle that broke the "scroll back up" direction specifically:
+// browsers lock a wheel/trackpad gesture to whichever element it started
+// on and don't retarget mid-gesture, even once that element visually
+// slides back under a stationary cursor as the page scrolls. Scrolling
+// down "just worked" because the gesture naturally starts with the
+// cursor over this box. Scrolling back up from further down the page
+// starts the gesture over whatever's under the cursor down there
+// instead — by the time the box scrolls back into view under the
+// cursor, the gesture is still locked to that other element, so this
+// box's own event listener never fires for it at all.
 //
-// This uses a real addEventListener (not React's onWheel JSX prop)
-// specifically so it can be registered as non-passive — React's onWheel
-// attaches a passive listener by default, which silently ignores
-// preventDefault(). With that ignored, the manual scrollTop assignment
-// below and the browser's own native scroll would both fire for the same
-// gesture and fight each other, which reads as exactly the laggy,
-// stuttery feeling this is meant to fix.
+// Fix: don't listen on the box itself — listen on the window, so every
+// wheel event on the page is seen regardless of what the browser thinks
+// its "real" target is, and decide whether to act on it by checking the
+// box's live on-screen position against the cursor for that event. That
+// geometric check is unaffected by gesture-target locking.
 export default function StoryScrollBox({ children }: { children: ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [maxHeight, setMaxHeight] = useState<number | undefined>(undefined);
@@ -56,20 +51,27 @@ export default function StoryScrollBox({ children }: { children: ReactNode }) {
   }, [children]);
 
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
     function handleWheel(e: WheelEvent) {
+      const el = containerRef.current;
+      if (!el) return;
+
+      // Is the cursor currently over the box, right now, for this exact
+      // event — independent of which element the gesture "officially"
+      // started on.
+      const rect = el.getBoundingClientRect();
+      const overBox = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+      if (!overBox) return; // not over the box — leave this event alone, let the page scroll natively
+
       const delta = e.deltaY;
       if (delta === 0) return;
 
-      const maxScroll = el!.scrollHeight - el!.clientHeight;
+      const maxScroll = el.scrollHeight - el.clientHeight;
       if (maxScroll <= 0) return; // nothing to scroll in the box — let the page handle it natively
 
-      const current = el!.scrollTop;
+      const current = el.scrollTop;
       const target = Math.min(Math.max(current + delta, 0), maxScroll);
       const consumed = target - current;
-      el!.scrollTop = target;
+      el.scrollTop = target;
 
       const leftover = delta - consumed;
       if (leftover !== 0) {
@@ -82,8 +84,8 @@ export default function StoryScrollBox({ children }: { children: ReactNode }) {
       e.preventDefault();
     }
 
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => el.removeEventListener('wheel', handleWheel);
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleWheel);
   }, []);
 
   return (
