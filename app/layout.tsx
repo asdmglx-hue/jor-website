@@ -64,7 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
               {/* Right: nav links stacked — desktop only */}
               <div className="footer-nav-right footer-nav-desktop" style={{ textAlign: 'right' }}>
-                <div className="footer-nav-main" style={{ display: 'flex', gap: 32, fontSize: 15, fontWeight: 500, color: '#fff', marginBottom: 16, justifyContent: 'flex-end' }}>
+                <div className="footer-nav-main" style={{ display: 'flex', gap: 32, fontSize: 15, fontWeight: 500, color: '#fff', marginBottom: 8, justifyContent: 'flex-end' }}>
                   <a href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Proposals</a>
                   <a href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</a>
                   <a href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</a>
@@ -73,10 +73,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <a href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</a>
                 </div>
                 <div className="footer-nav-legal" style={{ display: 'flex', gap: 24, fontSize: 15, fontWeight: 500, justifyContent: 'flex-end' }}>
-                  <a href="/privacy-policy" style={{ color: '#fff', textDecoration: 'none' }}>Privacy Policy</a>
-                  <a href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>Terms of Service</a>
                   <a href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</a>
                   <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
+                  <a href="/privacy-policy" style={{ color: '#fff', textDecoration: 'none' }}>Privacy Policy</a>
+                  <a href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>Terms of Service</a>
                 </div>
               </div>
             </div>
