@@ -330,7 +330,7 @@ export async function fetchAllProposalNumbers(): Promise<number[]> {
 // how many active/paused profiles are in each) — one query per column,
 // not per value. Used at build time to decide which SEO category pages
 // are actually worth generating (see MIN_CATEGORY_PROFILES).
-export const MIN_CATEGORY_PROFILES = 5;
+export const MIN_CATEGORY_PROFILES = 2;
 
 // NOTE: previously wrapped in unstable_cache to share these calculations
 // across all 240 category pages instead of each one recomputing
