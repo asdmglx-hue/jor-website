@@ -148,6 +148,16 @@ export default async function HomePage() {
         url: 'https://joronline.com',
         description: "Pakistan's trusted matrimonial platform connecting families for marriage across Pakistan and overseas.",
         areaServed: 'PK',
+        // Links this entity to its real social profiles — the actual
+        // signal Google uses to confirm "this website, this Facebook
+        // page, and this Instagram account are the same real business."
+        // Without this, Google has only the name and text to go on,
+        // which is exactly how it can end up confusing this site with
+        // an unrelated company that happens to share a similar name.
+        sameAs: [
+          'https://www.facebook.com/jormatrimony',
+          'https://www.instagram.com/jormatrimony',
+        ],
       },
       {
         '@type': 'WebSite',
