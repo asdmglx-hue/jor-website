@@ -8,6 +8,7 @@ import ShareButton from '@/components/ShareButton';
 import SaveButton from '@/components/SaveButton';
 import ProfileName from '@/components/ProfileName';
 import ProfileAvatar from '@/components/ProfileAvatar';
+import AdWidget from '@/components/AdWidget';
 
 // Bios are often written in third person and frequently open with the
 // person's actual name ("Muhammad Zaid is a 25-year-old...") — this strips
@@ -271,6 +272,8 @@ export default async function ProposalDetailPage({ params }: Props) {
               </div>
             </div>
           </div>
+
+          <AdWidget />
         </div>
       </div>
 
