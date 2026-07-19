@@ -30,7 +30,7 @@ export default function TermsPage() {
           </div>
         </div>
         <h1 style={{ fontSize: 28, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Terms of Service</h1>
-        <p style={{ fontSize: 14, color: '#6B6893' }}>Last updated: January 2026</p>
+        <p style={{ fontSize: 14, color: '#6B6893' }}>Last updated: July 2026</p>
       </div>
 
       <div style={{ background: '#F9F8FF', border: '1px solid #E8E6F5', borderRadius: 14, padding: '16px 20px', marginBottom: 32, fontSize: 14, color: '#534AB7', lineHeight: 1.7 }}>
@@ -89,6 +89,19 @@ export default function TermsPage() {
           <li style={{ marginBottom: 6 }}>Scraping, copying, or reproducing platform content without permission.</li>
           <li style={{ marginBottom: 6 }}>Any form of harassment, abuse, or inappropriate communication.</li>
         </ul>
+        <p style={{ marginTop: 14, fontWeight: 600 }}>
+          Child Safety: Jor has zero tolerance for child sexual abuse and exploitation (CSAE) in any form.
+        </p>
+        <p style={{ marginTop: 8 }}>
+          Any content or account depicting, promoting, or facilitating CSAE will be removed immediately upon
+          discovery and reported to the National Center for Missing &amp; Exploited Children (NCMEC) and/or
+          relevant Pakistani authorities, as applicable. Users found engaging in such conduct will be
+          permanently banned and may be reported to law enforcement. If you become aware of any content or
+          user violating this policy, please{' '}
+          <a href="https://wa.me/923287654333" target="_blank" rel="noopener noreferrer">
+            contact us immediately via WhatsApp
+          </a>.
+        </p>
       </Section>
 
       <Section title="7. Disclaimer of Warranties">
