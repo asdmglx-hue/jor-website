@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { submitProposal, supabase } from '@/lib/supabase';
+import { trackEvent } from '@/lib/analytics';
 import PasswordInput from '@/components/PasswordInput';
 import { compressImage } from '@/lib/compressImage';
 
@@ -1082,6 +1083,7 @@ export default function SubmitClient() {
       localStorage.removeItem(DRAFT_KEY);
       localStorage.removeItem(STEP_KEY);
       setSubmitted(true);
+      trackEvent('register_complete');
     } else setError(apiErr || 'Something went wrong. Please try again.');
   };
 

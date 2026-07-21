@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { compressImage } from '@/lib/compressImage';
 import { supabase, isFeaturedSlotAvailable } from '@/lib/supabase';
+import { trackEvent } from '@/lib/analytics';
 import { CITIES } from '@/lib/constants';
 
 const MAX_FEATURED_SLOTS = 5;
@@ -231,6 +232,8 @@ export default function PaymentProofModal({
 
       const text = `Hello Admin,\n\nMy CNIC: ${cnic}\n\nI have completed the payment and attached the receipt. Kindly verify my payment.${selectionsText}\n\nPayment Receipt: ${url}`;
       window.open(`https://wa.me/${adminWa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+
+      trackEvent('payment_proof_submitted', { plan_type: isStandard ? 'standard' : 'featured' });
 
       setSubmitting(false);
       onClose();
