@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 // city crossing the "has its own page now" threshold a few minutes late
 // just means one extra visit gets filtered in place instead of redirected
 // — never broken, just briefly not yet upgraded.
-export const revalidate = 300;
+export const revalidate = 0;
 
 export default async function ProposalsPage() {
   const [entries, countries] = await Promise.all([

@@ -17,7 +17,7 @@ import type { Metadata } from 'next';
 // no longer pulls 1000+ rows on every rebuild — less need for a very
 // tight window, and fewer rebuild events means less Cloudflare CPU usage
 // and Supabase egress overall.
-export const revalidate = 300;
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "Jor – Find Your Perfect Rishta in Pakistan",
