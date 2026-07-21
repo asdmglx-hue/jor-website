@@ -313,7 +313,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
           <option value="">Min age</option>
           {AGE_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
-        <span style={{ color: '#B0ADCB', fontSize: 12 }}>–</span>
+        <span style={{ color: '#68629C', fontSize: 12 }}>–</span>
         <select value={filters.maxAge || ''} onChange={e => onChange({ ...filters, maxAge: e.target.value ? +e.target.value : undefined })}
           style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.maxAge ? '#EEEDFE' : '#fff', color: filters.maxAge ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.maxAge ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>
           <option value="">Max age</option>
@@ -338,7 +338,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
           <option value="">Min Height</option>
           {HEIGHT_OPTIONS.map(h => <option key={h.inches} value={h.inches}>{h.label}</option>)}
         </select>
-        <span style={{ color: '#B0ADCB', fontSize: 12 }}>–</span>
+        <span style={{ color: '#68629C', fontSize: 12 }}>–</span>
         <select value={filters.maxHeight || ''} onChange={e => onChange({ ...filters, maxHeight: e.target.value ? +e.target.value : undefined })}
           style={{ flex: 1, minWidth: 0, padding: '8px 10px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.maxHeight ? '#EEEDFE' : '#fff', color: filters.maxHeight ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.maxHeight ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>
           <option value="">Max Height</option>
@@ -354,7 +354,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
 
   const searchBox = (
     <div style={{ position: 'relative' }}>
-      <svg style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B0ADCB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <svg style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" placeholder="Search by name, city, profession..." value={filters.search || ''} onChange={e => set('search', e.target.value)}
         style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 12, border: '1.5px solid #E8E6F5', fontSize: 14, outline: 'none', background: '#FAF9FF', color: '#1A1830' }} />
     </div>

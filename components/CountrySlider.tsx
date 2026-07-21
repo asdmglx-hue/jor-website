@@ -188,7 +188,7 @@ export default function CountrySlider({ countries }: { countries: { country: str
                 />
               )}
               {item.country}
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#B0ADCB' }}>{item.count}</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#68629C' }}>{item.count}</span>
             </Link>
           );
         })}

@@ -66,7 +66,7 @@ export default function AdWidget({ placement = 'profile_sidebar' }: { placement?
       {/* Small, honest "Advertisement" label — standard practice on every
           major site, so a visitor never mistakes paid content for an
           organic part of the page. */}
-      <div style={{ padding: '10px 16px 0', fontSize: 10, fontWeight: 700, color: '#B0ADCB', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      <div style={{ padding: '10px 16px 0', fontSize: 10, fontWeight: 700, color: '#68629C', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         Advertisement
       </div>
       {/* rel="sponsored" — the correct, standard signal to search engines

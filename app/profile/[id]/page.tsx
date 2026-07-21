@@ -135,7 +135,7 @@ export default async function ProposalDetailPage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profilePageJsonLd) }} />
       {/* Breadcrumb */}
-      <div style={{ fontSize: 13, color: '#B0ADCB', marginBottom: 20 }}>
+      <div style={{ fontSize: 13, color: '#68629C', marginBottom: 20 }}>
         <Link href="/" style={{ color: '#534AB7', textDecoration: 'none' }}>Home</Link>
         {' › '}
         <Link href="/proposals" style={{ color: '#534AB7', textDecoration: 'none' }}>Proposals</Link>
@@ -254,17 +254,17 @@ export default async function ProposalDetailPage({ params }: Props) {
 
             <ContactButtons phone={p.contact_phone} phone2={p.contact_phone_2} />
 
-            <div style={{ fontSize: 11, color: '#B0ADCB', textAlign: 'center', lineHeight: 1.6 }}>
+            <div style={{ fontSize: 11, color: '#68629C', textAlign: 'center', lineHeight: 1.6 }}>
               Contact the family directly.<br />No middlemen, no hidden charges.
             </div>
 
             <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <div style={{ fontSize: 12, color: '#B0ADCB', marginBottom: 8 }}>Posted</div>
+                <div style={{ fontSize: 12, color: '#68629C', marginBottom: 8 }}>Posted</div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: '#6B6893' }}>
                   {new Date(p.posted_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </div>
-                <div style={{ fontSize: 12, color: '#B0ADCB', marginTop: 4 }}>Proposal #{p.proposal_number}</div>
+                <div style={{ fontSize: 12, color: '#68629C', marginTop: 4 }}>Proposal #{p.proposal_number}</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                 <SaveButton proposalId={p.id} />

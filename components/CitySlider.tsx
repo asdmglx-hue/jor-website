@@ -135,7 +135,7 @@ export default function CitySlider({ cities }: { cities: { city: string; count: 
           >
             <img src="https://flagcdn.com/20x15/pk.png" width="20" height="15" alt="Pakistan" draggable={false} style={{ borderRadius: 2, objectFit: 'cover' }} />
             {item.city}
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#B0ADCB' }}>{item.count}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#68629C' }}>{item.count}</span>
           </Link>
         ))}
       </div>

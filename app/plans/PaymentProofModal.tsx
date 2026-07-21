@@ -35,11 +35,11 @@ function CitySelect({ value, onChange }: { value: string; onChange: (v: string) 
         style={{
           padding: '10px 12px', borderRadius: 10, border: '1px solid #E8E6F5',
           background: '#F8F7FF', fontSize: 12.5, cursor: 'pointer',
-          color: value ? '#1A1830' : '#B0ADCB', fontWeight: value ? 600 : 400,
+          color: value ? '#1A1830' : '#68629C', fontWeight: value ? 600 : 400,
           display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B0ADCB" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         {value || 'Select city'}
       </div>
       {open && (
@@ -57,7 +57,7 @@ function CitySelect({ value, onChange }: { value: string; onChange: (v: string) 
           />
           <div style={{ maxHeight: 220, overflowY: 'auto' }}>
             {filtered.length === 0 && (
-              <div style={{ padding: '10px 12px', fontSize: 12, color: '#B0ADCB' }}>No matching cities</div>
+              <div style={{ padding: '10px 12px', fontSize: 12, color: '#68629C' }}>No matching cities</div>
             )}
             {filtered.map(city => (
               <div key={city} onClick={() => { onChange(city); setOpen(false); setQuery(''); }}
@@ -283,7 +283,7 @@ export default function PaymentProofModal({
             <div style={{ border: `2px dashed ${receipt ? '#534AB7' : '#E8E6F5'}`, borderRadius: 12, background: receipt ? '#EEEDFE' : '#FAFAFA', overflow: 'hidden', height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
               {receiptPreview
                 ? <img src={receiptPreview} alt="Payment receipt" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <div style={{ textAlign: 'center', color: '#B0ADCB' }}>
+                : <div style={{ textAlign: 'center', color: '#68629C' }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 6px' }}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="7" cy="13" r="1"/></svg>
                     <div style={{ fontSize: 12.5, fontWeight: 600 }}>Tap to upload receipt</div>
                   </div>
@@ -307,7 +307,7 @@ export default function PaymentProofModal({
             {slots.map((slot, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#B0ADCB', marginBottom: 4 }}>Date {i + 1}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#68629C', marginBottom: 4 }}>Date {i + 1}</div>
                   <input
                     type="date"
                     value={slot.date}
@@ -318,12 +318,12 @@ export default function PaymentProofModal({
                   />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#B0ADCB', marginBottom: 4 }}>City {i + 1}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#68629C', marginBottom: 4 }}>City {i + 1}</div>
                   <CitySelect value={slot.city} onChange={v => updateSlot(i, { city: v })} />
                 </div>
                 {slots.length > 1 && (
                   <button type="button" onClick={() => removeSlot(i)} aria-label="Remove"
-                    style={{ marginTop: 22, background: 'none', border: 'none', cursor: 'pointer', color: '#B0ADCB', fontSize: 16, lineHeight: 1, padding: 4 }}>
+                    style={{ marginTop: 22, background: 'none', border: 'none', cursor: 'pointer', color: '#68629C', fontSize: 16, lineHeight: 1, padding: 4 }}>
                     ✕
                   </button>
                 )}
@@ -352,7 +352,7 @@ export default function PaymentProofModal({
 
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <button onClick={handleSubmit} disabled={submitting || slots.some(s => s.checking)}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px', borderRadius: 12, border: 'none', background: (submitting || slots.some(s => s.checking)) ? '#B0ADCB' : '#534AB7', color: '#fff', fontWeight: 700, fontSize: 14, cursor: (submitting || slots.some(s => s.checking)) ? 'default' : 'pointer' }}>
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px', borderRadius: 12, border: 'none', background: (submitting || slots.some(s => s.checking)) ? '#68629C' : '#534AB7', color: '#fff', fontWeight: 700, fontSize: 14, cursor: (submitting || slots.some(s => s.checking)) ? 'default' : 'pointer' }}>
             {submitting ? 'Sending…' : (slots.some(s => s.checking) ? 'Checking availability…' : 'Send')}
           </button>
           <button onClick={onClose} disabled={submitting}

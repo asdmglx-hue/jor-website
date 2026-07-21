@@ -162,7 +162,7 @@ export default async function StoriesPage() {
                       <div className="testi-monogram" style={{ background: tone.bg, color: tone.fg }}>{story.initials}</div>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 800, color: '#1A1830' }}>{story.names}</div>
-                        <div style={{ fontSize: 12, color: '#B0ADCB' }}>{story.city}</div>
+                        <div style={{ fontSize: 12, color: '#68629C' }}>{story.city}</div>
                       </div>
                     </div>
                     <p style={{
@@ -184,7 +184,7 @@ export default async function StoriesPage() {
         {stories.length > 2 && <div className="testi-scroll-fade" aria-hidden="true" />}
       </section>
 
-      <p style={{ textAlign: 'center', fontSize: 12, color: '#B0ADCB', maxWidth: 480, margin: '8px auto 64px', padding: '0 20px', lineHeight: 1.6 }}>
+      <p style={{ textAlign: 'center', fontSize: 12, color: '#68629C', maxWidth: 480, margin: '8px auto 64px', padding: '0 20px', lineHeight: 1.6 }}>
         Names and identifying details are shortened or changed at our members&apos; request.
       </p>
 

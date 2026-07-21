@@ -57,7 +57,7 @@ function PlanCard({ plan, selected, onSelect }: {
       ))}
       {plan.note && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: '#6B6893', marginTop: 8, fontStyle: 'italic' }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B0ADCB" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           {plan.note}
         </div>
       )}

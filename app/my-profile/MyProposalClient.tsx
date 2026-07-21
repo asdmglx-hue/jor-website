@@ -37,7 +37,7 @@ function InfoPopover({ text }: { text: string }) {
   return (
     <span style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle', marginLeft: 6 }}>
       <button type="button" onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
-        style={{ width: 15, height: 15, borderRadius: '50%', border: '1px solid #B0ADCB', background: '#fff', color: '#6B6893', fontSize: 10, fontWeight: 700, lineHeight: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+        style={{ width: 15, height: 15, borderRadius: '50%', border: '1px solid #68629C', background: '#fff', color: '#6B6893', fontSize: 10, fontWeight: 700, lineHeight: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
         aria-label="More info">i</button>
       {open && (
         <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 20, left: 0, zIndex: 30, width: 220, background: '#40359F', color: '#fff', fontSize: 11.5, fontWeight: 500, lineHeight: 1.5, textTransform: 'none', letterSpacing: 'normal', borderRadius: 10, padding: '10px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
@@ -184,7 +184,7 @@ function SearchableSelect({ value, options, onChange, placeholder = '— Select 
     if (grouped && !search) {
       return Object.entries(grouped).map(([group, items]) => (
         <div key={group}>
-          <div style={{ padding: '6px 14px 4px', fontSize: 10, fontWeight: 800, color: '#B0ADCB', textTransform: 'uppercase', letterSpacing: 0.8 }}>{group}</div>
+          <div style={{ padding: '6px 14px 4px', fontSize: 10, fontWeight: 800, color: '#68629C', textTransform: 'uppercase', letterSpacing: 0.8 }}>{group}</div>
           {items.map(o => (
             <div key={o} onClick={() => { onChange(o); setOpen(false); setSearch(''); }}
               style={{ padding: '8px 14px 8px 20px', fontSize: 13, cursor: 'pointer', color: o === value ? '#534AB7' : '#1A1830', fontWeight: o === value ? 700 : 400, background: o === value ? '#EEEDFE' : 'transparent' }}
@@ -197,7 +197,7 @@ function SearchableSelect({ value, options, onChange, placeholder = '— Select 
       ));
     }
     const filtered = options.filter(o => o.toLowerCase().includes(search.toLowerCase()));
-    if (filtered.length === 0) return <div style={{ padding: '10px 14px', fontSize: 13, color: '#B0ADCB' }}>No results</div>;
+    if (filtered.length === 0) return <div style={{ padding: '10px 14px', fontSize: 13, color: '#68629C' }}>No results</div>;
     return filtered.map(o => (
       <div key={o} onClick={() => { onChange(o); setOpen(false); setSearch(''); }}
         style={{ padding: '9px 14px', fontSize: 13, cursor: 'pointer', color: o === value ? '#534AB7' : '#1A1830', fontWeight: o === value ? 700 : 400, background: o === value ? '#EEEDFE' : 'transparent' }}
@@ -211,8 +211,8 @@ function SearchableSelect({ value, options, onChange, placeholder = '— Select 
   return (
     <div ref={ref} style={{ position: 'relative', width: '100%' }}>
       <div onClick={() => setOpen(!open)} style={{ padding: '9px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', fontSize: 14, background: '#fff', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box' as const }}>
-        <span style={{ color: value ? '#1A1830' : '#B0ADCB' }}>{value || placeholder}</span>
-        <span style={{ color: '#B0ADCB', fontSize: 10 }}>{open ? '▲' : '▼'}</span>
+        <span style={{ color: value ? '#1A1830' : '#68629C' }}>{value || placeholder}</span>
+        <span style={{ color: '#68629C', fontSize: 10 }}>{open ? '▲' : '▼'}</span>
       </div>
       {open && (
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #E8E6F5', borderRadius: 10, zIndex: 100, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', maxHeight: 280, display: 'flex', flexDirection: 'column' }}>
@@ -431,7 +431,7 @@ export default function MyProposalClient() {
     setInlineSaving(false);
   };
 
-  if (!user) return <div style={{ textAlign: 'center', padding: 60, color: '#B0ADCB' }}>Loading...</div>;
+  if (!user) return <div style={{ textAlign: 'center', padding: 60, color: '#68629C' }}>Loading...</div>;
 
   const isActive = isSubscriptionActive(user);
   // Broadened to also cover Removed — same reasoning as Rejected: shown
@@ -691,7 +691,7 @@ export default function MyProposalClient() {
 
             const emptyPill = (key: string) => (
               fieldDisabled(key) ? (
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#B0ADCB' }}>Not set</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#68629C' }}>Not set</span>
               ) : (
                 <span onClick={() => { setInlineKey(key); setInlineVal(''); }}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#534AB7', background: '#EEEDFE', border: '1px dashed #C4C2D8', borderRadius: 20, padding: '3px 10px', cursor: 'pointer', marginTop: 2 }}>
@@ -700,12 +700,12 @@ export default function MyProposalClient() {
               )
             );
             const lockIcon = (
-              <svg style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 5, position: 'relative', top: -1 }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#B0ADCB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 5, position: 'relative', top: -1 }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
               </svg>
             );
             const lbl = (label: string, extra?: React.ReactNode) => (
-              <label style={{ fontSize: 11, fontWeight: 700, color: '#B0ADCB', display: 'block', marginBottom: 4, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>{label}{extra}</label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#68629C', display: 'block', marginBottom: 4, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>{label}{extra}</label>
             );
             const pencil = (
               <svg className="edit-icon" style={{ opacity: 0, transition: 'opacity 0.15s', flexShrink: 0 }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -858,7 +858,7 @@ export default function MyProposalClient() {
                       <textarea value={inlineVal} onChange={e => setInlineVal(e.target.value.slice(0,200))} rows={3} maxLength={200}
                         style={{ ...fieldStyle, resize: 'vertical' as const }}
                         ref={el => { if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }} />
-                      <div style={{ fontSize: 11, color: '#B0ADCB', marginBottom: 4, textAlign: 'right' as const }}>{inlineVal.length}/200</div>
+                      <div style={{ fontSize: 11, color: '#68629C', marginBottom: 4, textAlign: 'right' as const }}>{inlineVal.length}/200</div>
                       {inlineButtons(fieldKey, inlineVal)}
                     </>
                   ) : val ? (
@@ -994,7 +994,7 @@ export default function MyProposalClient() {
                             <textarea value={inlineVal} onChange={e => setInlineVal(e.target.value.slice(0,30))} rows={2} maxLength={30}
                               style={{ width: '100%', padding: '9px 12px', borderRadius: 10, border: '1.5px solid #534AB7', fontSize: 14, outline: 'none', boxSizing: 'border-box' as const, resize: 'vertical' as const }}
                               ref={el => { if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }} />
-                            <div style={{ fontSize: 11, color: inlineVal.length === 30 ? '#E11D48' : '#B0ADCB', textAlign: 'right' as const, marginBottom: 4 }}>{inlineVal.length}/30</div>
+                            <div style={{ fontSize: 11, color: inlineVal.length === 30 ? '#E11D48' : '#68629C', textAlign: 'right' as const, marginBottom: 4 }}>{inlineVal.length}/30</div>
                             {inlineButtons('disability_details', inlineVal)}
                           </>
                         ) : val ? (
@@ -1061,7 +1061,7 @@ export default function MyProposalClient() {
       {tab === 'saved' && (
         <div>
           {loadingSaved ? (
-            <div style={{ textAlign: 'center', padding: 40, color: '#B0ADCB' }}>Loading...</div>
+            <div style={{ textAlign: 'center', padding: 40, color: '#68629C' }}>Loading...</div>
           ) : savedProposals.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 0' }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: '#6B6893', marginBottom: 8 }}>No saved proposals yet</div>
@@ -1115,7 +1115,7 @@ export default function MyProposalClient() {
                           placeholder="Please describe your reason..."
                           style={{ width: '100%', padding: '12px 12px 28px', borderRadius: 10, border: '1.5px solid #E8E6F5', fontSize: 12.5, color: '#1A1830', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
                         />
-                        <span style={{ position: 'absolute', bottom: 6, right: 10, fontSize: 10.5, color: deleteOtherReason.length >= 180 ? '#DC2626' : '#B0ADCB' }}>
+                        <span style={{ position: 'absolute', bottom: 6, right: 10, fontSize: 10.5, color: deleteOtherReason.length >= 180 ? '#DC2626' : '#68629C' }}>
                           {deleteOtherReason.length}/200
                         </span>
                       </div>
@@ -1125,7 +1125,7 @@ export default function MyProposalClient() {
                 <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
                   <button onClick={() => setDeleteStep(null)} style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Cancel</button>
                   <button onClick={() => { setDeletePassword(''); setDeleteError(''); setDeleteStep('password'); }} disabled={!deleteReason || (deleteReason === 'Other' && !deleteOtherReason.trim())}
-                    style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: (deleteReason && !(deleteReason === 'Other' && !deleteOtherReason.trim())) ? '#DC2626' : '#F5F5F5', color: (deleteReason && !(deleteReason === 'Other' && !deleteOtherReason.trim())) ? '#fff' : '#B0ADCB', fontWeight: 800, fontSize: 14, cursor: (deleteReason && !(deleteReason === 'Other' && !deleteOtherReason.trim())) ? 'pointer' : 'not-allowed' }}>
+                    style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: (deleteReason && !(deleteReason === 'Other' && !deleteOtherReason.trim())) ? '#DC2626' : '#F5F5F5', color: (deleteReason && !(deleteReason === 'Other' && !deleteOtherReason.trim())) ? '#fff' : '#68629C', fontWeight: 800, fontSize: 14, cursor: (deleteReason && !(deleteReason === 'Other' && !deleteOtherReason.trim())) ? 'pointer' : 'not-allowed' }}>
                     Continue
                   </button>
                 </div>
@@ -1196,7 +1196,7 @@ export default function MyProposalClient() {
                     if (ok) { clearSession(); router.push('/'); }
                     else { setDeleteError('Failed to delete. Please try again.'); }
                   }}
-                    style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: deletePassword && !deleting ? '#DC2626' : '#F5F5F5', color: deletePassword && !deleting ? '#fff' : '#B0ADCB', fontWeight: 800, fontSize: 14, cursor: deletePassword && !deleting ? 'pointer' : 'not-allowed' }}>
+                    style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: deletePassword && !deleting ? '#DC2626' : '#F5F5F5', color: deletePassword && !deleting ? '#fff' : '#68629C', fontWeight: 800, fontSize: 14, cursor: deletePassword && !deleting ? 'pointer' : 'not-allowed' }}>
                     {deleting ? 'Deleting…' : (isAdminAccount ? 'Delete Admin Account' : 'Delete My Profile')}
                   </button>
                 </div>
@@ -1229,10 +1229,10 @@ export default function MyProposalClient() {
             </div>
             <div style={{ padding: '14px 20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B0ADCB" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 <input type="range" min={1} max={3} step={0.01} value={zoom} onChange={e => setZoom(Number(e.target.value))}
                   style={{ flex: 1, accentColor: '#534AB7' }} />
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B0ADCB" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => setCropSrc(null)} style={{ flex: 1, padding: '10px', borderRadius: 12, border: '1px solid #ffffff33', background: 'transparent', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Cancel</button>

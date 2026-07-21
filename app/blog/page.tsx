@@ -75,7 +75,7 @@ export default async function BlogIndexPage() {
 
       <section style={{ maxWidth: 1100, margin: '32px auto 0', padding: '0 20px' }}>
         {posts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#B0ADCB' }}>
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#68629C' }}>
             <p style={{ fontSize: 14 }}>No posts published yet — check back soon.</p>
           </div>
         ) : (
@@ -111,7 +111,7 @@ export default async function BlogIndexPage() {
                   )}
                   <h2 style={{ fontSize: 16.5, fontWeight: 800, color: '#1A1830', lineHeight: 1.35, margin: '0 0 8px' }}>{post.title}</h2>
                   <p className="line-clamp-2" style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.55, margin: '0 0 14px', flex: 1 }}>{post.excerpt}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#B0ADCB' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#68629C' }}>
                     <time dateTime={post.published_at}>{formatDate(post.published_at)}</time>
                     <span>·</span>
                     <span>{post.read_time_minutes} min read</span>

@@ -324,7 +324,7 @@ function InfoPopover({ text }: { text: string }) {
   return (
     <span style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle', marginLeft: 6 }}>
       <button type="button" onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
-        style={{ width: 16, height: 16, borderRadius: '50%', border: '1px solid #B0ADCB', background: '#fff', color: '#6B6893', fontSize: 10.5, fontWeight: 700, lineHeight: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+        style={{ width: 16, height: 16, borderRadius: '50%', border: '1px solid #68629C', background: '#fff', color: '#6B6893', fontSize: 10.5, fontWeight: 700, lineHeight: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
         aria-label="More info">i</button>
       {open && (
         <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 22, left: 0, zIndex: 30, width: 230, background: '#40359F', color: '#fff', fontSize: 12, fontWeight: 500, lineHeight: 1.5, textTransform: 'none', letterSpacing: 'normal', borderRadius: 10, padding: '10px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
@@ -338,7 +338,7 @@ function InfoPopover({ text }: { text: string }) {
 function SecHeader({ title }: { title: string }) {
   return (
     <div style={{ marginTop: 28, marginBottom: 12 }}>
-      <div style={{ fontSize: 11, fontWeight: 800, color: '#B0ADCB', letterSpacing: 1 }}>{title}</div>
+      <div style={{ fontSize: 11, fontWeight: 800, color: '#68629C', letterSpacing: 1 }}>{title}</div>
       <div style={{ height: 1, background: '#E8E6F5', marginTop: 6 }} />
     </div>
   );
@@ -454,7 +454,7 @@ function SearchableSelect({ value, onChange, groups, placeholder, hasError }: { 
       {open && (
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: '#fff', border: '1.5px solid #E8E6F5', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', marginTop: 4, overflow: 'hidden' }}>
           <div style={{ padding: '8px 10px', borderBottom: '1px solid #E8E6F5', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B0ADCB" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input
               autoFocus
               value={query}
@@ -465,7 +465,7 @@ function SearchableSelect({ value, onChange, groups, placeholder, hasError }: { 
           </div>
           <div style={{ maxHeight: 220, overflowY: 'auto' }}>
             {value && (
-              <div onClick={() => { onChange(''); setOpen(false); }} style={{ padding: '8px 12px', fontSize: 13, color: '#B0ADCB', cursor: 'pointer' }}>
+              <div onClick={() => { onChange(''); setOpen(false); }} style={{ padding: '8px 12px', fontSize: 13, color: '#68629C', cursor: 'pointer' }}>
                 Clear selection
               </div>
             )}
@@ -480,7 +480,7 @@ function SearchableSelect({ value, onChange, groups, placeholder, hasError }: { 
               ))
               : Object.entries(groups).map(([group, items]) => (
                 <div key={group}>
-                  {Object.keys(groups).length > 1 && <div style={{ padding: '6px 12px 2px', fontSize: 10, fontWeight: 800, color: '#B0ADCB', letterSpacing: 0.8, background: '#FAFAFA' }}>{group.toUpperCase()}</div>}
+                  {Object.keys(groups).length > 1 && <div style={{ padding: '6px 12px 2px', fontSize: 10, fontWeight: 800, color: '#68629C', letterSpacing: 0.8, background: '#FAFAFA' }}>{group.toUpperCase()}</div>}
                   {items.map(item => (
                     <div key={`${group}-${item}`} onClick={() => { onChange(item); setOpen(false); setQuery(''); }}
                       style={{ padding: '8px 12px 8px 16px', fontSize: 13, cursor: 'pointer', color: item === value ? '#534AB7' : '#1A1830', fontWeight: item === value ? 700 : 400, background: item === value ? '#EEEDFE' : 'transparent' }}
@@ -672,7 +672,7 @@ function PhoneInput({ value, onChange, dialCode, onDialChange, required, hasErro
         {open && (
           <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 200, background: '#fff', border: '1.5px solid #E8E6F5', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', marginTop: 4, width: 240, overflow: 'hidden' }}>
             <div style={{ padding: '8px 10px', borderBottom: '1px solid #E8E6F5', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B0ADCB" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Search country..." style={{ border: 'none', outline: 'none', fontSize: 13, color: '#1A1830', width: '100%', background: 'transparent' }} />
             </div>
             <div style={{ maxHeight: 220, overflowY: 'auto' }}>
@@ -683,7 +683,7 @@ function PhoneInput({ value, onChange, dialCode, onDialChange, required, hasErro
                   onMouseLeave={e => { if (d.code !== dialCode) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
                   <img src={`https://flagcdn.com/20x15/${flagToISO(d.flag)}.png`} width={20} height={15} alt="" style={{ borderRadius: 2, flexShrink: 0 }} />
                   <span style={{ flex: 1 }}>{d.name}</span>
-                  <span style={{ color: '#B0ADCB', fontSize: 12 }}>{d.code}</span>
+                  <span style={{ color: '#68629C', fontSize: 12 }}>{d.code}</span>
                 </div>
               ))}
             </div>
@@ -1153,8 +1153,8 @@ export default function SubmitClient() {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}>
               <div style={{ height: 4, borderRadius: 4, background: i + 1 <= step ? '#534AB7' : '#E8E6F5', marginBottom: 6 }} />
-              <span className="step-label-desktop" style={{ fontSize: 10, fontWeight: 700, color: i + 1 <= step ? '#534AB7' : '#B0ADCB', textDecoration: reachable ? 'underline' : 'none' }}>{s}</span>
-              <span className="step-label-mobile" style={{ fontSize: 10, fontWeight: 700, color: i + 1 <= step ? '#534AB7' : '#B0ADCB', textDecoration: reachable ? 'underline' : 'none' }}>{stepsMobile[i]}</span>
+              <span className="step-label-desktop" style={{ fontSize: 10, fontWeight: 700, color: i + 1 <= step ? '#534AB7' : '#68629C', textDecoration: reachable ? 'underline' : 'none' }}>{s}</span>
+              <span className="step-label-mobile" style={{ fontSize: 10, fontWeight: 700, color: i + 1 <= step ? '#534AB7' : '#68629C', textDecoration: reachable ? 'underline' : 'none' }}>{stepsMobile[i]}</span>
             </div>
           );
         })}
@@ -1171,7 +1171,7 @@ export default function SubmitClient() {
               </div>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Account Setup</div>
-                <div style={{ fontSize: 12, color: '#B0ADCB' }}>You'll use these to login later</div>
+                <div style={{ fontSize: 12, color: '#68629C' }}>You'll use these to login later</div>
               </div>
             </div>
 
@@ -1211,7 +1211,7 @@ export default function SubmitClient() {
               </div>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Basic Information</div>
-                <div style={{ fontSize: 12, color: '#B0ADCB' }}>Fields marked with * are required</div>
+                <div style={{ fontSize: 12, color: '#68629C' }}>Fields marked with * are required</div>
               </div>
             </div>
 
@@ -1225,7 +1225,7 @@ export default function SubmitClient() {
                   <div style={{ width: 80, height: 80, borderRadius: 40, border: `2px dashed ${errorField === 'profilePhoto' ? '#DC2626' : profilePhoto ? '#534AB7' : '#E8E6F5'}`, background: profilePhoto ? '#EEEDFE' : errorField === 'profilePhoto' ? '#FEF2F2' : '#FAFAFA', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                     {profilePhotoPreview
                       ? <img src={profilePhotoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B0ADCB" strokeWidth="1.5" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      : <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="1.5" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     }
                     {compressingProfilePhoto && (
                       <div style={{ position: 'absolute', inset: 0, background: 'rgba(83,74,183,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1237,7 +1237,7 @@ export default function SubmitClient() {
                     <div style={{ fontSize: 13, fontWeight: 700, color: profilePhoto ? '#534AB7' : '#1A1830' }}>
                       {compressingProfilePhoto ? 'Processing photo…' : profilePhoto ? '✓ ' + profilePhoto.name : 'Upload Profile Photo'}
                     </div>
-                    <div style={{ fontSize: 12, color: '#B0ADCB', marginTop: 3 }}>Clear face photo · JPG or PNG</div>
+                    <div style={{ fontSize: 12, color: '#68629C', marginTop: 3 }}>Clear face photo · JPG or PNG</div>
                     <div style={{ marginTop: 8, display: 'inline-block', padding: '5px 14px', borderRadius: 8, background: '#EEEDFE', fontSize: 12, fontWeight: 700, color: '#534AB7' }}>
                       {profilePhoto ? 'Change Photo' : 'Choose Photo'}
                     </div>
@@ -1392,7 +1392,7 @@ export default function SubmitClient() {
                 </div>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Additional Information</div>
-                  <div style={{ fontSize: 12, color: '#B0ADCB' }}>All fields below are optional</div>
+                  <div style={{ fontSize: 12, color: '#68629C' }}>All fields below are optional</div>
                 </div>
               </div>
               <button onClick={skip} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
@@ -1517,7 +1517,7 @@ export default function SubmitClient() {
               <SubSection>
                 <Field label="Brief Details (optional)">
                   <input value={form.disability_details} onChange={e => set('disability_details', e.target.value.slice(0, 30))} maxLength={30} style={inp} placeholder="e.g. Diabetes, managed well..." />
-                  <div style={{ textAlign: 'right', fontSize: 11, color: form.disability_details.length === 30 ? '#E11D48' : '#B0ADCB', marginTop: 4 }}>
+                  <div style={{ textAlign: 'right', fontSize: 11, color: form.disability_details.length === 30 ? '#E11D48' : '#68629C', marginTop: 4 }}>
                     {form.disability_details.length}/30
                   </div>
                 </Field>
@@ -1541,7 +1541,7 @@ export default function SubmitClient() {
               </div>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Verification</div>
-                <div style={{ fontSize: 12, color: '#B0ADCB' }}>Your CNIC remains private and fully secured</div>
+                <div style={{ fontSize: 12, color: '#68629C' }}>Your CNIC remains private and fully secured</div>
               </div>
             </div>
 
@@ -1562,7 +1562,7 @@ export default function SubmitClient() {
                 <div style={{ border: `2px dashed ${cnicFront ? '#534AB7' : errorField === 'cnicFront' ? '#DC2626' : '#E8E6F5'}`, borderRadius: 12, background: cnicFront ? '#EEEDFE' : errorField === 'cnicFront' ? '#FEF2F2' : '#FAFAFA', overflow: 'hidden', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                   {cnicFrontPreview
                     ? <img src={cnicFrontPreview} alt="CNIC Front" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <div style={{ textAlign: 'center', color: '#B0ADCB' }}>
+                    : <div style={{ textAlign: 'center', color: '#68629C' }}>
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 8px' }}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="7" cy="13" r="1"/></svg>
                         <div style={{ fontSize: 13, fontWeight: 600 }}>Tap to upload CNIC Front</div>
                         <div style={{ fontSize: 11, marginTop: 2 }}>JPG, PNG supported</div>
@@ -1594,7 +1594,7 @@ export default function SubmitClient() {
                 <div style={{ border: `2px dashed ${cnicBack ? '#534AB7' : errorField === 'cnicBack' ? '#DC2626' : '#E8E6F5'}`, borderRadius: 12, background: cnicBack ? '#EEEDFE' : errorField === 'cnicBack' ? '#FEF2F2' : '#FAFAFA', overflow: 'hidden', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                   {cnicBackPreview
                     ? <img src={cnicBackPreview} alt="CNIC Back" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <div style={{ textAlign: 'center', color: '#B0ADCB' }}>
+                    : <div style={{ textAlign: 'center', color: '#68629C' }}>
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 8px' }}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="7" cy="13" r="1"/></svg>
                         <div style={{ fontSize: 13, fontWeight: 600 }}>Tap to upload CNIC Back</div>
                         <div style={{ fontSize: 11, marginTop: 2 }}>JPG, PNG supported</div>
@@ -1646,7 +1646,7 @@ export default function SubmitClient() {
                 </div>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Review Your Proposal</div>
-                  <div style={{ fontSize: 12, color: '#B0ADCB' }}>Please check everything before submitting</div>
+                  <div style={{ fontSize: 12, color: '#68629C' }}>Please check everything before submitting</div>
                 </div>
               </div>
 
@@ -1764,7 +1764,7 @@ export default function SubmitClient() {
                   <span style={{ fontSize: 12, color: '#9CA3AF' }}>{label}</span>
                   {preview
                     ? <span onClick={() => setViewImg(preview)} style={{ fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'underline', cursor: 'pointer' }}>View</span>
-                    : <span style={{ fontSize: 12, color: '#B0ADCB' }}>Not uploaded</span>
+                    : <span style={{ fontSize: 12, color: '#68629C' }}>Not uploaded</span>
                   }
                 </div>
               ))}

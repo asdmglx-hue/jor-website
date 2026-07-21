@@ -369,12 +369,12 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
       {showSaved && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 280px)', marginBottom: 24 }}>
           {loadingSaved ? (
-            <div style={{ color: '#B0ADCB', textAlign: 'center' }}>Loading...</div>
+            <div style={{ color: '#68629C', textAlign: 'center' }}>Loading...</div>
           ) : savedProposals.length === 0 ? (
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 36, lineHeight: 1, marginBottom: 10 }}>❤️</div>
               <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1A1830', margin: '0 0 8px' }}>Saved Proposals</h2>
-              <div style={{ color: '#B0ADCB', fontSize: 14 }}>No saved proposals yet.</div>
+              <div style={{ color: '#68629C', fontSize: 14 }}>No saved proposals yet.</div>
             </div>
           ) : (
             <div style={{ width: '100%' }}>
@@ -402,7 +402,7 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
       )}
 
       {!showSaved && (loading ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: '#B0ADCB' }}>
+        <div style={{ textAlign: 'center', padding: '60px 0', color: '#68629C' }}>
           <Spinner />
           <div style={{ marginTop: 12 }}>Loading proposals...</div>
         </div>
@@ -410,7 +410,7 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
         <div style={{ textAlign: 'center', padding: '60px 0' }}>
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C4C2D8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto 12px' }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <div style={{ fontSize: 18, fontWeight: 700, color: '#6B6893', marginBottom: 8 }}>No proposals found</div>
-          <div style={{ fontSize: 14, color: '#B0ADCB' }}>Try adjusting your filters</div>
+          <div style={{ fontSize: 14, color: '#68629C' }}>Try adjusting your filters</div>
         </div>
       ) : (
         <>

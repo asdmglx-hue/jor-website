@@ -147,7 +147,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
                 name={p.name}
                 style={{ fontSize: 15, fontWeight: 800, color: '#1A1830' }}
               />
-              <span style={{ fontSize: 11, color: '#B0ADCB', flexShrink: 0, marginLeft: 6 }}>
+              <span style={{ fontSize: 11, color: '#68629C', flexShrink: 0, marginLeft: 6 }}>
                 {new Date(p.posted_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
               </span>
             </div>
@@ -194,10 +194,10 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
             )
           ) : (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F5F5F8', border: '1px dashed #C4C2D8', borderRadius: 20, padding: '6px 12px' }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B0ADCB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
               </svg>
-              <span style={{ fontSize: 12.5, fontWeight: 700, color: '#B0ADCB' }}>Contact Locked</span>
+              <span style={{ fontSize: 12.5, fontWeight: 700, color: '#68629C' }}>Contact Locked</span>
             </div>
           )}
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>

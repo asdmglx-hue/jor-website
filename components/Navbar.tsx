@@ -211,7 +211,7 @@ export default function Navbar() {
                 {passwordSuccess ? 'Close' : 'Cancel'}
               </button>
               <button disabled={passwordSaving} onClick={handleChangePassword}
-                style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: passwordSaving ? '#F5F5F5' : '#534AB7', color: passwordSaving ? '#B0ADCB' : '#fff', fontWeight: 800, fontSize: 14, cursor: passwordSaving ? 'not-allowed' : 'pointer' }}>
+                style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: passwordSaving ? '#F5F5F5' : '#534AB7', color: passwordSaving ? '#68629C' : '#fff', fontWeight: 800, fontSize: 14, cursor: passwordSaving ? 'not-allowed' : 'pointer' }}>
                 {passwordSaving ? 'Saving…' : 'Update Password'}
               </button>
             </div>

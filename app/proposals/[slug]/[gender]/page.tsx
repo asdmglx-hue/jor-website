@@ -86,7 +86,7 @@ export default async function CityGenderPage({ params }: Props) {
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px' }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
-      <div style={{ fontSize: 13, color: '#B0ADCB', marginBottom: 12 }}>
+      <div style={{ fontSize: 13, color: '#68629C', marginBottom: 12 }}>
         <Link href="/" style={{ color: '#534AB7', textDecoration: 'none' }}>Home</Link>
         {' › '}
         <Link href="/proposals" style={{ color: '#534AB7', textDecoration: 'none' }}>Proposals</Link>

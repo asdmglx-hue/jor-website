@@ -208,7 +208,7 @@ export default function LoginClient() {
               <button onClick={() => setShowForgotModal(false)} style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
                 Cancel
               </button>
-              <button onClick={handleForgotSubmit} disabled={forgotUploading || compressingForgotPhoto} style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: (forgotUploading || compressingForgotPhoto) ? '#B0ADCB' : '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, cursor: (forgotUploading || compressingForgotPhoto) ? 'default' : 'pointer' }}>
+              <button onClick={handleForgotSubmit} disabled={forgotUploading || compressingForgotPhoto} style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: (forgotUploading || compressingForgotPhoto) ? '#68629C' : '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, cursor: (forgotUploading || compressingForgotPhoto) ? 'default' : 'pointer' }}>
                 {forgotUploading ? 'Uploading…' : compressingForgotPhoto ? 'Processing…' : 'Submit'}
               </button>
             </div>
