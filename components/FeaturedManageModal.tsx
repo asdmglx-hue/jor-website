@@ -62,9 +62,7 @@ export default function FeaturedManageModal({
 }) {
   const [cancelling, setCancelling] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<{ boost: Boost; isRunning: boolean } | null>(null);
-  const [toast, setToast] = useState<{ text: string; ok: boolean } | null>(null);
-
-  useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 3500); return () => clearTimeout(t); }, [toast]);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!open) return null;
 
@@ -77,15 +75,16 @@ export default function FeaturedManageModal({
     const { boost, isRunning } = confirmTarget;
     setConfirmTarget(null);
     setCancelling(true);
+    setErrorMsg(null);
     try {
       const { data } = await supabase.rpc('cancel_featured_boost', { p_cnic: cnic, p_boost_id: boost.id });
-      if (data?.success) {
-        setToast({ text: data.refunded ? 'Cancelled — 1 credit returned to your balance.' : 'Cancelled — no credit returned for a running post.', ok: true });
-      } else {
-        setToast({ text: data?.error ?? 'Could not cancel. Please try again.', ok: false });
+      // Success needs no message — the boost's row disappearing from the
+      // list (once onChanged refetches below) is confirmation enough.
+      if (!data?.success) {
+        setErrorMsg(data?.error ?? 'Could not cancel. Please try again.');
       }
     } catch (_) {
-      setToast({ text: 'Could not cancel right now. Please try again.', ok: false });
+      setErrorMsg('Could not cancel right now. Please try again.');
     }
     setCancelling(false);
     onChanged();
@@ -127,6 +126,7 @@ export default function FeaturedManageModal({
         <div style={{ padding: 24, overflowY: 'auto' }}>
           <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 6 }}>Manage Featured Posts</div>
           <div style={{ fontSize: 12.5, color: '#6B6893', lineHeight: 1.4, marginBottom: 18 }}>Make your profile stand out and get noticed</div>
+          {errorMsg && <div style={{ marginBottom: 14, fontSize: 12.5, color: '#DC2626', fontWeight: 600 }}>{errorMsg}</div>}
 
           {running.length === 0 && scheduled.length === 0 && (
             <div style={{ textAlign: 'center', padding: '18px 0', fontSize: 13, color: '#9990B8' }}>No running or scheduled featured posts.</div>
@@ -181,16 +181,6 @@ export default function FeaturedManageModal({
               <button onClick={doCancel} style={{ background: 'none', border: 'none', color: '#DC2626', fontWeight: 800, fontSize: 13.5, cursor: 'pointer' }}>Cancel Post</button>
             </div>
           </div>
-        </div>
-      )}
-
-      {toast && (
-        <div style={{
-          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 1300,
-          background: toast.ok ? '#16A34A' : '#DC2626', color: '#fff', padding: '12px 20px', borderRadius: 12,
-          fontSize: 13, fontWeight: 600, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', maxWidth: '90vw',
-        }}>
-          {toast.text}
         </div>
       )}
     </div>
