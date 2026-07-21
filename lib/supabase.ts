@@ -443,14 +443,38 @@ export async function fetchProposalsForCategory(
   limit = 24,
   extra?: { gender?: string }
 ): Promise<Proposal[]> {
+  // Same "boosted for this specific city" inclusion as fetchProposals —
+  // a profile that bought a Featured slot FOR this city should show up
+  // (and float to the top) on that city's dedicated page too, even if
+  // their own registered city differs. Only meaningful for city pages;
+  // caste/sect/profession/country pages don't have a matching concept.
+  let boostedForCityIds: string[] = [];
+  if (dbColumn === 'city') {
+    const now = new Date();
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const { data: activeBoosts } = await supabase
+      .from('featured_boosts')
+      .select('user_id')
+      .eq('city', value)
+      .eq('is_used', false)
+      .lte('scheduled_date', now.toISOString())
+      .gt('scheduled_date', dayAgo.toISOString());
+    boostedForCityIds = (activeBoosts || []).map(b => b.user_id as string);
+  }
+
   let query = supabase
     .from('proposals')
     .select(CARD_COLS)
     .eq('status', 'active')
     .or(notExpiredFilter())
-    .eq(dbColumn, value)
+    .order('is_boosted', { ascending: false })
     .order('posted_at', { ascending: false })
     .limit(limit);
+
+  query = boostedForCityIds.length > 0
+    ? query.or(`${dbColumn}.eq.${value},id.in.(${boostedForCityIds.join(',')})`)
+    : query.eq(dbColumn, value);
+
   if (extra?.gender) query = query.eq('gender', extra.gender);
   const { data, error } = await query;
   if (error || !data) return [];
