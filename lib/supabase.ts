@@ -77,6 +77,8 @@ export type Proposal = {
   subscription_tier: 'none' | 'basic' | 'featured';
   subscription_expiry?: string;
   is_boosted: boolean;
+  featured_credits_purchased?: number;
+  featured_credits_used?: number;
   profile_photo_url?: string;
   posted_at: string;
   updated_at: string;
@@ -155,7 +157,7 @@ const PROFESSION_GROUPS: Record<string, string[]> = {
 // internal tracking fields). This mirrors exactly what the 'anon' role
 // is now granted at the database level, so a query here can never
 // silently start requesting something the database will refuse anyway.
-export const PROFILE_DETAIL_COLS = 'id,proposal_number,name,age,gender,city,country,caste,sect,education,institute,degree_title,degree_title_2,degree_title_3,institute_2,institute_3,profession,employment_type,salary_start,salary_end,monthly_income,height_inches,weight_kg,complexion,marital_status,marriage_number,boys,girls,total_kids,has_kids,practice_level,hijab,beard,open_to_polygamy,father_alive,mother_alive,father_occupation,mother_occupation,sisters,brothers,total_siblings,has_siblings,family_type,home_type,house_size,has_car,car_name,has_generator,has_solar,has_servant,other_property,has_other_property,looking_for,about,languages,smokes,drinks,physically_active,has_disability,disability_details,contact_phone,contact_phone_2,phone_verified,profile_photo_url,posted_at,updated_at,status,subscription_tier,is_boosted,location';
+export const PROFILE_DETAIL_COLS = 'id,proposal_number,name,age,gender,city,country,caste,sect,education,institute,degree_title,degree_title_2,degree_title_3,institute_2,institute_3,profession,employment_type,salary_start,salary_end,monthly_income,height_inches,weight_kg,complexion,marital_status,marriage_number,boys,girls,total_kids,has_kids,practice_level,hijab,beard,open_to_polygamy,father_alive,mother_alive,father_occupation,mother_occupation,sisters,brothers,total_siblings,has_siblings,family_type,home_type,house_size,has_car,car_name,has_generator,has_solar,has_servant,other_property,has_other_property,looking_for,about,languages,smokes,drinks,physically_active,has_disability,disability_details,contact_phone,contact_phone_2,phone_verified,profile_photo_url,posted_at,updated_at,status,subscription_tier,is_boosted,location,featured_credits_purchased,featured_credits_used';
 // so nothing is lost — this just stops sending them on every card, on
 // every browse/category/homepage load, where they were never used.
 export const CARD_COLS ='id,proposal_number,name,age,gender,city,country,profession,caste,sect,marital_status,height_inches,about,looking_for,profile_photo_url,posted_at,subscription_tier,is_boosted,contact_phone,status';
@@ -192,12 +194,21 @@ export function chipDateRange(chip: number): { postedAfter?: string; postedBefor
 }
 
 export async function fetchProposals(filters: FilterState = {}, page = 0, pageSize = 16): Promise<{ proposals: Proposal[]; total: number }> {
+  // The "general proposal screen" is specifically the unfiltered/all-Pakistan
+  // view — no specific city and not the overseas/country view. That's the
+  // only place `is_boosted_in_general_feed` (the admin-capped random subset)
+  // applies; any city/overseas-filtered view keeps ordering by the real
+  // `is_boosted` so every one of that city's genuinely paid boosts shows —
+  // that list is already small thanks to the per-city cap.
+  const isGeneralView = !filters.city && !filters.overseas;
+  const boostColumn = isGeneralView ? 'is_boosted_in_general_feed' : 'is_boosted';
+
   let query = supabase
     .from('proposals')
     .select(CARD_COLS, { count: 'exact' })
     .eq('status', 'active')
     .or(notExpiredFilter())
-    .order('is_boosted', { ascending: false })
+    .order(boostColumn, { ascending: false })
     .order('subscription_tier', { ascending: false })
     .order('posted_at', { ascending: false })
     .range(page * pageSize, (page + 1) * pageSize - 1);

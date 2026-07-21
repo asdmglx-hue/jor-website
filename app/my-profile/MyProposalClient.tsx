@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProposalCard from '@/components/ProposalCard';
 import PasswordInput from '@/components/PasswordInput';
+import FeaturedBookModal from '@/components/FeaturedBookModal';
+import FeaturedManageModal from '@/components/FeaturedManageModal';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 
@@ -235,8 +237,12 @@ export default function MyProposalClient() {
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [loadingSaved, setLoadingSaved] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [featuredBannerDismissed, setFeaturedBannerDismissed] = useState(false);
+  const [featuredBoosts, setFeaturedBoosts] = useState<{ id: string; city: string; scheduled_date: string; is_used: boolean; created_at?: string }[]>([]);
   const [hasFeaturedBoost, setHasFeaturedBoost] = useState(false);
+  const [bookModalOpen, setBookModalOpen] = useState(false);
+  const [manageModalOpen, setManageModalOpen] = useState(false);
+  const [bookingResult, setBookingResult] = useState<{ lines: string[]; allToday: boolean } | null>(null);
+  const refreshFeaturedDataRef = useRef<() => void>(() => {});
   const [isAdminAccount, setIsAdminAccount] = useState(false);
   // Delete modal
   const [deleteStep, setDeleteStep] = useState<'reason' | 'password' | null>(null);
@@ -316,22 +322,32 @@ export default function MyProposalClient() {
           import('@/lib/auth').then(m => m.saveSession(fresh));
         }
       });
-      // Check for active featured boost today
-      const now = new Date();
-      supabase.from('featured_boosts')
-        .select('scheduled_date, is_used')
-        .eq('user_id', session.id)
-        .eq('is_used', false)
-        .then(({ data: boosts }) => {
-          if (boosts) {
-            const active = boosts.some((b: { scheduled_date: string; is_used: boolean }) => {
-              const start = new Date(b.scheduled_date);
-              const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-              return now >= start && now < end;
-            });
-            setHasFeaturedBoost(active);
-          }
-        });
+      // Check for active featured boost today, and keep the full boost
+      // list around for the Manage modal (running + scheduled). Also
+      // refetches the user row so the credit balance (purchased - used)
+      // reflects a just-completed booking or cancellation.
+      const refreshBoosts = () => {
+        const now = new Date();
+        supabase.from('featured_boosts')
+          .select('id, city, scheduled_date, is_used, created_at')
+          .eq('user_id', session.id)
+          .eq('is_used', false)
+          .then(({ data: boosts }) => {
+            if (boosts) {
+              setFeaturedBoosts(boosts);
+              const active = boosts.some((b) => {
+                const start = new Date(b.scheduled_date);
+                const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+                return now >= start && now < end;
+              });
+              setHasFeaturedBoost(active);
+            }
+          });
+        supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle()
+          .then(({ data }) => { if (data) setUser(prev => (prev ? { ...prev, ...data } : (data as Proposal))); });
+      };
+      refreshBoosts();
+      refreshFeaturedDataRef.current = refreshBoosts;
     }
   }, [router]);
 
@@ -604,15 +620,6 @@ export default function MyProposalClient() {
             </div>
           </div>
         );
-        if (label === 'Featured') return (
-          <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#92400E', marginBottom: 2 }}>Featured Profile</div>
-              <div style={{ fontSize: 13, color: '#B45309', lineHeight: 1.5 }}>Your profile is featured and appears at the top of search results.</div>
-            </div>
-          </div>
-        );
         if (label === 'Rejected') return (
           <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
@@ -634,20 +641,86 @@ export default function MyProposalClient() {
         return null;
       })()}
 
-      {/* Featured upsell — active non-featured users only, dismissable per session */}
-      {!isAdminAccount && getStatusLabel(user, hasFeaturedBoost) === 'Active' && !featuredBannerDismissed && (
-        <div style={{ background: 'linear-gradient(135deg, #7C5CFA 0%, #534AB7 100%)', borderRadius: 16, padding: '18px 20px', marginBottom: 20, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: 50, background: 'rgba(255,255,255,0.06)' }} />
-          <div style={{ position: 'absolute', bottom: -30, left: 60, width: 140, height: 140, borderRadius: 70, background: 'rgba(255,255,255,0.04)' }} />
-          <button onClick={() => setFeaturedBannerDismissed(true)} style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 20, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 16, fontWeight: 700 }}>✕</button>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, position: 'relative' }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      {/* Featured upsell / status banner — merged: shows the upsell pitch
+          normally, switches to a featured/amber theme with a running-now
+          message when a boost is actually live. Never dismissible — this
+          is the person's real, current status, not a one-time promo. */}
+      {!isAdminAccount && ['Active', 'Featured'].includes(getStatusLabel(user, hasFeaturedBoost)) && (() => {
+        const available = (user.featured_credits_purchased ?? 0) - (user.featured_credits_used ?? 0);
+        const isRunning = hasFeaturedBoost;
+        const bg = isRunning
+          ? 'linear-gradient(135deg, #F5A623 0%, #E8620A 100%)'
+          : 'linear-gradient(135deg, #7C5CFA 0%, #534AB7 100%)';
+        return (
+          <div style={{ background: bg, borderRadius: 16, padding: '18px 20px', marginBottom: 20, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: 50, background: 'rgba(255,255,255,0.06)' }} />
+            <div style={{ position: 'absolute', bottom: -30, left: 60, width: 140, height: 140, borderRadius: 70, background: 'rgba(255,255,255,0.04)' }} />
+            {/* Credit balance — sits where the dismiss (✕) button used to be */}
+            <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '5px 10px' }}>
+              <span style={{ color: '#fff', fontSize: 11, fontWeight: 800 }}>Featured Credits: {available}</span>
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 4 }}>Upgrade to Featured — Stand Out from the Rest</div>
-              <div style={{ fontSize: 13, color: '#D4D1F7', lineHeight: 1.5, marginBottom: 12 }}>Featured profiles appear at the top of every search, get a gold badge, and receive 5× more views than regular profiles.</div>
-              <Link href="/plans?plan=featured" style={{ display: 'inline-block', padding: '9px 20px', borderRadius: 10, background: '#fff', color: '#534AB7', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>Get Featured →</Link>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, position: 'relative' }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 4 }}>
+                  {isRunning ? 'Your Profile is Featured Right Now' : 'Upgrade to Featured — Stand Out from the Rest'}
+                </div>
+                <div style={{ fontSize: 13, color: isRunning ? '#FFE9D2' : '#D4D1F7', lineHeight: 1.5, marginBottom: 12 }}>
+                  {isRunning
+                    ? 'Your profile is currently boosted to the top of search results with a gold badge. Open Manage to see exactly when it ends.'
+                    : 'Featured profiles appear at the top of every search, get a gold badge, and receive 5× more views than regular profiles.'}
+                </div>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {available > 0 ? (
+                    <button onClick={() => setBookModalOpen(true)} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+                      Schedule Featured Post
+                    </button>
+                  ) : (
+                    <Link href="/plans?plan=featured" style={{ display: 'inline-block', padding: '9px 20px', borderRadius: 10, background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>
+                      Buy Featured Credits
+                    </Link>
+                  )}
+                  <button onClick={() => setManageModalOpen(true)} style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.5)', background: 'transparent', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                    Manage
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      <FeaturedBookModal
+        open={bookModalOpen}
+        onClose={() => setBookModalOpen(false)}
+        cnic={user.cnic || ''}
+        maxSlots={Math.min(3, Math.max(1, (user.featured_credits_purchased ?? 0) - (user.featured_credits_used ?? 0)))}
+        onBooked={() => refreshFeaturedDataRef.current()}
+        onResult={(lines, allToday) => setBookingResult({ lines, allToday })}
+      />
+      <FeaturedManageModal
+        open={manageModalOpen}
+        onClose={() => setManageModalOpen(false)}
+        cnic={user.cnic || ''}
+        boosts={featuredBoosts}
+        onChanged={() => refreshFeaturedDataRef.current()}
+      />
+      {bookingResult && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1250, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={(e) => { if (e.target === e.currentTarget) setBookingResult(null); }}
+        >
+          <div style={{ background: '#fff', borderRadius: 20, maxWidth: 400, width: '100%', padding: 24 }}>
+            <div style={{ fontWeight: 800, fontSize: 16, color: '#1A1830', marginBottom: 14 }}>
+              {bookingResult.allToday ? 'Featured Post Started' : 'Featured Booking Confirmed'}
+            </div>
+            {bookingResult.lines.map((l, i) => (
+              <div key={i} style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.4, marginBottom: 6 }}>{l}</div>
+            ))}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+              <button onClick={() => setBookingResult(null)} style={{ background: 'none', border: 'none', color: '#534AB7', fontWeight: 700, fontSize: 13.5, cursor: 'pointer' }}>OK</button>
             </div>
           </div>
         </div>
