@@ -656,12 +656,12 @@ export default function MyProposalClient() {
             <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: 50, background: 'rgba(255,255,255,0.06)' }} />
             <div style={{ position: 'absolute', bottom: -30, left: 60, width: 140, height: 140, borderRadius: 70, background: 'rgba(255,255,255,0.04)' }} />
             {/* Credit balance — sits where the dismiss (✕) button used to be */}
-            <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '5px 10px' }}>
-              <span style={{ color: '#fff', fontSize: 11, fontWeight: 800 }}>Featured Credits: {available}</span>
+            <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+              <span style={{ color: '#fff', fontSize: 11, fontWeight: 800, lineHeight: 1 }}>Featured Credits: {available}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, position: 'relative' }}>
               <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 4 }}>
