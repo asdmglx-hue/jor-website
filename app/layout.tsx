@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import FooterWhatsAppLink from "@/components/FooterWhatsAppLink";
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
   keywords: "rishta, matrimonial, Pakistan, shaadi, marriage, proposals, nikah, brides, grooms",
   icons: {
     icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico', sizes: 'any' },
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
@@ -132,6 +134,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
         </footer>
+
+        {/* Google Analytics 4 — only loads if NEXT_PUBLIC_GA_MEASUREMENT_ID
+            is set (in Cloudflare's environment variables), so this is safe
+            to deploy before that's configured. strategy="afterInteractive"
+            loads it after the page is already interactive, so it doesn't
+            slow down the initial page render/Core Web Vitals. */}
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );
