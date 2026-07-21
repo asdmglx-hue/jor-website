@@ -203,6 +203,26 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   const isGeneralView = !filters.city && !filters.overseas;
   const boostColumn = isGeneralView ? 'is_boosted_in_general_feed' : 'is_boosted';
 
+  // A profile that bought a Featured slot FOR this specific city should
+  // show up here (boosted to the top via is_boosted) even if their own
+  // registered city is somewhere else — buying "Featured in Gujrat" should
+  // actually mean something when someone browses Gujrat, not just boost
+  // them in the unrelated general feed. Fetch which profiles currently
+  // have an active (not yet expired) boost for exactly this city first.
+  let boostedForCityIds: string[] = [];
+  if (filters.city && !filters.overseas) {
+    const now = new Date();
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const { data: activeBoosts } = await supabase
+      .from('featured_boosts')
+      .select('user_id')
+      .eq('city', filters.city)
+      .eq('is_used', false)
+      .lte('scheduled_date', now.toISOString())
+      .gt('scheduled_date', dayAgo.toISOString());
+    boostedForCityIds = (activeBoosts || []).map(b => b.user_id as string);
+  }
+
   let query = supabase
     .from('proposals')
     .select(CARD_COLS, { count: 'exact' })
@@ -217,7 +237,11 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   if (filters.overseas) {
     query = query.not('country', 'is', null).neq('country', '').neq('country', 'Pakistan');
     if (filters.country) query = query.eq('country', filters.country);
-  } else if (filters.city) query = query.eq('city', filters.city);
+  } else if (filters.city) {
+    query = boostedForCityIds.length > 0
+      ? query.or(`city.eq.${filters.city},id.in.(${boostedForCityIds.join(',')})`)
+      : query.eq('city', filters.city);
+  }
   if (filters.caste) query = query.eq('caste', filters.caste);
   if (filters.sect) query = query.eq('sect', filters.sect);
   if (filters.education) query = query.eq('education', filters.education);
