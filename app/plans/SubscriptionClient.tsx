@@ -125,6 +125,22 @@ export default function SubscriptionClient() {
   const STD_MONTHS = settings.standard_plan_days
     ? `${Math.round(Number(settings.standard_plan_days) / 30)} Month${Math.round(Number(settings.standard_plan_days) / 30) === 1 ? '' : 's'}`
     : '3 Months';
+  // Free Mode has its own trial-length setting (free_mode_trial_days),
+  // separate from the regular standard_plan_days — this was previously
+  // always showing STD_MONTHS even while in free mode, so a 3-day trial
+  // displayed as "1 Month" (whatever the paid plan's length happened to
+  // be) instead of "3 Days". Matches the same day/month formatting the
+  // mobile app's subscription_screen.dart already uses correctly.
+  const formatDuration = (days: number): string => {
+    if (days % 30 === 0 && days > 0) {
+      const m = days / 30;
+      return `${m} Month${m > 1 ? 's' : ''}`;
+    }
+    return `${days} Day${days === 1 ? '' : 's'}`;
+  };
+  const STD_DURATION = isFreeMode
+    ? formatDuration(Number(settings.free_mode_trial_days) || 30)
+    : STD_MONTHS;
   const FT_PRICE = settings.featured_post_price || '200';
   const MAX_FEATURED_PER_CITY = Number(settings.max_featured_per_city) || 5;
   const FT_DURATION = settings.featured_post_duration
@@ -140,9 +156,9 @@ export default function SubscriptionClient() {
 
   const plans = [
     {
-      name: 'Rishta Profile', price: STD_PRICE, priceDisplay: isFreeMode ? 'Free' : `Rs. ${STD_PRICE}`, duration: STD_MONTHS,
+      name: 'Rishta Profile', price: STD_PRICE, priceDisplay: isFreeMode ? 'Free' : `Rs. ${STD_PRICE}`, duration: STD_DURATION,
       tagline: 'Connect with families', color: '#534AB7', bg: '#EEEDFE', popular: true,
-      features: ['Publish your profile', 'Unlimited Local Proposals', 'Unlimited Overseas Proposals', 'View Contact numbers and Photos', 'Use Advanced Search Filters', `Validity for ${STD_MONTHS}`, '24 hours support'],
+      features: ['Publish your profile', 'Unlimited Local Proposals', 'Unlimited Overseas Proposals', 'View Contact numbers and Photos', 'Use Advanced Search Filters', `Validity for ${STD_DURATION}`, '24 hours support'],
       note: undefined,
     },
     {
