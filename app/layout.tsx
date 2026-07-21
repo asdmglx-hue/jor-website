@@ -53,8 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
         <footer className="site-footer" style={{ background: '#1A1830', color: '#B0ADCB', padding: '28px 48px 40px', marginTop: 48, position: 'relative', overflow: 'hidden' }}>
           {/* Background wedding image at very low opacity */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/footer-wedding.jpg" alt="" aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.07, pointerEvents: 'none' }} />
+          <Image src="/footer-wedding.jpg" alt="" aria-hidden="true" fill sizes="100vw" style={{ objectFit: 'cover', objectPosition: 'center', opacity: 0.07, pointerEvents: 'none' }} />
 
           <div className="footer-wrap" style={{ position: 'relative', maxWidth: 1200, margin: '0 auto' }}>
 
@@ -62,8 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="footer-top-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
 
               {/* Left: logo */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-footer.png" alt="Jor" style={{ height: 90, width: 160, objectFit: 'contain', objectPosition: 'left center', marginLeft: -18, transform: 'scale(0.8)', transformOrigin: 'left center' }} />
+              <Image src="/logo-footer.png" alt="Jor" width={601} height={415} style={{ height: 90, width: 160, objectFit: 'contain', objectPosition: 'left center', marginLeft: -18, transform: 'scale(0.8)', transformOrigin: 'left center' }} />
 
               {/* Right: nav links stacked — desktop only */}
               <div className="footer-nav-right footer-nav-desktop" style={{ textAlign: 'right' }}>
@@ -95,12 +93,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* App badges */}
               <div className="footer-app-badges" style={{ display: 'flex', gap: 12 }}>
                 <Link href="/get-android" style={{ display: 'inline-block' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/google_play.png" alt="Get it on Google Play" style={{ height: 32, width: 'auto' }} />
+                  <Image src="/google_play.png" alt="Get it on Google Play" width={715} height={218} style={{ height: 32, width: 'auto' }} />
                 </Link>
                 <Link href="/get-ios" style={{ display: 'inline-block' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/app_store.png" alt="Download on App Store" style={{ height: 32, width: 'auto' }} />
+                  <Image src="/app_store.png" alt="Download on App Store" width={715} height={218} style={{ height: 32, width: 'auto' }} />
                 </Link>
               </div>
 
@@ -126,8 +122,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
               {/* Payment logos + copyright */}
               <div className="footer-payment" style={{ textAlign: 'right' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/payment-methods.png" alt="JazzCash, EasyPaisa, Visa, Mastercard" style={{ height: 36, width: 'auto', display: 'block', marginLeft: 'auto', marginBottom: 4 }} />
+                <Image src="/payment-methods.png" alt="JazzCash, EasyPaisa, Visa, Mastercard" width={3573} height={393} style={{ height: 36, width: 'auto', display: 'block', marginLeft: 'auto', marginBottom: 4 }} />
                 <p style={{ fontSize: 13, color: '#6B6893', margin: 0, textAlign: 'right' }}>© 2026 Jor. All rights reserved.</p>
               </div>
 

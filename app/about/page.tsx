@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import AboutCta from '@/components/AboutCta';
 
@@ -53,7 +54,7 @@ export default function AboutPage() {
       {/* Hero */}
       <div style={{ textAlign: 'center', marginBottom: 48 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo-icon.png" alt="Jor" style={{ height: 72, width: 'auto', display: 'block', margin: '0 auto 16px' }} />
+        <Image src="/logo-icon.png" alt="Jor" width={559} height={447} style={{ height: 72, width: 'auto', display: 'block', margin: '0 auto 16px' }} />
         <h1 style={{ fontSize: 36, fontWeight: 900, color: '#1A1830', marginBottom: 12 }}>About Jor</h1>
         <p style={{ fontSize: 16, color: '#6B6893', lineHeight: 1.7, maxWidth: 560, margin: '0 auto' }}>
           Jor is Pakistan&apos;s trusted matrimonial platform — connecting families with verified rishta proposals across every city and province.

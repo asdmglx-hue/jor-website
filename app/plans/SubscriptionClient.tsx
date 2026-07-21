@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { getSession, saveSession } from '@/lib/auth';
 import { redeemCode, isSubscriptionActive, Proposal, supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -241,7 +242,7 @@ export default function SubscriptionClient() {
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: '#1A1830' }}>Wallet Transfer</div>
-                      <img src="/wallet-logos.png" alt="Wallet" style={{ height: 24, objectFit: 'contain' }} />
+                      <Image src="/wallet-logos.png" alt="Wallet" width={1363} height={211} style={{ height: 24, width: 'auto', objectFit: 'contain' }} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8F7FF', borderRadius: 10, marginBottom: 6 }}>
                       <div>
@@ -260,7 +261,7 @@ export default function SubscriptionClient() {
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '16px 0 8px' }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: '#1A1830' }}>Bank Transfer</div>
-                      <img src="/bank-logos.png" alt="Bank" style={{ height: 24, objectFit: 'contain' }} />
+                      <Image src="/bank-logos.png" alt="Bank" width={1248} height={393} style={{ height: 24, width: 'auto', objectFit: 'contain' }} />
                     </div>
                     {([
                       { label: 'Bank', value: settings['bank_name'], key: 'bank' },
