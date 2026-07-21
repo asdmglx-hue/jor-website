@@ -76,7 +76,7 @@ export default async function OverseasCountryPage({ params }: Props) {
 
       <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Overseas Rishta in {value}</h1>
       <p style={{ fontSize: 14, color: '#6B6893', marginBottom: 24 }}>
-        Browse verified rishta proposals for Pakistani families based in {value}. Connect directly — no middlemen, no hidden fees.
+        Browse verified marriage proposals from Pakistan and Abroad, and connect directly with families.
       </p>
 
       <CategoryPageClient

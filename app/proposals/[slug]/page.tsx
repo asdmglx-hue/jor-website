@@ -92,9 +92,7 @@ export default async function CategoryPage({ params }: Props) {
 
       <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>{title}</h1>
       <p style={{ fontSize: 14, color: '#6B6893', marginBottom: 24 }}>
-        {entry.type === 'city'
-          ? `Browse verified rishta proposals from ${entry.value}. Connect directly with families across Pakistan.`
-          : `Browse verified ${entry.value.toLowerCase()} rishta proposals. Connect directly with families — no middlemen, no hidden fees.`}
+        Browse verified marriage proposals from Pakistan and Abroad, and connect directly with families.
       </p>
 
       <CategoryPageClient
