@@ -49,28 +49,6 @@ const nextConfig: NextConfig = {
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
         ],
       },
-      {
-        // Home and Proposals are both set to `revalidate = 0` for instant
-        // freshness — but that only controls Next.js's OWN cache.
-        // Cloudflare's edge/CDN cache is a separate layer that can still
-        // hold onto an old cached copy of the response independent of
-        // that setting (confirmed directly: the database showed the
-        // correct live featured-post count while an incognito browser —
-        // ruling out local browser cache — still showed a stale one).
-        // This explicitly tells Cloudflare's edge not to cache these two
-        // pages at all, so revalidate=0 actually means instant everywhere,
-        // not just at the Next.js layer.
-        source: '/',
-        headers: [
-          { key: 'Cache-Control', value: 'no-store, must-revalidate' },
-        ],
-      },
-      {
-        source: '/proposals',
-        headers: [
-          { key: 'Cache-Control', value: 'no-store, must-revalidate' },
-        ],
-      },
     ];
   },
 };

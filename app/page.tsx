@@ -17,14 +17,13 @@ import type { Metadata } from 'next';
 // no longer pulls 1000+ rows on every rebuild — less need for a very
 // tight window, and fewer rebuild events means less Cloudflare CPU usage
 // and Supabase egress overall.
-export const revalidate = 0;
-// OpenNext's Cloudflare deployment runs its own separate ISR caching
-// system (KV/R2-backed), independent of both Cloudflare's CDN edge cache
-// and standard Cache-Control headers — revalidate=0 alone wasn't reliably
-// bypassing it. force-dynamic is a stronger, more explicit signal that
-// this route must render fresh on every single request, no caching layer
-// involved at all.
-export const dynamic = 'force-dynamic';
+// A 60-second cache instead of fully instant — force-dynamic (zero
+// caching, a Worker execution on every single visit) turned out to spike
+// Cloudflare Worker usage significantly once deployed under real traffic.
+// 60 seconds keeps content close enough to live that no one notices the
+// difference, while letting many visitors within that window share a
+// single cached render instead of each triggering their own.
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Jor – Find Your Perfect Rishta in Pakistan",

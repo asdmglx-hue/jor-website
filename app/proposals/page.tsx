@@ -14,10 +14,9 @@ export const metadata: Metadata = {
 // city crossing the "has its own page now" threshold a few minutes late
 // just means one extra visit gets filtered in place instead of redirected
 // — never broken, just briefly not yet upgraded.
-export const revalidate = 0;
-// See app/page.tsx for why force-dynamic is needed alongside revalidate=0
-// on this Cloudflare/OpenNext deployment specifically.
-export const dynamic = 'force-dynamic';
+// A 60-second cache instead of fully instant — see app/page.tsx for why
+// force-dynamic (zero caching) got reverted; same reasoning applies here.
+export const revalidate = 60;
 
 export default async function ProposalsPage() {
   const [entries, countries] = await Promise.all([
