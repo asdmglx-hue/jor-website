@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { supabase, isFeaturedSlotAvailable, fetchOverseasCountries } from '@/lib/supabase';
+import { supabase, isFeaturedSlotAvailable, getQualifyingCategoryEntries, getQualifyingCountries } from '@/lib/supabase';
 import { CITY_GROUPS } from '@/lib/constants';
 // Moved server-side so a successful booking can instantly refresh cached
 // listing pages instead of waiting on the 5-minute timer — see
@@ -53,20 +53,33 @@ export default function FeaturedBookModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [maxPerCity, setMaxPerCity] = useState(5);
-  // Only countries that currently have active proposals — same list the
-  // homepage's country slider and the FilterBar's Overseas filter use.
-  // Booking a Featured slot for a country nobody's actually registered
-  // under yet wouldn't have anywhere meaningful to show it.
+  // Only cities/countries that actually qualify for their own dedicated
+  // page (MIN_CATEGORY_PROFILES = 2 registered profiles — see
+  // lib/supabase.ts's getQualifyingCategoryEntries/getQualifyingCountries)
+  // — booking a Featured slot anywhere else would have no page to show up
+  // on at all, per the Sweden investigation.
+  const [qualifyingCityGroups, setQualifyingCityGroups] = useState<Record<string, string[]>>({});
   const [overseasCountries, setOverseasCountries] = useState<string[]>([]);
-  const [loadingCountries, setLoadingCountries] = useState(false);
+  const [loadingLocations, setLoadingLocations] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setSlots([{ mode: '', city: '', date: '' }]);
     setErrorMsg(null);
     setSubmitting(false);
-    setLoadingCountries(true);
-    fetchOverseasCountries().then(setOverseasCountries).finally(() => setLoadingCountries(false));
+    setLoadingLocations(true);
+    Promise.all([getQualifyingCategoryEntries(), getQualifyingCountries()])
+      .then(([categoryEntries, countries]) => {
+        const qualifyingCitySet = new Set(categoryEntries.filter(e => e.type === 'city').map(e => e.value));
+        const groups: Record<string, string[]> = {};
+        for (const [province, cities] of Object.entries(CITY_GROUPS)) {
+          const qualifying = cities.filter(c => qualifyingCitySet.has(c));
+          if (qualifying.length > 0) groups[province] = qualifying;
+        }
+        setQualifyingCityGroups(groups);
+        setOverseasCountries(countries.map(c => c.value));
+      })
+      .finally(() => setLoadingLocations(false));
     supabase.from('app_settings').select('key, value').eq('key', 'max_featured_per_city').maybeSingle()
       .then(({ data }) => { if (data?.value) setMaxPerCity(Number(data.value) || 5); });
   }, [open]);
@@ -173,9 +186,16 @@ export default function FeaturedBookModal({
               </div>
 
               {slot.mode === 'pakistan' && (
-                <select value={slot.city} onChange={e => checkSlot(i, { city: e.target.value })} style={{ ...selectStyle, marginTop: 8 }}>
-                  <option value="">Select city</option>
-                  {Object.entries(CITY_GROUPS).map(([province, cities]) => (
+                <select
+                  value={slot.city}
+                  onChange={e => checkSlot(i, { city: e.target.value })}
+                  disabled={loadingLocations || Object.keys(qualifyingCityGroups).length === 0}
+                  style={{ ...selectStyle, marginTop: 8 }}
+                >
+                  <option value="">
+                    {loadingLocations ? 'Loading cities…' : Object.keys(qualifyingCityGroups).length === 0 ? 'No eligible cities yet' : 'Select city'}
+                  </option>
+                  {Object.entries(qualifyingCityGroups).map(([province, cities]) => (
                     <optgroup key={province} label={province}>
                       {cities.map(c => <option key={c} value={c}>{c}</option>)}
                     </optgroup>
@@ -186,11 +206,11 @@ export default function FeaturedBookModal({
                 <select
                   value={slot.city}
                   onChange={e => checkSlot(i, { city: e.target.value })}
-                  disabled={loadingCountries || overseasCountries.length === 0}
+                  disabled={loadingLocations || overseasCountries.length === 0}
                   style={{ ...selectStyle, marginTop: 8 }}
                 >
                   <option value="">
-                    {loadingCountries ? 'Loading countries…' : overseasCountries.length === 0 ? 'No overseas countries yet' : 'Select country'}
+                    {loadingLocations ? 'Loading countries…' : overseasCountries.length === 0 ? 'No eligible countries yet' : 'Select country'}
                   </option>
                   {overseasCountries.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
