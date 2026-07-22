@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import CategoryPageClient from '@/components/CategoryPageClient';
+import FeaturedCarousel from '@/components/FeaturedCarousel';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -39,8 +40,8 @@ export default async function CategoryPage({ params }: Props) {
   const entry = resolveCategoryBySlug(slug);
   if (!entry) notFound();
 
-  const proposals = await fetchProposalsForCategory(entry.dbColumn as never, entry.value, 24);
-  if (proposals.length === 0) notFound();
+  const { proposals, featured } = await fetchProposalsForCategory(entry.dbColumn as never, entry.value, 24);
+  if (proposals.length === 0 && featured.length === 0) notFound();
 
   const title = categoryPageTitle(entry);
 
@@ -56,6 +57,7 @@ export default async function CategoryPage({ params }: Props) {
     qualifying.filter(e => e.type === entry.type).map(e => [e.value, e.slug])
   );
 
+  const allForJsonLd = [...featured, ...proposals];
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -70,7 +72,7 @@ export default async function CategoryPage({ params }: Props) {
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    itemListElement: proposals.map((p, i) => ({
+    itemListElement: allForJsonLd.map((p, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       url: `https://joronline.com/profile/${p.proposal_number}`,
@@ -94,6 +96,8 @@ export default async function CategoryPage({ params }: Props) {
       <p style={{ fontSize: 14, color: '#6B6893', marginBottom: 24 }}>
         Browse verified marriage proposals from Pakistan and Abroad, and connect directly with families.
       </p>
+
+      {entry.type === 'city' && <FeaturedCarousel initial={featured} />}
 
       <CategoryPageClient
         initialProposals={proposals}

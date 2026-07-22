@@ -494,16 +494,17 @@ export async function fetchProposalsForCategory(
   value: string,
   limit = 24,
   extra?: { gender?: string }
-): Promise<Proposal[]> {
-  // Same "boosted for this specific location" inclusion as fetchProposals —
-  // a profile that bought a Featured slot FOR this city (or, now, this
-  // overseas country) should show up (and float to the top) on that
-  // location's dedicated page too, even if their own registered
-  // city/country differs. caste/sect/profession pages don't have a
-  // matching concept — only city and country do, since only those two
-  // can actually be booked as a Featured location (see
-  // components/FeaturedBookModal.tsx's Pakistan/Overseas location step).
-  let boostedForCityIds: string[] = [];
+): Promise<{ proposals: Proposal[]; featured: Proposal[] }> {
+  // A profile that bought a Featured slot FOR this city (or overseas
+  // country) gets its own dedicated "Featured" carousel section on that
+  // location's page — same component/heading/slider-threshold as the
+  // main Proposals page's carousel (components/FeaturedCarousel.tsx) —
+  // rather than just being floated to the top of the regular grid. Only
+  // city and country pages have this concept; caste/sect/profession pages
+  // don't, since only city/country can actually be booked as a Featured
+  // location (see components/FeaturedBookModal.tsx's Pakistan/Overseas
+  // location step).
+  let featured: Proposal[] = [];
   if (dbColumn === 'city' || dbColumn === 'country') {
     const now = new Date();
     const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -514,26 +515,42 @@ export async function fetchProposalsForCategory(
       .eq('is_used', false)
       .lte('scheduled_date', now.toISOString())
       .gt('scheduled_date', dayAgo.toISOString());
-    boostedForCityIds = (activeBoosts || []).map(b => b.user_id as string);
+    const boostedIds = (activeBoosts || []).map(b => b.user_id as string);
+
+    if (boostedIds.length > 0) {
+      let featuredQuery = supabase
+        .from('proposals')
+        .select(CARD_COLS)
+        .eq('status', 'active')
+        .or(notExpiredFilter())
+        .in('id', boostedIds);
+      if (extra?.gender) featuredQuery = featuredQuery.eq('gender', extra.gender);
+      const { data: featuredData } = await featuredQuery;
+      featured = (featuredData as Proposal[]) || [];
+    }
   }
+
+  // Excludes anyone already shown in the Featured carousel above — same
+  // "nobody appears twice on the same page" rule as the main Proposals
+  // page's general view.
+  const featuredIds = new Set(featured.map(f => f.id));
 
   let query = supabase
     .from('proposals')
     .select(CARD_COLS)
     .eq('status', 'active')
     .or(notExpiredFilter())
+    .eq(dbColumn, value)
     .order('is_boosted', { ascending: false })
     .order('posted_at', { ascending: false })
     .limit(limit);
 
-  query = boostedForCityIds.length > 0
-    ? query.or(`${dbColumn}.eq.${value},id.in.(${boostedForCityIds.join(',')})`)
-    : query.eq(dbColumn, value);
-
   if (extra?.gender) query = query.eq('gender', extra.gender);
   const { data, error } = await query;
-  if (error || !data) return [];
-  return data as Proposal[];
+  if (error || !data) return { proposals: [], featured };
+
+  const proposals = (data as Proposal[]).filter(p => !featuredIds.has(p.id));
+  return { proposals, featured };
 }
 
 // Login with CNIC + password (matches your Flutter app exactly)

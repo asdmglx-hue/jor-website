@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import CategoryPageClient from '@/components/CategoryPageClient';
+import FeaturedCarousel from '@/components/FeaturedCarousel';
 
 type Props = { params: Promise<{ slug: string; gender: string }> };
 
@@ -50,8 +51,8 @@ export default async function CityGenderPage({ params }: Props) {
   const genderValue = GENDER_SLUGS[gender];
   if (!entry || entry.type !== 'city' || !genderValue) notFound();
 
-  const proposals = await fetchProposalsForCategory('city', entry.value, 24, { gender: genderValue });
-  if (proposals.length === 0) notFound();
+  const { proposals, featured } = await fetchProposalsForCategory('city', entry.value, 24, { gender: genderValue });
+  if (proposals.length === 0 && featured.length === 0) notFound();
 
   const label = gender === 'bride' ? 'Bride' : 'Groom';
 
@@ -61,6 +62,7 @@ export default async function CityGenderPage({ params }: Props) {
       .map(e => [e.value, e.slug])
   );
 
+  const allForJsonLd = [...featured, ...proposals];
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -74,7 +76,7 @@ export default async function CityGenderPage({ params }: Props) {
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    itemListElement: proposals.map((p, i) => ({
+    itemListElement: allForJsonLd.map((p, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       url: `https://joronline.com/profile/${p.proposal_number}`,
@@ -100,6 +102,8 @@ export default async function CityGenderPage({ params }: Props) {
       <p style={{ fontSize: 14, color: '#6B6893', marginBottom: 24 }}>
         Browse verified {label.toLowerCase()} rishta profiles from {entry.value}. Connect directly with families across Pakistan.
       </p>
+
+      <FeaturedCarousel initial={featured} />
 
       <CategoryPageClient
         initialProposals={proposals}
