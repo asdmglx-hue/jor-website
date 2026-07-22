@@ -129,7 +129,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
 
   return (
     <>
-      <Link href={`/profile/${p.proposal_number}`} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Link href={`/profile/${p.proposal_number}`} draggable={false} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="card-hover" style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 20, padding: '14px', cursor: 'pointer', position: 'relative', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
         {/* Header */}
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
