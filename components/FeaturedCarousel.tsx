@@ -4,7 +4,7 @@ import { Proposal } from '@/lib/supabase';
 import ProposalCard from './ProposalCard';
 
 const NATURAL_WIDTH = 360; // ProposalCard's normal, unscaled width
-const CARD_WIDTH = 275; // actual on-screen width in this carousel
+const CARD_WIDTH = 315; // actual on-screen width in this carousel — 0.5/4 (87.5%) of natural size
 const SCALE = CARD_WIDTH / NATURAL_WIDTH;
 const GAP = 20;
 
@@ -130,26 +130,19 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
           cursor: needsScrolling ? (isDragging ? 'grabbing' : 'grab') : 'default',
           touchAction: 'pan-y',
         }}
-        onMouseEnter={() => needsScrolling && setPaused(true)}
-        onMouseLeave={() => { if (!isDraggingRef.current) setPaused(false); }}
         onPointerDown={handlePointerDown}
         onClickCapture={handleClickCapture}
       >
-        {needsScrolling && (
-          <>
-            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 60, background: 'linear-gradient(to right, #fff, transparent)', zIndex: 1, pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 60, background: 'linear-gradient(to left, #fff, transparent)', zIndex: 1, pointerEvents: 'none' }} />
-          </>
-        )}
         <div
           ref={trackRef}
           style={{
             display: 'flex', gap: GAP, width: 'max-content',
+            willChange: needsScrolling ? 'transform' : undefined,
             ...(needsScrolling ? {} : { width: '100%' }),
           }}
         >
           {track.map((p, i) => (
-            <div key={i} style={{ width: needsScrolling ? CARD_WIDTH : undefined, flex: needsScrolling ? 'none' : 1, userSelect: 'none' }}>
+            <div key={i} style={{ width: needsScrolling ? CARD_WIDTH : undefined, flex: needsScrolling ? 'none' : 1, userSelect: 'none', transform: needsScrolling ? 'translateZ(0)' : undefined }}>
               <div style={needsScrolling ? { width: NATURAL_WIDTH, zoom: SCALE } as CSSProperties : undefined}>
                 <ProposalCard proposal={p} index={i % proposals.length} />
               </div>
