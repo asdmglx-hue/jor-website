@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import FilterBar from './FilterBar';
 import ProposalCard from './ProposalCard';
+import FeaturedCarousel from './FeaturedCarousel';
 import { fetchProposals, FilterState, Proposal } from '@/lib/supabase';
 import { getLockedGenderFilter } from '@/lib/auth';
 
@@ -19,6 +20,12 @@ type IdentityField = 'city' | 'caste' | 'sect' | 'maritalStatus' | 'profession' 
 type Props = {
   initialProposals: Proposal[];
   initialFilters: FilterState;
+  // Profiles boosted specifically for this page's location — rendered in
+  // their own Featured carousel, same component/rules as the main
+  // Proposals page (see components/FeaturedCarousel.tsx). Empty array for
+  // caste/sect/profession/marital-status pages, which don't have this
+  // concept — see lib/supabase.ts's fetchProposalsForCategory.
+  featured: Proposal[];
   // Which field is this page's own identity — changing it means
   // navigating to a different page entirely, not just re-filtering this
   // one, so the heading and URL can never disagree with what's shown.
@@ -31,7 +38,7 @@ type Props = {
   hasGenderSegment?: boolean;
 };
 
-export default function CategoryPageClient({ initialProposals, initialFilters, locationField, qualifyingSlugs, hasGenderSegment }: Props) {
+export default function CategoryPageClient({ initialProposals, initialFilters, featured, locationField, qualifyingSlugs, hasGenderSegment }: Props) {
   const router = useRouter();
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [proposals, setProposals] = useState<Proposal[]>(initialProposals);
@@ -143,6 +150,12 @@ export default function CategoryPageClient({ initialProposals, initialFilters, l
   return (
     <>
       <FilterBar filters={filters} onChange={handleChange} total={total} lockedGender={lockedGender} />
+      <FeaturedCarousel initial={featured} />
+      {!loading && (
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#534AB7', marginTop: 12, marginBottom: 12, paddingLeft: 16, paddingRight: 4 }}>
+          {total.toLocaleString()} proposals found
+        </div>
+      )}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px 0', color: '#68629C' }}>Loading…</div>
       ) : (

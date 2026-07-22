@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import CategoryPageClient from '@/components/CategoryPageClient';
-import FeaturedCarousel from '@/components/FeaturedCarousel';
 
 type Props = { params: Promise<{ slug: string; gender: string }> };
 
@@ -103,10 +102,9 @@ export default async function CityGenderPage({ params }: Props) {
         Browse verified {label.toLowerCase()} rishta profiles from {entry.value}. Connect directly with families across Pakistan.
       </p>
 
-      <FeaturedCarousel initial={featured} />
-
       <CategoryPageClient
         initialProposals={proposals}
+        featured={featured}
         initialFilters={{ city: entry.value, gender: genderValue }}
         locationField="city"
         qualifyingSlugs={qualifyingCitySlugs}

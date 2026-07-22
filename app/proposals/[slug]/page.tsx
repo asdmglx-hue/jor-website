@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import CategoryPageClient from '@/components/CategoryPageClient';
-import FeaturedCarousel from '@/components/FeaturedCarousel';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -97,10 +96,9 @@ export default async function CategoryPage({ params }: Props) {
         Browse verified marriage proposals from Pakistan and Abroad, and connect directly with families.
       </p>
 
-      {entry.type === 'city' && <FeaturedCarousel initial={featured} />}
-
       <CategoryPageClient
         initialProposals={proposals}
+        featured={featured}
         initialFilters={entry.type === 'city' ? { city: entry.value } : { [entry.dbColumn === 'marital_status' ? 'maritalStatus' : entry.dbColumn]: entry.value }}
         locationField={entry.type}
         qualifyingSlugs={qualifyingSlugs}

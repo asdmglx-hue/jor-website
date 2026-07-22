@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import CategoryPageClient from '@/components/CategoryPageClient';
-import FeaturedCarousel from '@/components/FeaturedCarousel';
 
 type Props = { params: Promise<{ country: string }> };
 
@@ -81,10 +80,9 @@ export default async function OverseasCountryPage({ params }: Props) {
         Browse verified marriage proposals from Pakistan and Abroad, and connect directly with families.
       </p>
 
-      <FeaturedCarousel initial={featured} />
-
       <CategoryPageClient
         initialProposals={proposals}
+        featured={featured}
         initialFilters={{ overseas: true, country: value }}
         locationField="country"
         qualifyingSlugs={qualifyingCountrySlugs}
