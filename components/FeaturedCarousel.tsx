@@ -1,10 +1,10 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Proposal } from '@/lib/supabase';
 import ProposalCard from './ProposalCard';
 
-const VISIBLE = 3;
-const SLIDE_INTERVAL_MS = 5000;
+const CARD_WIDTH = 360;
+const GAP = 20;
 
 export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
   const [proposals, setProposals] = useState<Proposal[]>(initial);
@@ -17,27 +17,104 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
   // sync, useState(initial) would have locked in that empty array forever
   // and the carousel would silently never appear there.
   useEffect(() => { setProposals(initial); }, [initial]);
-  const [startIndex, setStartIndex] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const needsSliding = proposals.length > VISIBLE;
+  const trackRef = useRef<HTMLDivElement>(null);
+  const posRef = useRef(0);
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const isDraggingRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragStartPosRef = useRef(0);
+  const hasDraggedRef = useRef(false);
+
+  // Only scroll continuously when there's enough to actually loop — with
+  // very few people, it just sits still, same as the count that would
+  // make City/Country sliders pointless to auto-scroll too.
+  const needsScrolling = proposals.length > 3;
+
+  useEffect(() => { pausedRef.current = paused; }, [paused]);
 
   useEffect(() => {
-    if (!needsSliding) return;
-    timerRef.current = setInterval(() => {
-      setStartIndex(prev => (prev + 1) % proposals.length);
-    }, SLIDE_INTERVAL_MS);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [needsSliding, proposals.length]);
+    if (!needsScrolling) return;
+    const track = trackRef.current;
+    if (!track) return;
+    let raf: number;
+    const speed = 0.6;
+
+    const animate = () => {
+      if (!pausedRef.current) {
+        posRef.current += speed;
+        const half = track.scrollWidth / 2;
+        if (posRef.current >= half) posRef.current = 0;
+        track.style.transform = `translateX(-${posRef.current}px)`;
+      }
+      raf = requestAnimationFrame(animate);
+    };
+
+    raf = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(raf);
+  }, [needsScrolling, proposals.length]);
+
+  const handleWindowPointerMove = (e: PointerEvent) => {
+    if (!trackRef.current) return;
+    const deltaX = dragStartXRef.current - e.clientX;
+    const half = trackRef.current.scrollWidth / 2;
+    let next = (dragStartPosRef.current + deltaX) % half;
+    if (next < 0) next += half;
+    posRef.current = next;
+    trackRef.current.style.transform = `translateX(-${next}px)`;
+  };
+
+  const stopDragging = () => {
+    window.removeEventListener('pointermove', handleWindowPointerMove);
+    window.removeEventListener('pointerup', stopDragging);
+    isDraggingRef.current = false;
+    setIsDragging(false);
+    setPaused(false);
+  };
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (!needsScrolling) return;
+    hasDraggedRef.current = false;
+    dragStartXRef.current = e.clientX;
+    dragStartPosRef.current = posRef.current;
+    const startX = e.clientX;
+
+    const checkForDragStart = (moveEvent: PointerEvent) => {
+      if (Math.abs(moveEvent.clientX - startX) < 8) return;
+      window.removeEventListener('pointermove', checkForDragStart);
+      isDraggingRef.current = true;
+      hasDraggedRef.current = true;
+      setIsDragging(true);
+      setPaused(true);
+      window.addEventListener('pointermove', handleWindowPointerMove);
+      window.addEventListener('pointerup', stopDragging);
+    };
+    const cancelIfReleasedEarly = () => {
+      window.removeEventListener('pointermove', checkForDragStart);
+      window.removeEventListener('pointerup', cancelIfReleasedEarly);
+    };
+    window.addEventListener('pointermove', checkForDragStart);
+    window.addEventListener('pointerup', cancelIfReleasedEarly);
+  };
+
+  const handleClickCapture = (e: React.MouseEvent) => {
+    if (hasDraggedRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      hasDraggedRef.current = false;
+    }
+  };
 
   if (proposals.length === 0) return null;
 
-  // Wrap-around window of exactly VISIBLE people starting at startIndex —
-  // e.g. with 5 people and startIndex=4, shows [person4, person0, person1].
-  // This is what makes the cycle continuous instead of jumping/resetting.
-  const visible = Array.from({ length: Math.min(VISIBLE, proposals.length) }, (_, i) =>
-    proposals[(startIndex + i) % proposals.length]
-  );
+  // Doubled for a seamless loop — identical technique to City/Country
+  // sliders. Not doubled when there's nothing to scroll (3 or fewer),
+  // since duplicating them would just show the same people twice for no
+  // reason.
+  const track = needsScrolling ? [...proposals, ...proposals] : proposals;
 
   return (
     <section style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 20px 8px' }}>
@@ -47,41 +124,35 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
       </div>
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${VISIBLE}, 1fr)`,
-          gap: 20,
+          overflow: 'hidden', position: 'relative',
+          cursor: needsScrolling ? (isDragging ? 'grabbing' : 'grab') : 'default',
+          touchAction: 'pan-y',
         }}
+        onMouseEnter={() => needsScrolling && setPaused(true)}
+        onMouseLeave={() => { if (!isDraggingRef.current) setPaused(false); }}
+        onPointerDown={handlePointerDown}
+        onClickCapture={handleClickCapture}
       >
-        {visible.map((p, i) => (
-          // Keying by slot position (not proposal id) is deliberate — it's
-          // what makes each slot fade/cross-fade into its next occupant in
-          // place, rather than the whole row jarringly re-ordering itself
-          // every slide.
-          <div key={i} style={{ animation: 'jorFeaturedFade 0.5s ease' }}>
-            <ProposalCard proposal={p} index={i} />
-          </div>
-        ))}
-      </div>
-      {needsSliding && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 16 }}>
-          {proposals.map((_, i) => (
-            <div
-              key={i}
-              style={{
-                width: 6, height: 6, borderRadius: 3,
-                background: i === startIndex ? '#E8620A' : '#E8E6F5',
-                transition: 'background 0.3s',
-              }}
-            />
+        {needsScrolling && (
+          <>
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 60, background: 'linear-gradient(to right, #fff, transparent)', zIndex: 1, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 60, background: 'linear-gradient(to left, #fff, transparent)', zIndex: 1, pointerEvents: 'none' }} />
+          </>
+        )}
+        <div
+          ref={trackRef}
+          style={{
+            display: 'flex', gap: GAP, width: 'max-content',
+            ...(needsScrolling ? {} : { width: '100%' }),
+          }}
+        >
+          {track.map((p, i) => (
+            <div key={i} style={{ width: needsScrolling ? CARD_WIDTH : undefined, flex: needsScrolling ? 'none' : 1, userSelect: 'none' }}>
+              <ProposalCard proposal={p} index={i % proposals.length} />
+            </div>
           ))}
         </div>
-      )}
-      <style>{`
-        @keyframes jorFeaturedFade {
-          from { opacity: 0.3; transform: translateY(4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+      </div>
     </section>
   );
 }
