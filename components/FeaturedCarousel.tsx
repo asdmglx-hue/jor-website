@@ -48,7 +48,7 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: `repeat(${Math.min(VISIBLE, proposals.length)}, 1fr)`,
+          gridTemplateColumns: `repeat(${VISIBLE}, 1fr)`,
           gap: 20,
         }}
       >

@@ -250,12 +250,16 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
     .select(CARD_COLS, { count: 'exact' })
     .eq('status', 'active')
     .or(notExpiredFilter());
-  query = isGeneralView
-    ? query.order('posted_at', { ascending: false })
-    : query
-        .order('is_boosted', { ascending: false })
-        .order('subscription_tier', { ascending: false })
-        .order('posted_at', { ascending: false });
+  if (isGeneralView) {
+    // Already shown in the Featured carousel above — avoid the confusing
+    // duplicate of seeing the same person twice on the same page.
+    query = query.eq('is_boosted', false).order('posted_at', { ascending: false });
+  } else {
+    query = query
+      .order('is_boosted', { ascending: false })
+      .order('subscription_tier', { ascending: false })
+      .order('posted_at', { ascending: false });
+  }
   query = query.range(page * pageSize, (page + 1) * pageSize - 1);
 
   if (filters.gender) query = query.eq('gender', filters.gender);
