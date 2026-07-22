@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Proposal } from '@/lib/supabase';
 import ProposalCard from './ProposalCard';
 
-const CARD_WIDTH = 360;
+const CARD_WIDTH = 275;
 const GAP = 20;
 
 export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
@@ -32,7 +32,7 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
   // Only scroll continuously when there's enough to actually loop — with
   // very few people, it just sits still, same as the count that would
   // make City/Country sliders pointless to auto-scroll too.
-  const needsScrolling = proposals.length > 3;
+  const needsScrolling = proposals.length > 4;
 
   useEffect(() => { pausedRef.current = paused; }, [paused]);
 
