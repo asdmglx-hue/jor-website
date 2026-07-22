@@ -71,9 +71,10 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
 
   const stopDragging = () => {
     window.removeEventListener('pointermove', handleWindowPointerMove);
+    window.removeEventListener('pointerup', stopDragging);
     isDraggingRef.current = false;
     setIsDragging(false);
-    setPaused(false);
+    setPaused(false); // resume auto-scroll from the current position
   };
 
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -82,37 +83,31 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
     dragStartXRef.current = e.clientX;
     dragStartPosRef.current = posRef.current;
     const startX = e.clientX;
-    // Paused the instant the pointer goes down — not only once an actual
-    // drag is confirmed. The auto-scroll animation keeps running every
-    // frame regardless of what the pointer is doing; if it weren't paused
-    // right away, posRef would keep silently drifting forward during the
-    // brief window before 8px of movement is detected, and the drag
-    // calculation below (anchored to the position captured at this exact
-    // moment) would suddenly jump to catch up the instant real dragging
-    // kicked in — which is exactly the "sticky, then snaps to the
-    // pointer" symptom this fixes.
-    setPaused(true);
 
+    // Waits for real movement before committing to a drag — a plain
+    // click never exceeds this, so it's left completely alone and
+    // reaches the Link normally.
     const checkForDragStart = (moveEvent: PointerEvent) => {
       if (Math.abs(moveEvent.clientX - startX) < 8) return;
       window.removeEventListener('pointermove', checkForDragStart);
       isDraggingRef.current = true;
       hasDraggedRef.current = true;
       setIsDragging(true);
+      setPaused(true);
       window.addEventListener('pointermove', handleWindowPointerMove);
+      window.addEventListener('pointerup', stopDragging);
     };
-    // Fires on release regardless of whether an actual drag ever started
-    // — a plain click/tap still needs to resume the auto-scroll that was
-    // paused above the instant the pointer went down.
-    const handleRelease = () => {
+    const cancelIfReleasedEarly = () => {
       window.removeEventListener('pointermove', checkForDragStart);
-      window.removeEventListener('pointerup', handleRelease);
-      stopDragging();
+      window.removeEventListener('pointerup', cancelIfReleasedEarly);
     };
     window.addEventListener('pointermove', checkForDragStart);
-    window.addEventListener('pointerup', handleRelease);
+    window.addEventListener('pointerup', cancelIfReleasedEarly);
   };
 
+  // Prevents an accidental navigation on the Link the pointer happens to
+  // release over, but only for a genuine drag — an ordinary click always
+  // passes through untouched.
   const handleClickCapture = (e: React.MouseEvent) => {
     if (hasDraggedRef.current) {
       e.preventDefault();
@@ -141,6 +136,8 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
           cursor: needsScrolling ? (isDragging ? 'grabbing' : 'grab') : 'default',
           touchAction: 'pan-y',
         }}
+        onMouseEnter={() => needsScrolling && setPaused(true)}
+        onMouseLeave={() => { if (!isDraggingRef.current) setPaused(false); }}
         onPointerDown={handlePointerDown}
         onClickCapture={handleClickCapture}
       >
