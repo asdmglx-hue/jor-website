@@ -144,18 +144,28 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
       >
         <div
           ref={trackRef}
-          style={{
+          style={needsScrolling ? {
             display: 'flex', gap: GAP, width: 'max-content',
-            willChange: needsScrolling ? 'transform' : undefined,
-            ...(needsScrolling ? {} : { width: '100%' }),
+            willChange: 'transform',
+          } : {
+            // Static (3-or-fewer) mode: same grid parameters as the
+            // regular proposal grid (components/CategoryPageClient.tsx,
+            // app/proposals/ProposalsClient.tsx) — a flex row with
+            // flex:1 here previously stretched a lone card to fill the
+            // entire section width instead of a normal card size.
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16,
           }}
         >
           {track.map((p, i) => (
-            <div key={i} style={{ width: needsScrolling ? CARD_WIDTH : undefined, flex: needsScrolling ? 'none' : 1, userSelect: 'none', transform: needsScrolling ? 'translateZ(0)' : undefined }}>
-              <div style={needsScrolling ? { width: NATURAL_WIDTH, zoom: SCALE } as CSSProperties : undefined}>
-                <ProposalCard proposal={p} index={i % proposals.length} />
+            needsScrolling ? (
+              <div key={i} style={{ width: CARD_WIDTH, userSelect: 'none', transform: 'translateZ(0)' }}>
+                <div style={{ width: NATURAL_WIDTH, zoom: SCALE } as CSSProperties}>
+                  <ProposalCard proposal={p} index={i % proposals.length} />
+                </div>
               </div>
-            </div>
+            ) : (
+              <ProposalCard key={i} proposal={p} index={i} />
+            )
           ))}
         </div>
       </div>
