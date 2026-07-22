@@ -1,9 +1,10 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { fetchProposals, FilterState, Proposal, supabase, TIME_CHIPS, chipDateRange } from '@/lib/supabase';
+import { fetchProposals, fetchFeaturedForCarousel, FilterState, Proposal, supabase, TIME_CHIPS, chipDateRange } from '@/lib/supabase';
 import { getNotInterestedIds, addNotInterested, getLockedGenderFilter } from '@/lib/auth';
 import ProposalCard from '@/components/ProposalCard';
+import FeaturedCarousel from '@/components/FeaturedCarousel';
 import FilterBar from '@/components/FilterBar';
 
 // Matches the same mapping used on the dedicated category pages — 'bride'
@@ -118,6 +119,16 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
   });
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
+
+  // Featured carousel — fetched once, independent of the main paginated
+  // results below. Only shown on the fully unfiltered view (no city,
+  // no overseas) — a filtered view has its own, already-correct way of
+  // surfacing boosted profiles within that filtered result set.
+  const [featuredCarousel, setFeaturedCarousel] = useState<Proposal[]>([]);
+  useEffect(() => {
+    fetchFeaturedForCarousel().then(setFeaturedCarousel);
+  }, []);
+  const isGeneralView = !filters.city && !filters.overseas;
 
   // ── Time filter (All / New / 1 Month / 2 Months / 3+ Months) ─────────────
   const [timeChip, setTimeChip] = useState(0);
@@ -356,6 +367,8 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
       </div>
 
       <FilterBar filters={filters} onChange={handleFilterChange} total={total} showSaved={showSaved} onSavedToggle={handleShowSaved} lockedGender={lockedGender} />
+
+      {isGeneralView && !showSaved && <FeaturedCarousel initial={featuredCarousel} />}
 
       {/* Results count + time filter — hidden when saved panel is open */}
       {!loading && !showSaved && (

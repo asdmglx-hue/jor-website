@@ -1,8 +1,9 @@
-import { supabase, fetchAllRows, CARD_COLS, notExpiredFilter } from '@/lib/supabase';
+import { supabase, fetchAllRows, CARD_COLS, notExpiredFilter, fetchFeaturedForCarousel } from '@/lib/supabase';
 import { CITIES as VALID_CITY_NAMES, normalizeCountry } from '@/lib/constants';
 import Link from 'next/link';
 import Image from 'next/image';
 import RecentProposals from '@/components/RecentProposals';
+import FeaturedCarousel from '@/components/FeaturedCarousel';
 import CitySlider from '@/components/CitySlider';
 import CountrySlider from '@/components/CountrySlider';
 import PostRishtaButton from '@/components/PostRishtaButton';
@@ -144,7 +145,7 @@ async function getRecent(): Promise<Proposal[]> {
 const CITIES = ['Lahore','Karachi','Islamabad','Rawalpindi','Faisalabad','Multan','Peshawar','Quetta'];
 
 export default async function HomePage() {
-  const [stats, recent, cities, countries] = await Promise.all([getStats(), getRecent(), getCities(), getCountries()]);
+  const [stats, recent, cities, countries, featured] = await Promise.all([getStats(), getRecent(), getCities(), getCountries(), fetchFeaturedForCarousel()]);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -250,6 +251,8 @@ export default async function HomePage() {
           <CountrySlider countries={countries} />
         </div>
       </section>
+
+      <FeaturedCarousel initial={featured} />
 
 {/* Recently Added */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 20px' }}>

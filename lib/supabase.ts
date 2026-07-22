@@ -193,15 +193,37 @@ export function chipDateRange(chip: number): { postedAfter?: string; postedBefor
   }
 }
 
+// For the sliding Featured carousel — everyone currently boosted, one card
+// per person regardless of how many cities they've booked (is_boosted is a
+// single column on the person, not per-booking). Capped by the admin's
+// max_featured_general setting, though in practice that's expected to be
+// set generously high now that the carousel — not a server-side pick —
+// is what fairly shows everyone in turn.
+export async function fetchFeaturedForCarousel(): Promise<Proposal[]> {
+  const { data: settingRow } = await supabase
+    .from('app_settings').select('value').eq('key', 'max_featured_general').maybeSingle();
+  const max = Number(settingRow?.value) || 20;
+
+  const { data } = await supabase
+    .from('proposals')
+    .select(CARD_COLS)
+    .eq('status', 'active')
+    .or(notExpiredFilter())
+    .eq('is_boosted', true)
+    .order('posted_at', { ascending: false })
+    .limit(max);
+  return (data || []) as Proposal[];
+}
+
 export async function fetchProposals(filters: FilterState = {}, page = 0, pageSize = 16): Promise<{ proposals: Proposal[]; total: number }> {
   // The "general proposal screen" is specifically the unfiltered/all-Pakistan
-  // view — no specific city and not the overseas/country view. That's the
-  // only place `is_boosted_in_general_feed` (the admin-capped random subset)
-  // applies; any city/overseas-filtered view keeps ordering by the real
-  // `is_boosted` so every one of that city's genuinely paid boosts shows —
-  // that list is already small thanks to the per-city cap.
+  // view — no specific city and not the overseas/country view. Featured
+  // showcasing for that view now lives entirely in the sliding carousel
+  // (see FeaturedCarousel component) — this main list just orders by
+  // newest-first, same as "Recently Added". City/overseas-filtered views
+  // keep boosting real is_boosted profiles to the top, unaffected — that
+  // list is already small thanks to the per-city cap.
   const isGeneralView = !filters.city && !filters.overseas;
-  const boostColumn = isGeneralView ? 'is_boosted_in_general_feed' : 'is_boosted';
 
   // A profile that bought a Featured slot FOR this specific city should
   // show up here (boosted to the top via is_boosted) even if their own
@@ -227,11 +249,14 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
     .from('proposals')
     .select(CARD_COLS, { count: 'exact' })
     .eq('status', 'active')
-    .or(notExpiredFilter())
-    .order(boostColumn, { ascending: false })
-    .order('subscription_tier', { ascending: false })
-    .order('posted_at', { ascending: false })
-    .range(page * pageSize, (page + 1) * pageSize - 1);
+    .or(notExpiredFilter());
+  query = isGeneralView
+    ? query.order('posted_at', { ascending: false })
+    : query
+        .order('is_boosted', { ascending: false })
+        .order('subscription_tier', { ascending: false })
+        .order('posted_at', { ascending: false });
+  query = query.range(page * pageSize, (page + 1) * pageSize - 1);
 
   if (filters.gender) query = query.eq('gender', filters.gender);
   if (filters.overseas) {
