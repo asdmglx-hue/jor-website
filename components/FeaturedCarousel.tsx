@@ -32,9 +32,10 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
   const hasDraggedRef = useRef(false);
 
   // Only scroll continuously when there's enough to actually loop — with
-  // very few people, it just sits still, same as the count that would
-  // make City/Country sliders pointless to auto-scroll too.
-  const needsScrolling = proposals.length > 4;
+  // 3 or fewer, it just sits still as a plain static row (matches the
+  // count that would make City/Country sliders pointless to auto-scroll
+  // too). More than 3 (i.e. 4+) is what triggers the carousel.
+  const needsScrolling = proposals.length > 3;
 
   useEffect(() => { pausedRef.current = paused; }, [paused]);
 
