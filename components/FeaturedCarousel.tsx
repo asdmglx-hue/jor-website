@@ -71,7 +71,6 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
 
   const stopDragging = () => {
     window.removeEventListener('pointermove', handleWindowPointerMove);
-    window.removeEventListener('pointerup', stopDragging);
     isDraggingRef.current = false;
     setIsDragging(false);
     setPaused(false);
@@ -83,6 +82,16 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
     dragStartXRef.current = e.clientX;
     dragStartPosRef.current = posRef.current;
     const startX = e.clientX;
+    // Paused the instant the pointer goes down — not only once an actual
+    // drag is confirmed. The auto-scroll animation keeps running every
+    // frame regardless of what the pointer is doing; if it weren't paused
+    // right away, posRef would keep silently drifting forward during the
+    // brief window before 8px of movement is detected, and the drag
+    // calculation below (anchored to the position captured at this exact
+    // moment) would suddenly jump to catch up the instant real dragging
+    // kicked in — which is exactly the "sticky, then snaps to the
+    // pointer" symptom this fixes.
+    setPaused(true);
 
     const checkForDragStart = (moveEvent: PointerEvent) => {
       if (Math.abs(moveEvent.clientX - startX) < 8) return;
@@ -90,16 +99,18 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
       isDraggingRef.current = true;
       hasDraggedRef.current = true;
       setIsDragging(true);
-      setPaused(true);
       window.addEventListener('pointermove', handleWindowPointerMove);
-      window.addEventListener('pointerup', stopDragging);
     };
-    const cancelIfReleasedEarly = () => {
+    // Fires on release regardless of whether an actual drag ever started
+    // — a plain click/tap still needs to resume the auto-scroll that was
+    // paused above the instant the pointer went down.
+    const handleRelease = () => {
       window.removeEventListener('pointermove', checkForDragStart);
-      window.removeEventListener('pointerup', cancelIfReleasedEarly);
+      window.removeEventListener('pointerup', handleRelease);
+      stopDragging();
     };
     window.addEventListener('pointermove', checkForDragStart);
-    window.addEventListener('pointerup', cancelIfReleasedEarly);
+    window.addEventListener('pointerup', handleRelease);
   };
 
   const handleClickCapture = (e: React.MouseEvent) => {
