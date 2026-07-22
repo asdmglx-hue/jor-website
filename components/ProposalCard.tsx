@@ -151,9 +151,9 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
                   {new Date(p.posted_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                 </span>
                 {isFeatured && (
-                  <div style={{ background: '#E8620A', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 20, letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 2, lineHeight: 1 }}>
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill="white"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
-                    FEATURED
+                  <div style={{ background: '#E8620A', color: '#fff', fontSize: 9, fontWeight: 800, height: 15, padding: '0 6px 0 5px', borderRadius: 20, letterSpacing: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="white" style={{ flexShrink: 0, display: 'block' }}><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
+                    <span style={{ display: 'block', transform: 'translateY(0.5px)' }}>FEATURED</span>
                   </div>
                 )}
               </div>
