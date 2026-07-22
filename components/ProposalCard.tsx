@@ -14,7 +14,7 @@ function Avatar({ name, photoUrl, size = 56, locked = false, index }: { name: st
   if (photoUrl) {
     return (
       <div style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', flexShrink: 0, border: '2px solid #E8E6F5', position: 'relative' }}>
-        <img src={photoUrl} alt="" width={size} height={size} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: locked ? 'blur(8px)' : 'none', transform: locked ? 'scale(1.1)' : 'none' }} />
+        <img src={photoUrl} alt="" width={size} height={size} loading="lazy" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: locked ? 'blur(8px)' : 'none', transform: locked ? 'scale(1.1)' : 'none' }} />
         {locked && (
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,24,48,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
