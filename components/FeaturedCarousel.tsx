@@ -7,7 +7,16 @@ const VISIBLE = 3;
 const SLIDE_INTERVAL_MS = 5000;
 
 export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
-  const [proposals] = useState<Proposal[]>(initial);
+  const [proposals, setProposals] = useState<Proposal[]>(initial);
+  // Syncs whenever the parent's data changes — not just on first mount.
+  // Needed because this prop arrives two different ways depending on the
+  // page: the homepage fetches it server-side, so `initial` is already
+  // correct the very first time this component renders. The Proposals
+  // page fetches it client-side in a useEffect, so it starts as an empty
+  // array and only becomes real data a moment after mount — without this
+  // sync, useState(initial) would have locked in that empty array forever
+  // and the carousel would silently never appear there.
+  useEffect(() => { setProposals(initial); }, [initial]);
   const [startIndex, setStartIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
