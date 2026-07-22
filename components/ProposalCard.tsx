@@ -142,7 +142,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
           <Avatar name={p.name} photoUrl={p.profile_photo_url} size={52} locked={!isActive} index={index} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, paddingRight: isFeatured ? 72 : 0 }}>
               <ExpandableName
                 name={p.name}
                 style={{ fontSize: 15, fontWeight: 800, color: '#1A1830' }}
