@@ -153,7 +153,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
                 {isFeatured && (
                   <div style={{ background: '#E8620A', color: '#fff', fontSize: 9, fontWeight: 800, height: 15, padding: '0 6px 0 5px', borderRadius: 20, letterSpacing: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
                     <svg width="8" height="8" viewBox="0 0 24 24" fill="white" style={{ flexShrink: 0, display: 'block' }}><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
-                    <span style={{ display: 'block', transform: 'translateY(0.06em)' }}>FEATURED</span>
+                    <span style={{ display: 'block', lineHeight: 1, transform: 'translateY(0.06em)' }}>FEATURED</span>
                   </div>
                 )}
               </div>

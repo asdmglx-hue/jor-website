@@ -78,11 +78,10 @@ body {
 
 /* Smooth transitions */
 .card-hover {
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.2s ease;
 }
 .card-hover:hover {
   box-shadow: 0 8px 24px rgba(83, 74, 183, 0.12);
-  transform: translateY(-1px);
 }
 
 /* ── Responsive utilities ─────────────────────────────────────────────────── */
