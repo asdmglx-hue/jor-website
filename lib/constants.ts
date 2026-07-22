@@ -51,15 +51,6 @@ export const COUNTRIES_FLAT: string[] = [
 ];
 export const COUNTRY_GROUPS: Record<string, string[]> = { 'Countries': COUNTRIES_FLAT };
 
-// Combined Pakistan-cities + Overseas-countries in ONE grouped object, for
-// a single searchable field (e.g. FeaturedBookModal) that needs to offer
-// both without a separate "Pakistan or Overseas?" toggle — the group
-// headers ("Punjab", "Sindh", ..., "Overseas") do that job implicitly.
-export const LOCATION_GROUPS: Record<string, string[]> = {
-  ...CITY_GROUPS,
-  'Overseas': COUNTRIES_FLAT,
-};
-
 export const CASTES = [
   'Jatt / Jat','Rajput','Arain','Gujjar','Sheikh','Syed','Mughal','Malik','Awan',
   'Bhatti','Khokhar','Dogar','Tiwana','Kamboh','Ansari','Qureshi',

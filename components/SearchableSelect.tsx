@@ -4,10 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 // Extracted from app/register/SubmitClient.tsx (was a local, unexported
 // function there). Renders flat search results while typing, or grouped
 // results (with group-name headers) when the search box is empty and more
-// than one group was passed in — that grouping is what lets a single field
-// offer, say, Pakistani cities AND overseas countries together without
-// needing a separate toggle: pass a combined `groups` object (see
-// lib/constants.ts's LOCATION_GROUPS) and the group headers do the rest.
+// than one group was passed in — used by the registration form's
+// caste/profession/education fields (see CASTE_GROUPS/PROFESSION_GROUPS).
 export default function SearchableSelect({ value, onChange, groups, placeholder, hasError, buttonStyle }: { value: string; onChange: (v: string) => void; groups: Record<string, string[]>; placeholder: string; hasError?: boolean; buttonStyle?: React.CSSProperties }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');

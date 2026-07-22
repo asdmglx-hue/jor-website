@@ -246,10 +246,10 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   }
 
   // Same idea for an overseas country — a slot can now be booked for a
-  // country (see components/FeaturedBookModal.tsx's LOCATION_GROUPS), and
-  // featured_boosts.city stores that country name identically to how it
-  // stores a Pakistani city, so this is the exact same lookup, just keyed
-  // on filters.country instead.
+  // country too (see components/FeaturedBookModal.tsx's Pakistan/Overseas
+  // location step), and featured_boosts.city stores that country name
+  // identically to how it stores a Pakistani city, so this is the exact
+  // same lookup, just keyed on filters.country instead.
   let boostedForCountryIds: string[] = [];
   if (filters.overseas && filters.country) {
     const now = new Date();
@@ -502,7 +502,7 @@ export async function fetchProposalsForCategory(
   // city/country differs. caste/sect/profession pages don't have a
   // matching concept — only city and country do, since only those two
   // can actually be booked as a Featured location (see
-  // components/FeaturedBookModal.tsx's LOCATION_GROUPS).
+  // components/FeaturedBookModal.tsx's Pakistan/Overseas location step).
   let boostedForCityIds: string[] = [];
   if (dbColumn === 'city' || dbColumn === 'country') {
     const now = new Date();

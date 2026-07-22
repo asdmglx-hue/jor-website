@@ -1,21 +1,22 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase, isFeaturedSlotAvailable } from '@/lib/supabase';
-import { LOCATION_GROUPS } from '@/lib/constants';
-import SearchableSelect from '@/components/SearchableSelect';
+import { CITY_GROUPS, COUNTRIES_FLAT } from '@/lib/constants';
 // Moved server-side so a successful booking can instantly refresh cached
 // listing pages instead of waiting on the 5-minute timer — see
 // lib/actions/revalidate-write.ts for the full explanation.
 import { bookFeaturedSlotAction } from '@/lib/actions/featured-actions';
 
-type Slot = { city: string; date: string; checking?: boolean }; // date is yyyy-mm-dd
-// "city" here can hold either a Pakistani city OR an overseas country name
-// (see LOCATION_GROUPS in lib/constants.ts) — the booking RPC just treats
-// it as an opaque text match either way (featured_boosts.city has no
-// constraint tying it to real Pakistani cities specifically), so no
-// backend change was needed to allow this, only lib/supabase.ts's
-// fetchProposalsForCategory/fetchProposals boost-matching needed to also
-// recognize country-scoped boosts (see the comments there).
+// "city" can hold either a Pakistani city OR an overseas country name —
+// the booking RPC just treats it as an opaque text match either way
+// (featured_boosts.city has no constraint tying it to real Pakistani
+// cities specifically), so no backend change was needed to allow this,
+// only lib/supabase.ts's fetchProposalsForCategory/fetchProposals
+// boost-matching needed to also recognize country-scoped boosts (see the
+// comments there). "mode" is UI-only state — it decides which second
+// select to show (Pakistan cities vs Overseas countries), matching the
+// same two-step pattern as components/FilterBar.tsx's location filter.
+type Slot = { mode: 'pakistan' | 'overseas' | ''; city: string; date: string; checking?: boolean }; // date is yyyy-mm-dd
 
 function isSameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -30,12 +31,12 @@ function todayStr() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-// Visual style matching the original local CitySelect exactly, passed as
-// an override to the shared SearchableSelect (whose own defaults match
-// the registration form's look instead — see components/SearchableSelect.tsx).
-const locationButtonStyle: React.CSSProperties = {
-  padding: '10px 12px', borderRadius: 10, border: '1px solid #E8E6F5',
-  background: '#F8F7FF', fontSize: 12.5,
+// Matches the visual style already used for the Date input in this modal
+// (not FilterBar's — that's tuned for the main browse toolbar, a
+// different visual context than this card-style modal).
+const selectStyle: React.CSSProperties = {
+  width: '100%', boxSizing: 'border-box', padding: '9px 10px', borderRadius: 10,
+  border: '1px solid #E8E6F5', background: '#F8F7FF', fontSize: 12.5, color: '#1A1830',
 };
 
 export default function FeaturedBookModal({
@@ -48,14 +49,14 @@ export default function FeaturedBookModal({
   onBooked: () => void;
   onResult: (lines: string[], allBookedToday: boolean) => void;
 }) {
-  const [slots, setSlots] = useState<Slot[]>([{ city: '', date: '' }]);
+  const [slots, setSlots] = useState<Slot[]>([{ mode: '', city: '', date: '' }]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [maxPerCity, setMaxPerCity] = useState(5);
 
   useEffect(() => {
     if (!open) return;
-    setSlots([{ city: '', date: '' }]);
+    setSlots([{ mode: '', city: '', date: '' }]);
     setErrorMsg(null);
     setSubmitting(false);
     supabase.from('app_settings').select('key, value').eq('key', 'max_featured_per_city').maybeSingle()
@@ -81,7 +82,12 @@ export default function FeaturedBookModal({
     else setErrorMsg(null);
   };
 
-  const addSlot = () => setSlots(prev => (prev.length < maxSlots ? [...prev, { city: '', date: '' }] : prev));
+  const changeMode = (i: number, mode: Slot['mode']) => {
+    setSlots(prev => prev.map((s, idx) => (idx === i ? { ...s, mode, city: '' } : s)));
+    setErrorMsg(null);
+  };
+
+  const addSlot = () => setSlots(prev => (prev.length < maxSlots ? [...prev, { mode: '', city: '', date: '' }] : prev));
   const removeSlot = (i: number) => setSlots(prev => prev.filter((_, idx) => idx !== i));
 
   const allFilled = slots.every(s => s.city && s.date && !s.checking);
@@ -133,23 +139,46 @@ export default function FeaturedBookModal({
           </div>
 
           {slots.map((slot, i) => (
-            <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'flex-start' }}>
-              <div style={{ flex: 2 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>Date {i + 1}</div>
-                <input
-                  type="date"
-                  min={todayStr()}
-                  value={slot.date}
-                  onChange={e => checkSlot(i, { date: e.target.value })}
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', borderRadius: 10, border: '1px solid #E8E6F5', background: '#F8F7FF', fontSize: 12.5 }}
-                />
+            <div key={i} style={{ marginBottom: 14 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>Date {i + 1}</div>
+                  <input
+                    type="date"
+                    min={todayStr()}
+                    value={slot.date}
+                    onChange={e => checkSlot(i, { date: e.target.value })}
+                    style={selectStyle}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>Location {i + 1}</div>
+                  <select value={slot.mode} onChange={e => changeMode(i, e.target.value as Slot['mode'])} style={selectStyle}>
+                    <option value="">Pakistan or Overseas?</option>
+                    <option value="pakistan">Pakistan</option>
+                    <option value="overseas">Overseas</option>
+                  </select>
+                </div>
+                {slots.length > 1 && (
+                  <div onClick={() => removeSlot(i)} style={{ cursor: 'pointer', color: '#68629C', fontSize: 16, marginTop: 24, padding: '0 2px' }}>✕</div>
+                )}
               </div>
-              <div style={{ flex: 3 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>Location {i + 1}</div>
-                <SearchableSelect value={slot.city} onChange={c => checkSlot(i, { city: c })} groups={LOCATION_GROUPS} placeholder="Select city or country" buttonStyle={locationButtonStyle} />
-              </div>
-              {slots.length > 1 && (
-                <div onClick={() => removeSlot(i)} style={{ cursor: 'pointer', color: '#68629C', fontSize: 16, marginTop: 24, padding: '0 2px' }}>✕</div>
+
+              {slot.mode === 'pakistan' && (
+                <select value={slot.city} onChange={e => checkSlot(i, { city: e.target.value })} style={{ ...selectStyle, marginTop: 8 }}>
+                  <option value="">Select city</option>
+                  {Object.entries(CITY_GROUPS).map(([province, cities]) => (
+                    <optgroup key={province} label={province}>
+                      {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                    </optgroup>
+                  ))}
+                </select>
+              )}
+              {slot.mode === 'overseas' && (
+                <select value={slot.city} onChange={e => checkSlot(i, { city: e.target.value })} style={{ ...selectStyle, marginTop: 8 }}>
+                  <option value="">Select country</option>
+                  {COUNTRIES_FLAT.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
               )}
             </div>
           ))}
