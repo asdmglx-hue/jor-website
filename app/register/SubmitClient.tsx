@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { trackEvent } from '@/lib/analytics';
+import { CITY_GROUPS, COUNTRY_GROUPS } from '@/lib/constants';
+import SearchableSelect from '@/components/SearchableSelect';
 // Moved server-side — see lib/actions/proposal-actions.ts and
 // lib/actions/revalidate-write.ts for why.
 import { submitProposalAction as submitProposal } from '@/lib/actions/proposal-actions';
@@ -34,16 +36,8 @@ const PROFESSION_GROUPS: Record<string, string[]> = {
   'Services & Other': ['Driver','Shopkeeper','Call Center Agent','Social Worker','Farmer','Interior Designer','Event Manager','Businessman','Housewife','Student'],
 };
 
-const CITY_GROUPS: Record<string, string[]> = {
-  'Punjab': ['Lahore','Faisalabad','Rawalpindi','Multan','Gujranwala','Sialkot','Bahawalpur','Sargodha','Sheikhupura','Rahim Yar Khan','Jhelum','Gujrat','Okara','Sahiwal','Khanewal','Vehari','Kasur','Dera Ghazi Khan','Layyah','Mianwali','Bhakkar','Toba Tek Singh','Chiniot','Hafizabad','Lodhran','Muzaffargarh','Rajanpur','Bahawalnagar','Pasrur','Wazirabad','Pakpattan','Narowal','Attock','Chakwal','Murree','Jhang','Wah','Burewala','Kamoke','Sadiqabad','Muridke','Khanpur','Mandi Bahauddin','Daska','Gojra','Ahmedpur East','Chishtian','Samundri','Ferozwala','Jaranwala','Hasilpur','Kamalia','Kot Abdul Malik','Arif Wala','Jampur','Jatoi','Shujabad','Haroonabad','Jalalpur Jattan','Kot Addu','Mian Channu','Khushab','Taxila','Shakargarh','Mailsi','Dipalpur','Haveli Lakha','Lala Musa','Sambrial','Bhalwal','Taunsa','Phool Nagar','Pattoki','Jauharabad','Chichawatni','Farooqabad','Sangla Hill','Gujar Khan','Kharian','Kot Radha Kishan','Ludhewala Waraich','Renala Khurd'],
-  'Sindh': ['Karachi','Hyderabad','Sukkur','Larkana','Mirpur Khas','Khairpur','Nawabshah','Badin','Thatta','Jamshoro','Sanghar','Ghotki','Jacobabad','Shikarpur','Dadu','Tando Adam','Tando Allahyar','Bholari','Umerkot','Moro','Shahdadkot','Tando Muhammad Khan','Shahdadpur','Kamber Ali Khan','Kotri'],
-  'KPK': ['Peshawar','Mardan','Mingora','Abbottabad','Kohat','Dera Ismail Khan','Bannu','Chitral','Mansehra','Haripur','Swabi','Nowshera','Charsadda','Kabal','Barikot','Shabqadar'],
-  'Balochistan': ['Quetta','Gwadar','Turbat','Khuzdar','Chaman','Sibi','Zhob','Hub','Panjgur','Pishin','Dera Murad Jamali'],
-  'Islamabad': ['Islamabad'],
-  'Gilgit Baltistan': ['Gilgit','Skardu','Hunza'],
-  'Azad Kashmir': ['Muzaffarabad','Mirpur','Rawalakot','Kotli','Bagh'],
-  'Other': ['Other'],
-};
+// CITY_GROUPS moved to lib/constants.ts (shared single source with
+// FeaturedBookModal.tsx — see that file's comment for why).
 
 const SECTS = ['Sunni','Shia','Barelvi','Deobandi','Ahl-e-Hadith','Other'];
 const LANGUAGES = ['Punjabi','Pashto','Sindhi','Saraiki','Balochi','Urdu','English','Other'];
@@ -270,33 +264,8 @@ function formatDialedPhone(dialCode: string, number: string): string {
   return `${dialCode} ${local}`;
 }
 
-const COUNTRIES_FLAT: string[] = [
-  'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua & Barbuda','Argentina','Armenia','Australia','Austria','Azerbaijan',
-  'Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan','Bolivia','Bosnia & Herzegovina','Botswana','Brazil','Brunei','Bulgaria','Burkina Faso','Burundi',
-  'Cabo Verde','Cambodia','Cameroon','Canada','Central African Republic','Chad','Chile','China','Colombia','Comoros','Congo','Congo (DR)','Costa Rica','Croatia','Cuba','Cyprus','Czech Republic',
-  'Denmark','Djibouti','Dominica','Dominican Republic',
-  'Ecuador','Egypt','El Salvador','Equatorial Guinea','Eritrea','Estonia','Eswatini','Ethiopia',
-  'Fiji','Finland','France',
-  'Gabon','Gambia','Georgia','Germany','Ghana','Greece','Grenada','Guatemala','Guinea','Guinea-Bissau','Guyana',
-  'Haiti','Honduras','Hungary',
-  'Iceland','India','Indonesia','Iran','Iraq','Ireland','Italy',
-  'Jamaica','Japan','Jordan',
-  'Kazakhstan','Kenya','Kiribati','Kosovo','Kuwait','Kyrgyzstan',
-  'Laos','Latvia','Lebanon','Lesotho','Liberia','Libya','Liechtenstein','Lithuania','Luxembourg',
-  'Madagascar','Malawi','Malaysia','Maldives','Mali','Malta','Marshall Islands','Mauritania','Mauritius','Mexico','Micronesia','Moldova','Monaco','Mongolia','Montenegro','Morocco','Mozambique','Myanmar',
-  'Namibia','Nauru','Nepal','Netherlands','New Zealand','Nicaragua','Niger','Nigeria','North Macedonia','Norway',
-  'Oman',
-  'Palau','Palestine','Panama','Papua New Guinea','Paraguay','Peru','Philippines','Poland','Portugal',
-  'Qatar',
-  'Romania','Russia','Rwanda',
-  'Saint Kitts & Nevis','Saint Lucia','Saint Vincent','Samoa','San Marino','Sao Tome & Principe','Saudi Arabia','Senegal','Serbia','Seychelles','Sierra Leone','Singapore','Slovakia','Slovenia','Solomon Islands','Somalia','South Africa','South Sudan','Spain','Sri Lanka','Sudan','Suriname','Sweden','Switzerland','Syria',
-  'Taiwan','Tajikistan','Tanzania','Thailand','Timor-Leste','Togo','Tonga','Trinidad & Tobago','Tunisia','Turkey','Turkmenistan','Tuvalu',
-  'UAE','Uganda','Ukraine','United Kingdom','USA','Uruguay','Uzbekistan',
-  'Vanuatu','Vatican City','Venezuela','Vietnam',
-  'Yemen',
-  'Zambia','Zimbabwe',
-];
-const COUNTRY_GROUPS: Record<string, string[]> = { 'Countries': COUNTRIES_FLAT };
+// COUNTRIES_FLAT / COUNTRY_GROUPS moved to lib/constants.ts (shared single
+// source with FeaturedBookModal.tsx).
 
 // ── Styles ─────────────────────────────────────────────────────────────────────
 const inp: React.CSSProperties = { width: '100%', padding: '11px 13px', borderRadius: 11, border: '1.5px solid #E8E6F5', fontSize: 14, outline: 'none', color: '#1A1830', background: '#fff', boxSizing: 'border-box' };
@@ -428,79 +397,9 @@ function DegreeFields({ form, set, inp }: {
   );
 }
 
-function SearchableSelect({ value, onChange, groups, placeholder, hasError }: { value: string; onChange: (v: string) => void; groups: Record<string, string[]>; placeholder: string; hasError?: boolean }) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const ref = useRef<HTMLDivElement>(null);
+// SearchableSelect moved to components/SearchableSelect.tsx (shared with
+// FeaturedBookModal.tsx).
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const allItems = Object.entries(groups).flatMap(([, items]) => items);
-  const filtered = query.trim()
-    ? allItems.filter(item => item.toLowerCase().includes(query.toLowerCase()))
-    : null;
-
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button type="button" onClick={() => { setOpen(o => !o); setQuery(''); }} style={{
-        ...sel, textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        color: value ? '#1A1830' : '#9CA3AF',
-        ...(hasError ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : {}),
-      }}>
-        <span>{value || placeholder}</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      {open && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: '#fff', border: '1.5px solid #E8E6F5', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', marginTop: 4, overflow: 'hidden' }}>
-          <div style={{ padding: '8px 10px', borderBottom: '1px solid #E8E6F5', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input
-              autoFocus
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder="Search..."
-              style={{ border: 'none', outline: 'none', fontSize: 13, color: '#1A1830', width: '100%', background: 'transparent' }}
-            />
-          </div>
-          <div style={{ maxHeight: 220, overflowY: 'auto' }}>
-            {value && (
-              <div onClick={() => { onChange(''); setOpen(false); }} style={{ padding: '8px 12px', fontSize: 13, color: '#68629C', cursor: 'pointer' }}>
-                Clear selection
-              </div>
-            )}
-            {filtered
-              ? filtered.map(item => (
-                <div key={item} onClick={() => { onChange(item); setOpen(false); setQuery(''); }}
-                  style={{ padding: '8px 12px', fontSize: 13, cursor: 'pointer', color: item === value ? '#534AB7' : '#1A1830', fontWeight: item === value ? 700 : 400, background: item === value ? '#EEEDFE' : 'transparent' }}
-                  onMouseEnter={e => { if (item !== value) (e.target as HTMLElement).style.background = '#F8F7FF'; }}
-                  onMouseLeave={e => { if (item !== value) (e.target as HTMLElement).style.background = 'transparent'; }}>
-                  {item}
-                </div>
-              ))
-              : Object.entries(groups).map(([group, items]) => (
-                <div key={group}>
-                  {Object.keys(groups).length > 1 && <div style={{ padding: '6px 12px 2px', fontSize: 10, fontWeight: 800, color: '#68629C', letterSpacing: 0.8, background: '#FAFAFA' }}>{group.toUpperCase()}</div>}
-                  {items.map(item => (
-                    <div key={`${group}-${item}`} onClick={() => { onChange(item); setOpen(false); setQuery(''); }}
-                      style={{ padding: '8px 12px 8px 16px', fontSize: 13, cursor: 'pointer', color: item === value ? '#534AB7' : '#1A1830', fontWeight: item === value ? 700 : 400, background: item === value ? '#EEEDFE' : 'transparent' }}
-                      onMouseEnter={e => { if (item !== value) (e.target as HTMLElement).style.background = '#F8F7FF'; }}
-                      onMouseLeave={e => { if (item !== value) (e.target as HTMLElement).style.background = 'transparent'; }}>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              ))
-            }
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── Profile Photo Crop Modal ───────────────────────────────────────────────────
 function PhotoCropModal({ src, onDone, onCancel }: { src: string; onDone: (blob: Blob) => void; onCancel: () => void }) {

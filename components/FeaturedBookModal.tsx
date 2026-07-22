@@ -1,13 +1,21 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase, isFeaturedSlotAvailable } from '@/lib/supabase';
-import { CITIES } from '@/lib/constants';
+import { LOCATION_GROUPS } from '@/lib/constants';
+import SearchableSelect from '@/components/SearchableSelect';
 // Moved server-side so a successful booking can instantly refresh cached
 // listing pages instead of waiting on the 5-minute timer — see
 // lib/actions/revalidate-write.ts for the full explanation.
 import { bookFeaturedSlotAction } from '@/lib/actions/featured-actions';
 
 type Slot = { city: string; date: string; checking?: boolean }; // date is yyyy-mm-dd
+// "city" here can hold either a Pakistani city OR an overseas country name
+// (see LOCATION_GROUPS in lib/constants.ts) — the booking RPC just treats
+// it as an opaque text match either way (featured_boosts.city has no
+// constraint tying it to real Pakistani cities specifically), so no
+// backend change was needed to allow this, only lib/supabase.ts's
+// fetchProposalsForCategory/fetchProposals boost-matching needed to also
+// recognize country-scoped boosts (see the comments there).
 
 function isSameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -22,58 +30,13 @@ function todayStr() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-// Small searchable city dropdown — same pattern already used in
-// PaymentProofModal's CitySelect, kept local here to avoid a cross-import.
-function CitySelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const filtered = query.trim() ? CITIES.filter(c => c.toLowerCase().includes(query.trim().toLowerCase())) : CITIES;
-
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <div
-        onClick={() => setOpen(o => !o)}
-        style={{
-          padding: '10px 12px', borderRadius: 10, border: '1px solid #E8E6F5',
-          background: '#F8F7FF', fontSize: 12.5, cursor: 'pointer',
-          color: value ? '#1A1830' : '#68629C', fontWeight: value ? 600 : 400,
-          display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}
-      >
-        {value || 'Select city'}
-      </div>
-      {open && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, marginTop: 4, width: 220, maxWidth: '80vw',
-          background: '#fff', border: '1px solid #E8E6F5', borderRadius: 10,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.12)', zIndex: 300, overflow: 'hidden',
-        }}>
-          <input
-            autoFocus value={query} onChange={e => setQuery(e.target.value)}
-            placeholder="Search city..."
-            style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', border: 'none', borderBottom: '1px solid #E8E6F5', fontSize: 12.5, outline: 'none' }}
-          />
-          <div style={{ maxHeight: 220, overflowY: 'auto' }}>
-            {filtered.map(c => (
-              <div key={c} onClick={() => { onChange(c); setOpen(false); setQuery(''); }}
-                style={{ padding: '9px 12px', fontSize: 12.5, cursor: 'pointer', color: '#1A1830', background: c === value ? '#F0EEFC' : 'transparent' }}>
-                {c}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+// Visual style matching the original local CitySelect exactly, passed as
+// an override to the shared SearchableSelect (whose own defaults match
+// the registration form's look instead — see components/SearchableSelect.tsx).
+const locationButtonStyle: React.CSSProperties = {
+  padding: '10px 12px', borderRadius: 10, border: '1px solid #E8E6F5',
+  background: '#F8F7FF', fontSize: 12.5,
+};
 
 export default function FeaturedBookModal({
   open, onClose, cnic, maxSlots, onBooked, onResult,
@@ -164,9 +127,9 @@ export default function FeaturedBookModal({
     >
       <div style={{ background: '#fff', borderRadius: 20, maxWidth: 440, width: '100%', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: 24, overflowY: 'auto' }}>
-          <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 6 }}>Select Date & City</div>
+          <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 6 }}>Select Date & Location</div>
           <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.4, marginBottom: 18 }}>
-            Pick where and when you want your profile featured. One credit is used per date & city.
+            Pick where and when you want your profile featured. One credit is used per date & location.
           </div>
 
           {slots.map((slot, i) => (
@@ -182,8 +145,8 @@ export default function FeaturedBookModal({
                 />
               </div>
               <div style={{ flex: 3 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>City {i + 1}</div>
-                <CitySelect value={slot.city} onChange={c => checkSlot(i, { city: c })} />
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>Location {i + 1}</div>
+                <SearchableSelect value={slot.city} onChange={c => checkSlot(i, { city: c })} groups={LOCATION_GROUPS} placeholder="Select city or country" buttonStyle={locationButtonStyle} />
               </div>
               {slots.length > 1 && (
                 <div onClick={() => removeSlot(i)} style={{ cursor: 'pointer', color: '#68629C', fontSize: 16, marginTop: 24, padding: '0 2px' }}>✕</div>
@@ -193,7 +156,7 @@ export default function FeaturedBookModal({
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             {slots.length < maxSlots ? (
-              <div onClick={addSlot} style={{ cursor: 'pointer', color: '#534AB7', fontSize: 12.5, fontWeight: 700 }}>+ Add another date & city</div>
+              <div onClick={addSlot} style={{ cursor: 'pointer', color: '#534AB7', fontSize: 12.5, fontWeight: 700 }}>+ Add another date & location</div>
             ) : <span />}
             <div style={{ fontSize: 12.5, fontWeight: 700, color: '#1A1830' }}>{slots.length} credit{slots.length === 1 ? '' : 's'}</div>
           </div>

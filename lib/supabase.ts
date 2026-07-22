@@ -245,6 +245,25 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
     boostedForCityIds = (activeBoosts || []).map(b => b.user_id as string);
   }
 
+  // Same idea for an overseas country — a slot can now be booked for a
+  // country (see components/FeaturedBookModal.tsx's LOCATION_GROUPS), and
+  // featured_boosts.city stores that country name identically to how it
+  // stores a Pakistani city, so this is the exact same lookup, just keyed
+  // on filters.country instead.
+  let boostedForCountryIds: string[] = [];
+  if (filters.overseas && filters.country) {
+    const now = new Date();
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const { data: activeBoosts } = await supabase
+      .from('featured_boosts')
+      .select('user_id')
+      .eq('city', filters.country)
+      .eq('is_used', false)
+      .lte('scheduled_date', now.toISOString())
+      .gt('scheduled_date', dayAgo.toISOString());
+    boostedForCountryIds = (activeBoosts || []).map(b => b.user_id as string);
+  }
+
   let query = supabase
     .from('proposals')
     .select(CARD_COLS, { count: 'exact' })
@@ -265,7 +284,11 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   if (filters.gender) query = query.eq('gender', filters.gender);
   if (filters.overseas) {
     query = query.not('country', 'is', null).neq('country', '').neq('country', 'Pakistan');
-    if (filters.country) query = query.eq('country', filters.country);
+    if (filters.country) {
+      query = boostedForCountryIds.length > 0
+        ? query.or(`country.eq.${filters.country},id.in.(${boostedForCountryIds.join(',')})`)
+        : query.eq('country', filters.country);
+    }
   } else if (filters.city) {
     query = boostedForCityIds.length > 0
       ? query.or(`city.eq.${filters.city},id.in.(${boostedForCityIds.join(',')})`)
@@ -472,13 +495,16 @@ export async function fetchProposalsForCategory(
   limit = 24,
   extra?: { gender?: string }
 ): Promise<Proposal[]> {
-  // Same "boosted for this specific city" inclusion as fetchProposals —
-  // a profile that bought a Featured slot FOR this city should show up
-  // (and float to the top) on that city's dedicated page too, even if
-  // their own registered city differs. Only meaningful for city pages;
-  // caste/sect/profession/country pages don't have a matching concept.
+  // Same "boosted for this specific location" inclusion as fetchProposals —
+  // a profile that bought a Featured slot FOR this city (or, now, this
+  // overseas country) should show up (and float to the top) on that
+  // location's dedicated page too, even if their own registered
+  // city/country differs. caste/sect/profession pages don't have a
+  // matching concept — only city and country do, since only those two
+  // can actually be booked as a Featured location (see
+  // components/FeaturedBookModal.tsx's LOCATION_GROUPS).
   let boostedForCityIds: string[] = [];
-  if (dbColumn === 'city') {
+  if (dbColumn === 'city' || dbColumn === 'country') {
     const now = new Date();
     const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const { data: activeBoosts } = await supabase
