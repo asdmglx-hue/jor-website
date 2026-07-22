@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { supabase, isFeaturedSlotAvailable } from '@/lib/supabase';
-import { CITY_GROUPS, COUNTRIES_FLAT } from '@/lib/constants';
+import { supabase, isFeaturedSlotAvailable, fetchOverseasCountries } from '@/lib/supabase';
+import { CITY_GROUPS } from '@/lib/constants';
 // Moved server-side so a successful booking can instantly refresh cached
 // listing pages instead of waiting on the 5-minute timer — see
 // lib/actions/revalidate-write.ts for the full explanation.
@@ -53,12 +53,20 @@ export default function FeaturedBookModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [maxPerCity, setMaxPerCity] = useState(5);
+  // Only countries that currently have active proposals — same list the
+  // homepage's country slider and the FilterBar's Overseas filter use.
+  // Booking a Featured slot for a country nobody's actually registered
+  // under yet wouldn't have anywhere meaningful to show it.
+  const [overseasCountries, setOverseasCountries] = useState<string[]>([]);
+  const [loadingCountries, setLoadingCountries] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setSlots([{ mode: '', city: '', date: '' }]);
     setErrorMsg(null);
     setSubmitting(false);
+    setLoadingCountries(true);
+    fetchOverseasCountries().then(setOverseasCountries).finally(() => setLoadingCountries(false));
     supabase.from('app_settings').select('key, value').eq('key', 'max_featured_per_city').maybeSingle()
       .then(({ data }) => { if (data?.value) setMaxPerCity(Number(data.value) || 5); });
   }, [open]);
@@ -175,9 +183,16 @@ export default function FeaturedBookModal({
                 </select>
               )}
               {slot.mode === 'overseas' && (
-                <select value={slot.city} onChange={e => checkSlot(i, { city: e.target.value })} style={{ ...selectStyle, marginTop: 8 }}>
-                  <option value="">Select country</option>
-                  {COUNTRIES_FLAT.map(c => <option key={c} value={c}>{c}</option>)}
+                <select
+                  value={slot.city}
+                  onChange={e => checkSlot(i, { city: e.target.value })}
+                  disabled={loadingCountries || overseasCountries.length === 0}
+                  style={{ ...selectStyle, marginTop: 8 }}
+                >
+                  <option value="">
+                    {loadingCountries ? 'Loading countries…' : overseasCountries.length === 0 ? 'No overseas countries yet' : 'Select country'}
+                  </option>
+                  {overseasCountries.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               )}
             </div>
