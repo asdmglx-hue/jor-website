@@ -1,9 +1,11 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Proposal } from '@/lib/supabase';
 import ProposalCard from './ProposalCard';
 
-const CARD_WIDTH = 275;
+const NATURAL_WIDTH = 360; // ProposalCard's normal, unscaled width
+const CARD_WIDTH = 275; // actual on-screen width in this carousel
+const SCALE = CARD_WIDTH / NATURAL_WIDTH;
 const GAP = 20;
 
 export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
@@ -148,7 +150,9 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
         >
           {track.map((p, i) => (
             <div key={i} style={{ width: needsScrolling ? CARD_WIDTH : undefined, flex: needsScrolling ? 'none' : 1, userSelect: 'none' }}>
-              <ProposalCard proposal={p} index={i % proposals.length} />
+              <div style={needsScrolling ? { width: NATURAL_WIDTH, zoom: SCALE } as CSSProperties : undefined}>
+                <ProposalCard proposal={p} index={i % proposals.length} />
+              </div>
             </div>
           ))}
         </div>
