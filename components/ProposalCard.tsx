@@ -131,25 +131,32 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
     <>
       <Link href={`/profile/${p.proposal_number}`} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="card-hover" style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 20, padding: '14px', cursor: 'pointer', position: 'relative', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
-        {isFeatured && (
-          <div style={{ position: 'absolute', top: 12, right: 12, background: '#E8620A', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 20, letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <svg width="8" height="8" viewBox="0 0 24 24" fill="white"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
-            FEATURED
-          </div>
-        )}
-
         {/* Header */}
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
           <Avatar name={p.name} photoUrl={p.profile_photo_url} size={52} locked={!isActive} index={index} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, paddingRight: isFeatured ? 72 : 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: 6 }}>
               <ExpandableName
-                name={p.name}
+                name={isFeatured && p.name.length > 14 ? p.name.slice(0, 14) + '…' : p.name}
                 style={{ fontSize: 15, fontWeight: 800, color: '#1A1830' }}
               />
-              <span style={{ fontSize: 11, color: '#68629C', flexShrink: 0, marginLeft: 6 }}>
-                {new Date(p.posted_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
-              </span>
+              {/* Date and FEATURED badge are flex siblings in the same row
+                  now (previously the badge floated absolutely above
+                  everything) — alignItems: center on this row is what
+                  guarantees they're always vertically aligned with each
+                  other, rather than depending on matching up two
+                  independently-positioned elements' offsets by hand. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                <span style={{ fontSize: 11, color: '#68629C', lineHeight: 1 }}>
+                  {new Date(p.posted_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
+                </span>
+                {isFeatured && (
+                  <div style={{ background: '#E8620A', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 20, letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 2, lineHeight: 1 }}>
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="white"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
+                    FEATURED
+                  </div>
+                )}
+              </div>
             </div>
             <div style={{ fontSize: 12, color: '#6B6893', marginTop: 2 }}>{p.age} yrs • {p.country && p.country !== 'Pakistan' ? `${p.country} (from ${p.city})` : `${p.city}, Pakistan`}</div>
             <div style={{ fontSize: 12, color: '#6B6893', marginTop: 1 }}>{p.profession ? p.profession.length > 30 ? p.profession.slice(0, 30) + '…' : p.profession : null}</div>
