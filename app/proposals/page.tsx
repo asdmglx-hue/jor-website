@@ -15,6 +15,9 @@ export const metadata: Metadata = {
 // just means one extra visit gets filtered in place instead of redirected
 // — never broken, just briefly not yet upgraded.
 export const revalidate = 0;
+// See app/page.tsx for why force-dynamic is needed alongside revalidate=0
+// on this Cloudflare/OpenNext deployment specifically.
+export const dynamic = 'force-dynamic';
 
 export default async function ProposalsPage() {
   const [entries, countries] = await Promise.all([
