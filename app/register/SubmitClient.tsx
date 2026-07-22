@@ -1,8 +1,11 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { submitProposal, supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { trackEvent } from '@/lib/analytics';
+// Moved server-side — see lib/actions/proposal-actions.ts and
+// lib/actions/revalidate-write.ts for why.
+import { submitProposalAction as submitProposal } from '@/lib/actions/proposal-actions';
 import PasswordInput from '@/components/PasswordInput';
 import { compressImage } from '@/lib/compressImage';
 

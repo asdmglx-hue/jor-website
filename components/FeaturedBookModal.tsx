@@ -2,6 +2,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase, isFeaturedSlotAvailable } from '@/lib/supabase';
 import { CITIES } from '@/lib/constants';
+// Moved server-side so a successful booking can instantly refresh cached
+// listing pages instead of waiting on the 5-minute timer — see
+// lib/actions/revalidate-write.ts for the full explanation.
+import { bookFeaturedSlotAction } from '@/lib/actions/featured-actions';
 
 type Slot = { city: string; date: string; checking?: boolean }; // date is yyyy-mm-dd
 
@@ -127,7 +131,7 @@ export default function FeaturedBookModal({
     let allBookedToday = true;
     for (const slot of slots) {
       try {
-        const { data } = await supabase.rpc('book_featured_slot_with_credit', {
+        const { data } = await bookFeaturedSlotAction({
           p_cnic: cnic, p_city: slot.city, p_date: slot.date,
         });
         if (data?.success) {

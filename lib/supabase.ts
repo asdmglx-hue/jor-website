@@ -577,34 +577,9 @@ export async function updateProposal(id: string, updates: Partial<Proposal>): Pr
   return !error;
 }
 
-export async function submitProposal(data: Partial<Proposal>): Promise<{ success: boolean; id?: string; error?: string }> {
-  // Goes through a security-definer RPC rather than a raw insert+select —
-  // .insert().select().single() implicitly needs the newly-inserted row
-  // to pass the SELECT policy (public_view_active_proposals, status =
-  // 'active' only), but a brand-new submission is 'pending', so it always
-  // failed with "new row violates row-level security policy" before this.
-  // Same root cause and same fix as the mobile app's submission flow —
-  // this was the one place on the website itself that never got updated
-  // to match. The RPC also force-sets status server-side regardless of
-  // what's passed in, so a submission can never self-approve.
-  const { data: result, error } = await supabase.rpc('submit_proposal_secure', {
-    p_data: { ...data, posted_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  });
-  if (error || !result?.id) return { success: false, error: error?.message || 'Failed to submit proposal' };
-
-  // Notify the admin device (fire-and-forget) — mirrors exactly what the
-  // mobile app already does after a successful submission. The website's
-  // registration flow never had this wired up at all, which is why a
-  // website submission never produced a "New Order" alert even though
-  // the exact same submission from the app does. The edge function looks
-  // up the admin's registered FCM token itself, so this reaches them even
-  // if the admin app is fully closed.
-  supabase.functions.invoke('notify-status-change', {
-    body: { type: 'new_order', proposal_id: result.id, name: data.name, city: data.city },
-  }).catch(() => {});
-
-  return { success: true, id: result.id };
-}
+// submitProposal was moved to lib/actions/proposal-actions.ts
+// (submitProposalAction) so a successful submission can be triggered
+// server-side — see that file and lib/actions/revalidate-write.ts.
 
 // Redeem activation code (calls your existing Supabase RPC)
 export async function redeemCode(proposalId: string, code: string): Promise<{ success: boolean; tier?: string; expiry?: string; error?: string }> {

@@ -1,6 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+// Moved server-side so a successful cancellation can instantly refresh
+// cached listing pages instead of waiting on the 5-minute timer — see
+// lib/actions/revalidate-write.ts for the full explanation.
+import { cancelFeaturedBoostAction } from '@/lib/actions/featured-actions';
 
 type Boost = { id: string; city: string; scheduled_date: string; is_used: boolean; created_at?: string };
 
@@ -77,7 +80,7 @@ export default function FeaturedManageModal({
     setCancelling(true);
     setErrorMsg(null);
     try {
-      const { data } = await supabase.rpc('cancel_featured_boost', { p_cnic: cnic, p_boost_id: boost.id });
+      const { data } = await cancelFeaturedBoostAction({ p_cnic: cnic, p_boost_id: boost.id });
       // Success needs no message — the boost's row disappearing from the
       // list (once onChanged refetches below) is confirmation enough.
       if (!data?.success) {

@@ -9,6 +9,10 @@ import ProposalCard from '@/components/ProposalCard';
 import PasswordInput from '@/components/PasswordInput';
 import FeaturedBookModal from '@/components/FeaturedBookModal';
 import FeaturedManageModal from '@/components/FeaturedManageModal';
+// Moved server-side so a real profile change can instantly refresh cached
+// listing/profile pages instead of waiting on the 5-minute timer — see
+// lib/actions/revalidate-write.ts for the full explanation.
+import { updateOwnProposalAction, deleteOwnProposalAction } from '@/lib/actions/proposal-actions';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 
@@ -391,7 +395,7 @@ export default function MyProposalClient() {
       const uploaded = await res.json().catch(() => ({}));
       if (!res.ok || !uploaded.url) throw new Error(uploaded.error || 'Upload failed');
       const photoUrl = `${uploaded.url}?t=${Date.now()}`;
-      await supabase.rpc('update_own_proposal_secure', { p_id: user.id, p_updates: { profile_photo_url: photoUrl } });
+      await updateOwnProposalAction({ p_id: user.id, p_updates: { profile_photo_url: photoUrl }, proposalNumber: user.proposal_number });
       const updated = { ...user, profile_photo_url: photoUrl };
       setUser(updated as typeof user);
       import('@/lib/auth').then(m => m.saveSession(updated as typeof user));
@@ -422,7 +426,7 @@ export default function MyProposalClient() {
       // full explanation). This matters here specifically because a
       // Pending or Paused user editing their own profile is a completely
       // normal, common case, not an edge case.
-      const { data: updateResult } = await supabase.rpc('update_own_proposal_secure', { p_id: user.id, p_updates: updates });
+      const { data: updateResult } = await updateOwnProposalAction({ p_id: user.id, p_updates: updates, proposalNumber: user.proposal_number });
       const ok = !!updateResult;
       if (ok) {
         const updated = { ...user, ...updates };
@@ -541,7 +545,7 @@ export default function MyProposalClient() {
                 const isPaused = user.status === 'paused';
                 const msg = isPaused ? 'Resume your profile? It will become visible in the group again.' : 'Pause your profile? It will be hidden from the group. You can resume anytime.';
                 if (!window.confirm(msg)) return;
-                const { data: updateResult } = await supabase.rpc('update_own_proposal_secure', { p_id: user.id, p_updates: { status: isPaused ? 'active' : 'paused' } });
+                const { data: updateResult } = await updateOwnProposalAction({ p_id: user.id, p_updates: { status: isPaused ? 'active' : 'paused' }, proposalNumber: user.proposal_number });
                 if (updateResult) { const updated = { ...user, status: isPaused ? 'active' : 'paused' }; setUser(updated as typeof user); import('@/lib/auth').then(m => m.saveSession(updated as typeof user)); }
               }}
               style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: (isAdminAccount || isPendingAccount || isInactive) ? '#F5F5F5' : '#fff', cursor: (isAdminAccount || isPendingAccount || isInactive) ? 'not-allowed' : 'pointer', opacity: (isAdminAccount || isPendingAccount || isInactive) ? 0.5 : 1 }}>
@@ -1260,7 +1264,7 @@ export default function MyProposalClient() {
                     // and also handles randomizing the password (making
                     // login permanently impossible afterward) atomically
                     // in the same operation.
-                    const { data: ok } = await supabase.rpc('delete_own_proposal_secure', {
+                    const { data: ok } = await deleteOwnProposalAction({
                       p_id: user.id,
                       p_password: deletePassword.trim(),
                       p_reason: effectiveDeleteReason,
