@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { supabase, fetchLiveCityGroups, fetchLiveCountryGroups } from '@/lib/supabase';
 import { trackEvent } from '@/lib/analytics';
 import { CITY_GROUPS, COUNTRY_GROUPS } from '@/lib/constants';
 import SearchableSelect from '@/components/SearchableSelect';
@@ -679,6 +679,19 @@ const STEP_KEY  = 'jor_submit_step';
 export default function SubmitClient() {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [maxStep, setMaxStep] = useState<number>(1);
+  // Seeded with the bundled CITY_GROUPS/COUNTRY_GROUPS immediately, so the
+  // form is instantly usable exactly as it is today — the background
+  // fetch below only ever REPLACES this with the live database version
+  // if that succeeds. If it fails for any reason (network, Supabase
+  // hiccup, anything), this silently stays on the bundled list that was
+  // already working, so there is no path where this change can make the
+  // form worse than it is right now.
+  const [cityGroups, setCityGroups] = useState<Record<string, string[]>>(CITY_GROUPS);
+  const [countryGroups, setCountryGroups] = useState<Record<string, string[]>>(COUNTRY_GROUPS);
+  useEffect(() => {
+    fetchLiveCityGroups(Object.keys(CITY_GROUPS)).then(live => { if (live) setCityGroups(live); });
+    fetchLiveCountryGroups().then(live => { if (live) setCountryGroups(live); });
+  }, []);
   const [form, setForm] = useState<FormData>(EMPTY);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState('');
@@ -1176,11 +1189,11 @@ export default function SubmitClient() {
             </Field>
 
             <Field label="Country (For Overseas Only)">
-              <SearchableSelect value={form.country} onChange={v => set('country', v)} groups={COUNTRY_GROUPS} placeholder="Select country" />
+              <SearchableSelect value={form.country} onChange={v => set('country', v)} groups={countryGroups} placeholder="Select country" />
             </Field>
 
             <Field label="City" required>
-              <SearchableSelect value={form.city} onChange={v => set('city', v)} groups={CITY_GROUPS} placeholder="Select city" hasError={errorField === 'city'} />
+              <SearchableSelect value={form.city} onChange={v => set('city', v)} groups={cityGroups} placeholder="Select city" hasError={errorField === 'city'} />
             </Field>
 
             <Field label="House" required>

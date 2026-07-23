@@ -551,6 +551,63 @@ export async function getQualifyingCountries(): Promise<{ value: string; slug: s
   return ((data || []) as { country: string }[]).map(row => ({ value: row.country, slug: slugify(row.country) }));
 }
 
+// Live-fetches the FULL city/country reference lists from the database
+// (city_provinces / reference_countries — the same tables the mobile
+// app's registration screen now reads from too), for the registration
+// form to optionally upgrade to instead of its bundled CITY_GROUPS /
+// COUNTRY_GROUPS constant.
+//
+// Deliberately designed to NEVER throw — any failure (network, a bad
+// response shape, anything) returns null instead of an error, so the
+// calling component can safely do "try the live version, and if that
+// comes back null just keep using the bundled list" with zero special
+// error handling needed. This is what makes it safe to add to the most
+// important funnel on the site: the worst case is identical to today's
+// already-working behavior, never worse.
+//
+// canonicalOrder is reused so the live-fetched provinces display in the
+// same order as the existing bundled list, rather than whatever order
+// the database happens to return rows in.
+export async function fetchLiveCityGroups(canonicalOrder: string[]): Promise<Record<string, string[]> | null> {
+  try {
+    const { data, error } = await supabase
+      .from('city_provinces')
+      .select('city, province');
+    if (error || !data || !Array.isArray(data) || data.length === 0) return null;
+    const groups: Record<string, string[]> = {};
+    for (const row of data as { province: string; city: string }[]) {
+      (groups[row.province] ??= []).push(row.city);
+    }
+    const ordered: Record<string, string[]> = {};
+    for (const province of canonicalOrder) {
+      if (groups[province]) ordered[province] = groups[province];
+    }
+    // Any province present in the live data but not in canonicalOrder
+    // (shouldn't normally happen, but not a reason to silently drop real
+    // cities) gets appended at the end rather than lost.
+    for (const province of Object.keys(groups)) {
+      if (!ordered[province]) ordered[province] = groups[province];
+    }
+    return Object.keys(ordered).length > 0 ? ordered : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchLiveCountryGroups(): Promise<Record<string, string[]> | null> {
+  try {
+    const { data, error } = await supabase
+      .from('reference_countries')
+      .select('country')
+      .order('sort_order', { ascending: true });
+    if (error || !data || !Array.isArray(data) || data.length === 0) return null;
+    const countries = (data as { country: string }[]).map(r => r.country);
+    return { Countries: countries };
+  } catch {
+    return null;
+  }
+}
+
 // Preview list of proposals matching one category filter — capped, since a
 // city like Lahore could have hundreds; the full interactive /proposals
 // search page is where deeper browsing happens. Real content either way.
