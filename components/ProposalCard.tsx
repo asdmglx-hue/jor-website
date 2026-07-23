@@ -131,7 +131,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
     <>
       <Link href={`/profile/${p.proposal_number}`} draggable={false} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="card-hover" style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%', borderRadius: 20 }}>
-      <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 20, padding: '14px', cursor: 'pointer', position: 'relative', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
+      <div style={{ background: cardBg, borderRadius: 20, padding: '14px', cursor: 'pointer', position: 'relative', boxShadow: `0 0 0 1px ${cardBorder}, 0 2px 8px rgba(0,0,0,0.05)`, display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
         {/* Header */}
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
           <Avatar name={p.name} photoUrl={p.profile_photo_url} size={52} locked={!isActive} index={index} />
@@ -152,9 +152,19 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
                   {new Date(p.posted_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                 </span>
                 {isFeatured && (
-                  <div style={{ background: '#E8620A', color: '#fff', fontSize: 9, fontWeight: 800, height: 15, padding: '0 6px 0 5px', borderRadius: 20, letterSpacing: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+                  <div style={{ background: '#E8620A', height: 15, padding: '0 5px 0 5px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 3 }}>
                     <svg width="8" height="8" viewBox="0 0 24 24" fill="white" style={{ flexShrink: 0, display: 'block' }}><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
-                    <span style={{ display: 'block', lineHeight: '15px' }}>FEATURED</span>
+                    {/* Text rendered as SVG, not HTML — dominantBaseline="central"
+                        is a real SVG centering primitive (guaranteed correct by
+                        spec), unlike CSS line-height/padding/transform tricks,
+                        which depend on font-specific metrics that kept producing
+                        a slightly-off result no matter how carefully tuned.
+                        overflow: visible is a safety margin in case the guessed
+                        viewBox width is a touch narrow for "FEATURED" at this
+                        weight — text still won't get clipped either way. */}
+                    <svg height="15" width="55" viewBox="0 0 55 15" style={{ display: 'block', overflow: 'visible', flexShrink: 0 }}>
+                      <text x="0" y="7.5" dominantBaseline="central" textLength={55} lengthAdjust="spacingAndGlyphs" fontFamily="Inter, sans-serif" fontWeight={800} fontSize={9} letterSpacing={0.5} fill="white">FEATURED</text>
+                    </svg>
                   </div>
                 )}
               </div>
