@@ -1,6 +1,5 @@
 import { MetadataRoute } from 'next';
-import { fetchCategoryCounts, fetchCountryCounts, fetchAllProposalNumbers, fetchAllBlogSlugs, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
-import { CATEGORY_ENTRIES, slugify } from '@/lib/categories';
+import { getQualifyingCategoryEntries, getQualifyingCountries, fetchAllProposalNumbers, fetchAllBlogSlugs } from '@/lib/supabase';
 
 // Refreshed at most once an hour — the sitemap doesn't need to be
 // instant, but under 'force-static' it would never update again after
@@ -24,23 +23,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/terms`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
   ];
 
-  // Same "does this page actually have enough real profiles behind it"
-  // check used by generateStaticParams on these pages — keeps the sitemap
-  // from ever listing a thin/empty page that would hurt more than help.
-  const [cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts, countryCounts, proposalNumbers] = await Promise.all([
-    fetchCategoryCounts('city'),
-    fetchCategoryCounts('caste'),
-    fetchCategoryCounts('sect'),
-    fetchCategoryCounts('marital_status'),
-    fetchCategoryCounts('profession'),
-    fetchCountryCounts(),
+  // Same qualifying-page check every other part of the site uses (see
+  // lib/supabase.ts's getQualifyingCategoryEntries/getQualifyingCountries,
+  // which are themselves now backed by the same shared database functions
+  // the mobile app's Featured-booking picker calls) — calling the exact
+  // same functions here, rather than independently recomputing "which
+  // pages qualify" a third time, guarantees the sitemap can never list a
+  // page that doesn't actually exist, or omit one that does.
+  const [qualifyingEntries, qualifyingCountries, proposalNumbers] = await Promise.all([
+    getQualifyingCategoryEntries(),
+    getQualifyingCountries(),
     fetchAllProposalNumbers(),
   ]);
-  const countsByColumn: Record<string, Record<string, number>> = {
-    city: cityCounts, caste: casteCounts, sect: sectCounts, marital_status: maritalCounts, profession: professionCounts,
-  };
-
-  const qualifyingEntries = CATEGORY_ENTRIES.filter(e => (countsByColumn[e.dbColumn]?.[e.value] ?? 0) >= MIN_CATEGORY_PROFILES);
 
   const categoryPages: MetadataRoute.Sitemap = qualifyingEntries.map(e => ({
     url: `${BASE}/proposals/${e.slug}`,
@@ -58,14 +52,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     })));
 
-  const overseasPages: MetadataRoute.Sitemap = Object.entries(countryCounts)
-    .filter(([, count]) => count >= MIN_CATEGORY_PROFILES)
-    .map(([value]) => ({
-      url: `${BASE}/proposals/overseas/${slugify(value)}`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.6,
-    }));
+  const overseasPages: MetadataRoute.Sitemap = qualifyingCountries.map(c => ({
+    url: `${BASE}/proposals/overseas/${c.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily',
+    priority: 0.6,
+  }));
 
   // Individual profile pages — names are kept out of the static HTML
   // (fetched client-side instead), so these are safe to index for their

@@ -514,26 +514,41 @@ export async function fetchCountryCounts(): Promise<Record<string, number>> {
 // Previously duplicated separately in each page file; kept in one place now
 // so they can never quietly drift apart from each other.
 export async function getQualifyingCategoryEntries(): Promise<CategoryEntry[]> {
-  const [cityCounts, casteCounts, sectCounts, maritalCounts, professionCounts] = await Promise.all([
-    fetchCategoryCounts('city'),
+  // City qualification now comes from the same shared get_qualifying_cities
+  // RPC the mobile app's Featured-booking picker calls — this is what
+  // keeps "which cities have their own page" and "which cities the
+  // mobile app offers to book Featured in" from ever disagreeing again
+  // (they previously could, since each computed this independently).
+  // Caste/sect/marital-status/profession aren't part of that mobile
+  // location-picker concern, so they're untouched — still computed the
+  // same way as before.
+  const [casteCounts, sectCounts, maritalCounts, professionCounts, qualifyingCitiesRes] = await Promise.all([
     fetchCategoryCounts('caste'),
     fetchCategoryCounts('sect'),
     fetchCategoryCounts('marital_status'),
     fetchCategoryCounts('profession'),
+    supabase.rpc('get_qualifying_cities'),
   ]);
+  const qualifyingCityNames = new Set(
+    ((qualifyingCitiesRes.data || []) as { city: string }[]).map(row => row.city)
+  );
   const countsByColumn: Record<string, Record<string, number>> = {
-    city: cityCounts, caste: casteCounts, sect: sectCounts, marital_status: maritalCounts, profession: professionCounts,
+    caste: casteCounts, sect: sectCounts, marital_status: maritalCounts, profession: professionCounts,
   };
-  return CATEGORY_ENTRIES.filter(e => (countsByColumn[e.dbColumn]?.[e.value] ?? 0) >= MIN_CATEGORY_PROFILES);
+  return CATEGORY_ENTRIES.filter(e => {
+    if (e.dbColumn === 'city') return qualifyingCityNames.has(e.value);
+    return (countsByColumn[e.dbColumn]?.[e.value] ?? 0) >= MIN_CATEGORY_PROFILES;
+  });
 }
 
-// Same idea for overseas countries — not a fixed list like the above, so
-// this reads real counts fresh rather than filtering a constant array.
+// Same idea for overseas countries — now calls the same shared
+// get_qualifying_countries RPC the mobile app's Featured-booking picker
+// uses, instead of independently recomputing "which countries qualify"
+// from a separate client-side count. Same reasoning as the city change
+// just above.
 export async function getQualifyingCountries(): Promise<{ value: string; slug: string }[]> {
-  const counts = await fetchCountryCounts();
-  return Object.entries(counts)
-    .filter(([, count]) => count >= MIN_CATEGORY_PROFILES)
-    .map(([value]) => ({ value, slug: slugify(value) }));
+  const { data } = await supabase.rpc('get_qualifying_countries');
+  return ((data || []) as { country: string }[]).map(row => ({ value: row.country, slug: slugify(row.country) }));
 }
 
 // Preview list of proposals matching one category filter — capped, since a
