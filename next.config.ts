@@ -11,6 +11,21 @@ import type { NextConfig } from "next";
 // generates behind the scenes).
 const nextConfig: NextConfig = {
   compress: true,
+  // Without this, Next.js's client-side Router Cache holds onto a
+  // recently-visited dynamic page (e.g. /proposals/bhatti) for ~30
+  // seconds by default, and can serve that stale copy if you navigate to
+  // a sibling dynamic page (e.g. /proposals/shia) shortly after — this
+  // is a separate, SHORTER-lived cache than the server-side ISR
+  // `revalidate` timers elsewhere in this app, and it's specifically why
+  // clicking through filters could show missing/stale content that a
+  // manual refresh (which bypasses this browser-side cache) would fix.
+  // Setting dynamic: 0 makes every client-side navigation to a dynamic
+  // page always fetch fresh from the server, closing that gap.
+  experimental: {
+    staleTimes: {
+      dynamic: 0,
+    },
+  },
   images: {
     unoptimized: true,
     remotePatterns: [
