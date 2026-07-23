@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import FilterBar from './FilterBar';
 import ProposalCard from './ProposalCard';
 import FeaturedCarousel from './FeaturedCarousel';
-import { fetchProposals, FilterState, Proposal } from '@/lib/supabase';
+import { fetchProposals, fetchFeaturedForCarousel, FilterState, Proposal } from '@/lib/supabase';
 import { getLockedGenderFilter } from '@/lib/auth';
 
 const GENDER_TO_SLUG: Record<string, string> = { Female: 'bride', Male: 'groom' };
@@ -47,6 +47,25 @@ export default function CategoryPageClient({ initialProposals, initialFilters, f
   const [loading, setLoading] = useState(false);
   const basePath = locationField === 'country' ? '/proposals/overseas' : '/proposals';
   const currentValue = initialFilters[locationField];
+
+  // City/country pages keep their server-provided, location-scoped
+  // Featured list untouched (that's the separate "boosted specifically
+  // for this place" concept — see fetchProposalsForCategory). Every
+  // other category page (caste, sect, marital status, profession)
+  // re-fetches on top of the server's initial "relevant, falling back to
+  // general" list whenever an ADDITIONAL filter gets layered on (e.g.
+  // adding Min Age on top of the Bhatti page) — same safe
+  // prefer-a-match-or-fall-back logic, just re-run with the fuller
+  // filter set. `filters` already includes this page's own fixed
+  // identity value (e.g. caste: 'Bhatti'), so it's carried along
+  // automatically.
+  const [featuredList, setFeaturedList] = useState<Proposal[]>(featured);
+  const isCityOrCountry = locationField === 'city' || locationField === 'country';
+  useEffect(() => {
+    if (isCityOrCountry) return;
+    fetchFeaturedForCarousel(filters).then(setFeaturedList);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(filters)]);
 
   // Navigates without reloading the whole page (header/footer stay put,
   // no visible flash) while still guaranteeing the destination's content
@@ -151,7 +170,7 @@ export default function CategoryPageClient({ initialProposals, initialFilters, f
   return (
     <>
       <FilterBar filters={filters} onChange={handleChange} total={total} lockedGender={lockedGender} />
-      <FeaturedCarousel initial={featured} />
+      <FeaturedCarousel initial={featuredList} />
       {!loading && (
         <div style={{ fontSize: 13, fontWeight: 700, color: '#534AB7', marginTop: 12, marginBottom: 12, paddingLeft: 16, paddingRight: 4 }}>
           {total.toLocaleString()} proposals found

@@ -43,10 +43,12 @@ export default async function CategoryPage({ params }: Props) {
   // Only city/country pages have a real "boosted for this specific
   // location" concept (see fetchProposalsForCategory) — every other
   // dedicated category page (caste, sect, marital status, profession)
-  // instead shows the same general "everyone currently boosted" list as
-  // the main /proposals page, so Featured Profiles isn't silently absent
-  // just because this particular value isn't a location.
-  const featured = entry.type === 'city' ? locationFeatured : await fetchFeaturedForCarousel();
+  // instead prefers boosted profiles that ALSO match this exact page's
+  // own value (e.g. the Barelvi page prefers boosted Barelvi profiles),
+  // falling back to the general "everyone currently boosted" list only
+  // if there are zero such matches — see fetchFeaturedForCarousel's own
+  // comment for why an empty-fallback safety net matters here.
+  const featured = entry.type === 'city' ? locationFeatured : await fetchFeaturedForCarousel({ [entry.type]: entry.value });
   if (proposals.length === 0 && featured.length === 0) notFound();
 
   const title = categoryPageTitle(entry);
