@@ -1,4 +1,4 @@
-import { fetchProposalsForCategory, getQualifyingCategoryEntries } from '@/lib/supabase';
+import { fetchProposalsForCategory, getQualifyingCategoryEntries, fetchFeaturedForCarousel } from '@/lib/supabase';
 import { resolveCategoryBySlug, categoryPageTitle } from '@/lib/categories';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -39,7 +39,14 @@ export default async function CategoryPage({ params }: Props) {
   const entry = resolveCategoryBySlug(slug);
   if (!entry) notFound();
 
-  const { proposals, featured } = await fetchProposalsForCategory(entry.dbColumn as never, entry.value, 24);
+  const { proposals, featured: locationFeatured } = await fetchProposalsForCategory(entry.dbColumn as never, entry.value, 24);
+  // Only city/country pages have a real "boosted for this specific
+  // location" concept (see fetchProposalsForCategory) — every other
+  // dedicated category page (caste, sect, marital status, profession)
+  // instead shows the same general "everyone currently boosted" list as
+  // the main /proposals page, so Featured Profiles isn't silently absent
+  // just because this particular value isn't a location.
+  const featured = entry.type === 'city' ? locationFeatured : await fetchFeaturedForCarousel();
   if (proposals.length === 0 && featured.length === 0) notFound();
 
   const title = categoryPageTitle(entry);
