@@ -130,7 +130,8 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
   return (
     <>
       <Link href={`/profile/${p.proposal_number}`} draggable={false} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div className="card-hover" style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 20, padding: '14px', cursor: 'pointer', position: 'relative', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
+      <div className="card-hover" style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%', borderRadius: 20 }}>
+      <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 20, padding: '14px', cursor: 'pointer', position: 'relative', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
         {/* Header */}
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
           <Avatar name={p.name} photoUrl={p.profile_photo_url} size={52} locked={!isActive} index={index} />
@@ -153,7 +154,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
                 {isFeatured && (
                   <div style={{ background: '#E8620A', color: '#fff', fontSize: 9, fontWeight: 800, height: 15, padding: '0 6px 0 5px', borderRadius: 20, letterSpacing: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
                     <svg width="8" height="8" viewBox="0 0 24 24" fill="white" style={{ flexShrink: 0, display: 'block' }}><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
-                    <span style={{ display: 'block', lineHeight: '8px' }}>FEATURED</span>
+                    <span style={{ display: 'block', lineHeight: '15px' }}>FEATURED</span>
                   </div>
                 )}
               </div>
@@ -226,6 +227,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
             </button>
           </div>
         </div>
+      </div>
       </div>
       </Link>
 
