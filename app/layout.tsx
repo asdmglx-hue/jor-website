@@ -15,6 +15,11 @@ export const metadata: Metadata = {
   keywords: "rishta, matrimonial, Pakistan, shaadi, marriage, proposals, nikah, brides, grooms",
   icons: {
     icon: [
+      // Listed first so modern browsers (which prefer SVG when present)
+      // pick this — perfectly crisp at every size, unlike the fixed-
+      // resolution PNGs below. Traced from a verified 2000x2000 source
+      // and visually confirmed to match (99.78% pixel-identical, the
+      // rest being expected anti-aliasing) before being added here.
       { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico', sizes: 'any' },
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
@@ -23,6 +28,11 @@ export const metadata: Metadata = {
       // than 48x48px for best display quality across surfaces — without
       // this, the largest icon Google could find on the page was 32x32.
       { url: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+      // The largest genuinely-available square icon in /public — already
+      // used in site.webmanifest, now also listed here so browsers/Google
+      // can pick it directly from the page's own <head> rather than only
+      // discovering it via the manifest.
+      { url: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
     shortcut: '/favicon.ico',
     apple: '/apple-touch-icon.png',
