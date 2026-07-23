@@ -10,6 +10,14 @@
   "compatibility_date": "2026-07-05",
   "compatibility_flags": ["nodejs_compat"],
   "main": ".open-next/worker.js",
+  // Without this, Cloudflare Workers' documented default behavior is that
+  // every deploy silently overwrites/wipes any Variable or Secret added
+  // through the dashboard (Settings → Variables and secrets) unless it's
+  // also declared here in this file. This was the actual root cause of
+  // PROPOSAL_WEBHOOK_SECRET repeatedly disappearing after every deploy
+  // today — not a dashboard bug, not user error, just Wrangler's default.
+  // See: https://developers.cloudflare.com/workers/wrangler/configuration/
+  "keep_vars": true,
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
