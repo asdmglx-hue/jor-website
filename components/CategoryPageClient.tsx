@@ -167,20 +167,28 @@ export default function CategoryPageClient({ initialProposals, initialFilters, f
     });
   }, [locationField, hasGenderSegment, initialFilters, currentValue, qualifyingSlugs, basePath, navigateFresh]);
 
+  // Same "nobody appears twice on the same page" rule city/country pages
+  // already had (see fetchProposalsForCategory) — now applied here too,
+  // since the Featured section can independently match someone who'd
+  // also naturally appear in the regular grid below.
+  const featuredIds = new Set(featuredList.map(p => p.id));
+  const visibleProposals = proposals.filter(p => !featuredIds.has(p.id));
+  const overlapCount = proposals.length - visibleProposals.length;
+
   return (
     <>
       <FilterBar filters={filters} onChange={handleChange} total={total} lockedGender={lockedGender} />
       <FeaturedCarousel initial={featuredList} />
       {!loading && (
         <div style={{ fontSize: 13, fontWeight: 700, color: '#534AB7', marginTop: 12, marginBottom: 12, paddingLeft: 16, paddingRight: 4 }}>
-          {total.toLocaleString()} proposals found
+          {Math.max(total - overlapCount, 0).toLocaleString()} proposals found
         </div>
       )}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px 0', color: '#68629C' }}>Loading…</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginTop: 20, marginBottom: 24 }}>
-          {proposals.map((p, i) => <ProposalCard key={p.id} proposal={p} index={i} />)}
+          {visibleProposals.map((p, i) => <ProposalCard key={p.id} proposal={p} index={i} />)}
         </div>
       )}
     </>
