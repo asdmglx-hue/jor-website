@@ -154,16 +154,19 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
                 {isFeatured && (
                   <div style={{ background: '#E8620A', height: 15, padding: '0 5px 0 5px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 3 }}>
                     <svg width="8" height="8" viewBox="0 0 24 24" fill="white" style={{ flexShrink: 0, display: 'block' }}><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z"/></svg>
-                    {/* Text rendered as SVG, not HTML — dominantBaseline="central"
-                        is a real SVG centering primitive (guaranteed correct by
-                        spec), unlike CSS line-height/padding/transform tricks,
-                        which depend on font-specific metrics that kept producing
-                        a slightly-off result no matter how carefully tuned.
-                        overflow: visible is a safety margin in case the guessed
-                        viewBox width is a touch narrow for "FEATURED" at this
-                        weight — text still won't get clipped either way. */}
+                    {/* Text rendered as SVG, not HTML. Previously used
+                        dominantBaseline="central" — spec-correct, but with
+                        genuinely inconsistent support on mobile Safari and
+                        some Android WebViews (a long-documented SVG quirk),
+                        which is exactly why this looked centered on desktop
+                        but not mobile. Switched to the classic, universally-
+                        reliable technique instead: the plain "alphabetic"
+                        baseline (consistently supported everywhere) plus a
+                        dy offset — the standard cross-browser-safe way to
+                        vertically center SVG text, specifically because it
+                        doesn't depend on dominant-baseline at all. */}
                     <svg height="15" width="55" viewBox="0 0 55 15" style={{ display: 'block', overflow: 'visible', flexShrink: 0 }}>
-                      <text x="0" y="7.5" dominantBaseline="central" textLength={55} lengthAdjust="spacingAndGlyphs" fontFamily="Inter, sans-serif" fontWeight={800} fontSize={9} letterSpacing={0.5} fill="white">FEATURED</text>
+                      <text x="0" y="7.5" dy="0.35em" textLength={55} lengthAdjust="spacingAndGlyphs" fontFamily="Inter, sans-serif" fontWeight={800} fontSize={9} letterSpacing={0.5} fill="white">FEATURED</text>
                     </svg>
                   </div>
                 )}
