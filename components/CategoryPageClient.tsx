@@ -1,4 +1,5 @@
 'use client';
+// (nudge commit — no functional change, just re-triggering a Cloudflare build)
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import FilterBar from './FilterBar';
