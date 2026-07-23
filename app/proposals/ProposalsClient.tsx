@@ -120,19 +120,18 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
 
-  // Featured carousel — fetched independently of the main paginated
-  // results below, but now re-fetched whenever filters change so it
-  // reflects the same caste/sect/age/etc. filters as the rest of the
-  // page (city/overseas are deliberately ignored by the fetch itself —
-  // see fetchFeaturedForCarousel's own comment for why). Still only
-  // shown on the fully unfiltered-by-location view (no city, no
-  // overseas) — a location-filtered view has its own dedicated Featured
-  // section instead (see components/CategoryPageClient.tsx).
+  // Featured carousel — fetched once, independent of the main paginated
+  // results below. Stays visible with ALL non-location filters applied
+  // (caste, sect, marital status, education, etc.) — it always shows
+  // the same "everyone currently boosted" list regardless of those
+  // filters. Only hidden when city or overseas is selected via the
+  // Location filter on this same page (isGeneralView below) — a
+  // dedicated city/country page has its own separate Featured section
+  // instead (see components/CategoryPageClient.tsx).
   const [featuredCarousel, setFeaturedCarousel] = useState<Proposal[]>([]);
   useEffect(() => {
-    fetchFeaturedForCarousel(filters).then(setFeaturedCarousel);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(filters)]);
+    fetchFeaturedForCarousel().then(setFeaturedCarousel);
+  }, []);
   const isGeneralView = !filters.city && !filters.overseas;
 
   // ── Time filter (All / New / 1 Month / 2 Months / 3+ Months) ─────────────

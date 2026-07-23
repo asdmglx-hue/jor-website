@@ -199,47 +199,19 @@ export function chipDateRange(chip: number): { postedAfter?: string; postedBefor
 // max_featured_general setting, though in practice that's expected to be
 // set generously high now that the carousel — not a server-side pick —
 // is what fairly shows everyone in turn.
-export async function fetchFeaturedForCarousel(filters: FilterState = {}): Promise<Proposal[]> {
+export async function fetchFeaturedForCarousel(): Promise<Proposal[]> {
   const { data: settingRow } = await supabase
     .from('app_settings').select('value').eq('key', 'max_featured_general').maybeSingle();
   const max = Number(settingRow?.value) || 20;
 
-  let query = supabase
+  const { data } = await supabase
     .from('proposals')
     .select(CARD_COLS)
     .eq('status', 'active')
     .or(notExpiredFilter())
-    .eq('is_boosted', true);
-
-  // Every filter EXCEPT city/overseas/country applies here too — those
-  // three are deliberately skipped since city and country pages already
-  // have their own dedicated Featured section (see
-  // components/CategoryPageClient.tsx + app/proposals/overseas/[country]/
-  // page.tsx), scoped to boosts for that specific location. This general
-  // carousel's job is different: "everyone currently boosted, matching
-  // whatever OTHER filters are active" — so someone filtering by
-  // Sunni + Never Married should see boosted profiles that also match
-  // that, not literally everyone boosted regardless of their filters.
-  if (filters.gender) query = query.eq('gender', filters.gender);
-  if (filters.caste) query = query.eq('caste', filters.caste);
-  if (filters.sect) query = query.eq('sect', filters.sect);
-  if (filters.education) query = query.eq('education', filters.education);
-  if (filters.maritalStatus) query = query.eq('marital_status', filters.maritalStatus);
-  if (filters.minAge) query = query.gte('age', filters.minAge);
-  if (filters.maxAge) query = query.lte('age', filters.maxAge);
-  if (filters.search) query = query.or(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
-  if (filters.profession) {
-    const profs = PROFESSION_GROUPS[filters.profession];
-    query = profs ? query.in('profession', profs) : query.eq('profession', filters.profession);
-  }
-  if (filters.homeType) query = query.eq('home_type', filters.homeType);
-  if (filters.minHeight) query = query.gte('height_inches', filters.minHeight);
-  if (filters.maxHeight) query = query.lte('height_inches', filters.maxHeight);
-  if (filters.openToPolygamy) query = query.eq('open_to_polygamy', filters.openToPolygamy);
-
-  query = query.order('posted_at', { ascending: false }).limit(max);
-
-  const { data } = await query;
+    .eq('is_boosted', true)
+    .order('posted_at', { ascending: false })
+    .limit(max);
   return (data || []) as Proposal[];
 }
 
