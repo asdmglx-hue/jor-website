@@ -687,7 +687,7 @@ export default function MyProposalClient() {
                     ? 'Your profile is currently boosted to the top of search results with a gold badge. Open Manage to see exactly when it ends.'
                     : 'Featured profiles appear at the top of every search, get a gold badge, and receive 5× more views than regular profiles.'}
                 </div>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                   {available > 0 ? (
                     <button onClick={() => setBookModalOpen(true)} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
                       Schedule Featured Post
