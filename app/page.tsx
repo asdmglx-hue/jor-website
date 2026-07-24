@@ -1,4 +1,4 @@
-import { supabase, fetchAllRows, CARD_COLS, notExpiredFilter } from '@/lib/supabase';
+import { supabase, CARD_COLS, notExpiredFilter } from '@/lib/supabase';
 import { CITIES as VALID_CITY_NAMES, normalizeCountry } from '@/lib/constants';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -60,24 +60,12 @@ async function getCities(): Promise<{ city: string; count: number }[]> {
 }
 
 async function getCountries(): Promise<{ country: string; count: number }[]> {
-  const data = await fetchAllRows<{ country: string | null }>((from, to) =>
-    supabase
-      .from('proposals')
-      .select('country')
-      .eq('status', 'active')
-      .or(notExpiredFilter())
-      .not('country', 'is', null)
-      .neq('country', '')
-      .neq('country', 'Pakistan')
-      .neq('country', 'Other')
-      .range(from, to)
-  );
+  const { data, error } = await supabase.rpc('get_proposal_country_counts');
+  if (error || !data) return [];
   const counts: Record<string, number> = {};
-  for (const row of data) {
-    if (row.country) {
-      const c = normalizeCountry(row.country);
-      counts[c] = (counts[c] || 0) + 1;
-    }
+  for (const row of data as { value: string; cnt: number }[]) {
+    const c = normalizeCountry(row.value);
+    counts[c] = (counts[c] || 0) + Number(row.cnt);
   }
   return Object.entries(counts)
     .map(([country, count]) => ({ country, count }))
