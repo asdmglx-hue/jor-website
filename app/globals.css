@@ -284,6 +284,8 @@ body {
   .my-account-actions a, .my-account-actions button { padding: 6px 8px !important; }
   .hash-desktop { display: none !important; }
   .hash-mobile { display: block !important; }
+  .credits-badge-desktop { display: none !important; }
+  .credits-badge-mobile { display: flex !important; }
   .my-account-left { width: 100% !important; }
   .saved-btn-header { display: none !important; }
   .proposals-br { display: block; }

@@ -667,8 +667,11 @@ export default function MyProposalClient() {
           <div style={{ background: bg, borderRadius: 16, padding: '18px 20px', marginBottom: 20, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: 50, background: 'rgba(255,255,255,0.06)' }} />
             <div style={{ position: 'absolute', bottom: -30, left: 60, width: 140, height: 140, borderRadius: 70, background: 'rgba(255,255,255,0.04)' }} />
-            {/* Credit balance — sits where the dismiss (✕) button used to be */}
-            <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+            {/* Credit balance — desktop keeps its original top-right
+                placement (never had an overlap problem there). Hidden on
+                mobile via the credits-badge-desktop class; the mobile
+                version below takes over instead. */}
+            <div className="credits-badge-desktop" style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '6px 10px', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
               <span style={{ color: '#fff', fontSize: 11, fontWeight: 800, lineHeight: 1 }}>Featured Credits: {available}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, position: 'relative' }}>
@@ -684,7 +687,7 @@ export default function MyProposalClient() {
                     ? 'Your profile is currently boosted to the top of search results with a gold badge. Open Manage to see exactly when it ends.'
                     : 'Featured profiles appear at the top of every search, get a gold badge, and receive 5× more views than regular profiles.'}
                 </div>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
                   {available > 0 ? (
                     <button onClick={() => setBookModalOpen(true)} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
                       Schedule Featured Post
@@ -697,6 +700,15 @@ export default function MyProposalClient() {
                   <button onClick={() => setManageModalOpen(true)} style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.5)', background: 'transparent', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                     Manage
                   </button>
+                  {/* Mobile-only version — sits in this same row, pushed to
+                      the right edge next to Manage, instead of overlapping
+                      the heading text the way the desktop placement would
+                      on a narrow screen. Hidden by default (display:none
+                      inline); credits-badge-mobile switches it on only
+                      under the mobile breakpoint. */}
+                  <div className="credits-badge-mobile" style={{ display: 'none', marginLeft: 'auto', background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '6px 10px', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+                    <span style={{ color: '#fff', fontSize: 11, fontWeight: 800, lineHeight: 1, whiteSpace: 'nowrap' }}>Featured Credits: {available}</span>
+                  </div>
                 </div>
               </div>
             </div>
