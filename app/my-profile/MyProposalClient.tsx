@@ -243,6 +243,13 @@ export default function MyProposalClient() {
   const [saving, setSaving] = useState(false);
   const [featuredBoosts, setFeaturedBoosts] = useState<{ id: string; city: string; scheduled_date: string; is_used: boolean; created_at?: string }[]>([]);
   const [hasFeaturedBoost, setHasFeaturedBoost] = useState(false);
+  // Tracks whether the real "is a boost currently running" check has
+  // actually finished — separate from hasFeaturedBoost itself, since
+  // that starts false by default and looks identical to "confirmed not
+  // featured" while the real check is still in flight. Used only to
+  // avoid briefly showing the wrong-colored banner below before the
+  // real answer is known.
+  const [boostChecked, setBoostChecked] = useState(false);
   const [bookModalOpen, setBookModalOpen] = useState(false);
   const [manageModalOpen, setManageModalOpen] = useState(false);
   const [bookingResult, setBookingResult] = useState<{ lines: string[]; allToday: boolean } | null>(null);
@@ -346,6 +353,7 @@ export default function MyProposalClient() {
               });
               setHasFeaturedBoost(active);
             }
+            setBoostChecked(true);
           });
         supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle()
           .then(({ data }) => { if (data) setUser(prev => (prev ? { ...prev, ...data } : (data as Proposal))); });
@@ -649,7 +657,7 @@ export default function MyProposalClient() {
           normally, switches to a featured/amber theme with a running-now
           message when a boost is actually live. Never dismissible — this
           is the person's real, current status, not a one-time promo. */}
-      {!isAdminAccount && ['Active', 'Featured'].includes(getStatusLabel(user, hasFeaturedBoost)) && (() => {
+      {!isAdminAccount && boostChecked && ['Active', 'Featured'].includes(getStatusLabel(user, hasFeaturedBoost)) && (() => {
         const available = (user.featured_credits_purchased ?? 0) - (user.featured_credits_used ?? 0);
         const isRunning = hasFeaturedBoost;
         const bg = isRunning
