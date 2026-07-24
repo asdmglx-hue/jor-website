@@ -204,64 +204,41 @@ export async function fetchFeaturedForCarousel(filters: FilterState = {}): Promi
     .from('app_settings').select('value').eq('key', 'max_featured_general').maybeSingle();
   const max = Number(settingRow?.value) || 20;
 
-  // Prefer showing boosted profiles that ALSO match whatever non-location
-  // filter(s) are currently active (caste, sect, marital status, etc. —
-  // combined with AND, same logic the main results grid uses) — but ONLY
-  // if that gives at least one real match. Falling back to the full
-  // unfiltered list whenever the narrowed query comes back empty is what
-  // keeps this safe: with only a handful of people boosted at any given
-  // time, filtering that small pool further can easily leave zero
-  // matches, and an empty Featured section is worse than a slightly less
-  // relevant one. City/overseas/country are deliberately never part of
-  // this matching — those have their own separate, location-scoped
+  // Shows boosted profiles that ALSO match whatever non-location filter(s)
+  // are currently active (caste, sect, marital status, etc. — combined
+  // with AND, same logic the main results grid uses). If nothing matches,
+  // this returns an empty list and the Featured section simply doesn't
+  // render for that filter combination — no fallback to a broader,
+  // possibly-irrelevant list. City/overseas/country are deliberately never
+  // part of this matching — those have their own separate, location-scoped
   // Featured section instead (see fetchProposalsForCategory).
-  const hasNonLocationFilter = !!(
-    filters.gender || filters.caste || filters.sect || filters.maritalStatus ||
-    filters.profession || filters.education || filters.homeType ||
-    filters.minHeight || filters.maxHeight || filters.openToPolygamy ||
-    filters.minAge || filters.maxAge || filters.search
-  );
-
-  if (hasNonLocationFilter) {
-    let matchQuery = supabase
-      .from('proposals')
-      .select(CARD_COLS)
-      .eq('status', 'active')
-      .or(notExpiredFilter())
-      .eq('is_boosted', true);
-
-    if (filters.gender) matchQuery = matchQuery.eq('gender', filters.gender);
-    if (filters.caste) matchQuery = matchQuery.eq('caste', filters.caste);
-    if (filters.sect) matchQuery = matchQuery.eq('sect', filters.sect);
-    if (filters.education) matchQuery = matchQuery.eq('education', filters.education);
-    if (filters.maritalStatus) matchQuery = matchQuery.eq('marital_status', filters.maritalStatus);
-    if (filters.minAge) matchQuery = matchQuery.gte('age', filters.minAge);
-    if (filters.maxAge) matchQuery = matchQuery.lte('age', filters.maxAge);
-    if (filters.search) matchQuery = matchQuery.or(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
-    if (filters.profession) {
-      const profs = PROFESSION_GROUPS[filters.profession];
-      matchQuery = profs ? matchQuery.in('profession', profs) : matchQuery.eq('profession', filters.profession);
-    }
-    if (filters.homeType) matchQuery = matchQuery.eq('home_type', filters.homeType);
-    if (filters.minHeight) matchQuery = matchQuery.gte('height_inches', filters.minHeight);
-    if (filters.maxHeight) matchQuery = matchQuery.lte('height_inches', filters.maxHeight);
-    if (filters.openToPolygamy) matchQuery = matchQuery.eq('open_to_polygamy', filters.openToPolygamy);
-
-    matchQuery = matchQuery.order('posted_at', { ascending: false }).limit(max);
-
-    const { data: matched } = await matchQuery;
-    if (matched && matched.length > 0) return matched as Proposal[];
-    // Zero matches — fall through to the unfiltered general list below.
-  }
-
-  const { data } = await supabase
+  let query = supabase
     .from('proposals')
     .select(CARD_COLS)
     .eq('status', 'active')
     .or(notExpiredFilter())
-    .eq('is_boosted', true)
-    .order('posted_at', { ascending: false })
-    .limit(max);
+    .eq('is_boosted', true);
+
+  if (filters.gender) query = query.eq('gender', filters.gender);
+  if (filters.caste) query = query.eq('caste', filters.caste);
+  if (filters.sect) query = query.eq('sect', filters.sect);
+  if (filters.education) query = query.eq('education', filters.education);
+  if (filters.maritalStatus) query = query.eq('marital_status', filters.maritalStatus);
+  if (filters.minAge) query = query.gte('age', filters.minAge);
+  if (filters.maxAge) query = query.lte('age', filters.maxAge);
+  if (filters.search) query = query.or(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
+  if (filters.profession) {
+    const profs = PROFESSION_GROUPS[filters.profession];
+    query = profs ? query.in('profession', profs) : query.eq('profession', filters.profession);
+  }
+  if (filters.homeType) query = query.eq('home_type', filters.homeType);
+  if (filters.minHeight) query = query.gte('height_inches', filters.minHeight);
+  if (filters.maxHeight) query = query.lte('height_inches', filters.maxHeight);
+  if (filters.openToPolygamy) query = query.eq('open_to_polygamy', filters.openToPolygamy);
+
+  query = query.order('posted_at', { ascending: false }).limit(max);
+
+  const { data } = await query;
   return (data || []) as Proposal[];
 }
 
