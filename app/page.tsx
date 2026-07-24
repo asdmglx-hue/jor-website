@@ -35,9 +35,11 @@ export const metadata: Metadata = {
 const VALID_CITIES = new Set(VALID_CITY_NAMES.filter(c => c !== 'Other'));
 
 async function getStats() {
-  const { count: total } = await supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter());
-  const { count: male } = await supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('gender', 'Male');
-  const { count: female } = await supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('gender', 'Female');
+  const [{ count: total }, { count: male }, { count: female }] = await Promise.all([
+    supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()),
+    supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('gender', 'Male'),
+    supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('gender', 'Female'),
+  ]);
   return { total: total || 0, male: male || 0, female: female || 0 };
 }
 
