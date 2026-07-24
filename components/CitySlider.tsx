@@ -2,14 +2,26 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { slugify } from '@/lib/categories';
-import { MIN_CATEGORY_PROFILES } from '@/lib/supabase';
+import { CITIES as VALID_CITY_NAMES } from '@/lib/constants';
+import { MIN_CATEGORY_PROFILES, fetchLiveCityCounts } from '@/lib/supabase';
 
-export default function CitySlider({ cities }: { cities: { city: string; count: number }[] }) {
+const VALID_CITIES = new Set(VALID_CITY_NAMES.filter(c => c !== 'Other'));
+
+export default function CitySlider({ cities: initialCities }: { cities: { city: string; count: number }[] }) {
+  const [cities, setCities] = useState(initialCities);
   const trackRef = useRef<HTMLDivElement>(null);
   const posRef = useRef(0);
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
   const [isDragging, setIsDragging] = useState(false); // real React state now, purely for the cursor style
+
+  // Checks for genuinely current counts the moment the page loads,
+  // instead of only ever showing whatever the server had cached at
+  // build time — same reasoning as the Recently Added fix. Silently
+  // keeps showing the original prop data if this fails for any reason.
+  useEffect(() => {
+    fetchLiveCityCounts(VALID_CITIES).then(live => { if (live && live.length > 0) setCities(live); });
+  }, []);
 
   // Drag state — a hold-and-drag pauses the auto-scroll and lets the user
   // manually move the track; releasing resumes auto-scroll from wherever

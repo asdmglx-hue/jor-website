@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Proposal, fetchRecentProposalAt } from '@/lib/supabase';
+import { Proposal, fetchRecentProposalAt, fetchLiveRecentProposals } from '@/lib/supabase';
 import { getNotInterestedIds, addNotInterested } from '@/lib/auth';
 import ProposalCard from './ProposalCard';
 
@@ -18,6 +18,22 @@ export default function RecentProposals({ initial }: { initial: Proposal[] }) {
   const offsetRef = useRef(initial.length);
 
   useEffect(() => { proposalsRef.current = proposals; }, [proposals]);
+
+  // Checks for the genuinely current 9 most recent profiles the moment
+  // the page loads, instead of only ever showing whatever the server
+  // had cached at build time. This is what makes a just-deleted profile
+  // disappear from here immediately on page load, rather than only
+  // after the server's own background refresh eventually catches up
+  // (which could take a while) — matching how /proposals already always
+  // shows current data on every load.
+  useEffect(() => {
+    fetchLiveRecentProposals().then(live => {
+      if (live && live.length > 0) {
+        setProposals(live);
+        offsetRef.current = live.length;
+      }
+    });
+  }, []);
 
   // Fetches `count` replacement proposals — pulls from right after
   // everything already shown in this section, in the same "most recently

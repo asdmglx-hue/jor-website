@@ -6,10 +6,23 @@ const animated = new Set<number>();
 export default function AnimatedCounter({ target }: { target: number }) {
   const [count, setCount] = useState(0);
   const started = useRef(false);
+  const prevTarget = useRef<number | null>(null);
 
   useEffect(() => {
-    if (started.current) return;
+    // Already did the initial animation — a later target change (e.g. a
+    // background refresh found a genuinely updated number) just snaps
+    // directly to the new value. Re-animating from 0 for a silent
+    // background update would be visually jarring; only the very first
+    // render should get the count-up effect.
+    if (started.current) {
+      if (prevTarget.current !== target) {
+        prevTarget.current = target;
+        setCount(target);
+      }
+      return;
+    }
     started.current = true;
+    prevTarget.current = target;
     if (animated.has(target)) { setCount(target); return; }
     animated.add(target);
     const steps = 60;

@@ -446,6 +446,78 @@ export async function fetchAllProposalNumbers(): Promise<number[]> {
 // are actually worth generating (see MIN_CATEGORY_PROFILES).
 export const MIN_CATEGORY_PROFILES = 2;
 
+// The three functions below mirror the homepage's own server-side
+// getStats/getCities/getCountries logic exactly (see app/page.tsx) —
+// deliberately duplicated rather than shared, since the server-side
+// versions live in a server component file and can't be imported into a
+// client component. Used so the homepage's client-side sections (stats,
+// city slider, country slider) can check for genuinely fresh data the
+// moment the page loads, instead of only ever showing whatever the
+// server happened to have cached at build time — the same reasoning
+// that already made /proposals always show current data instantly.
+//
+// All three are designed to fail silently (return null) rather than
+// throw — if the fresh check fails for any reason, the caller just
+// keeps showing what it already had. Nothing can ever end up blank or
+// broken because of this.
+export async function fetchLiveHomeStats(): Promise<{ total: number; male: number; female: number } | null> {
+  try {
+    const [{ count: total }, { count: male }, { count: female }] = await Promise.all([
+      supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()),
+      supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('gender', 'Male'),
+      supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('gender', 'Female'),
+    ]);
+    return { total: total || 0, male: male || 0, female: female || 0 };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchLiveCityCounts(validCities: Set<string>): Promise<{ city: string; count: number }[] | null> {
+  try {
+    const { data, error } = await supabase.rpc('get_city_counts');
+    if (error || !data) return null;
+    return (data as { city: string; count: number }[])
+      .filter(row => validCities.has(row.city))
+      .map(row => ({ city: row.city, count: Number(row.count) }))
+      .sort((a, b) => b.count - a.count);
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchLiveCountryCounts(): Promise<{ country: string; count: number }[] | null> {
+  try {
+    const { data, error } = await supabase.rpc('get_proposal_country_counts');
+    if (error || !data) return null;
+    const counts: Record<string, number> = {};
+    for (const row of data as { value: string; cnt: number }[]) {
+      const c = normalizeCountry(row.value);
+      counts[c] = (counts[c] || 0) + Number(row.cnt);
+    }
+    return Object.entries(counts)
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count);
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchLiveRecentProposals(): Promise<Proposal[] | null> {
+  try {
+    const { data } = await supabase
+      .from('proposals')
+      .select(CARD_COLS)
+      .eq('status', 'active')
+      .or(notExpiredFilter())
+      .order('posted_at', { ascending: false })
+      .limit(9);
+    return (data || []) as Proposal[];
+  } catch {
+    return null;
+  }
+}
+
 // NOTE: previously wrapped in unstable_cache to share these calculations
 // across all 240 category pages instead of each one recomputing
 // independently — reverted after it caused the Cloudflare build itself

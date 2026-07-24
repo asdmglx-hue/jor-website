@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { slugify } from '@/lib/categories';
-import { MIN_CATEGORY_PROFILES } from '@/lib/supabase';
+import { MIN_CATEGORY_PROFILES, fetchLiveCountryCounts } from '@/lib/supabase';
 
 const ISO: Record<string, string> = {
   'UAE': 'ae', 'United Arab Emirates': 'ae', 'Afghanistan': 'af', 'Antigua & Barbuda': 'ag',
@@ -50,12 +50,21 @@ const ISO: Record<string, string> = {
   'South Korea': 'kr', 'North Korea': 'kp',
 };
 
-export default function CountrySlider({ countries }: { countries: { country: string; count: number }[] }) {
+export default function CountrySlider({ countries: initialCountries }: { countries: { country: string; count: number }[] }) {
+  const [countries, setCountries] = useState(initialCountries);
   const trackRef = useRef<HTMLDivElement>(null);
   const posRef = useRef(0);
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
   const [isDragging, setIsDragging] = useState(false); // real React state now, purely for the cursor style
+
+  // Checks for genuinely current counts the moment the page loads,
+  // instead of only ever showing whatever the server had cached at
+  // build time — same reasoning as the Recently Added fix. Silently
+  // keeps showing the original prop data if this fails for any reason.
+  useEffect(() => {
+    fetchLiveCountryCounts().then(live => { if (live && live.length > 0) setCountries(live); });
+  }, []);
 
   // Drag state — same idea as CitySlider, but this track's position is
   // negative-ranging (see the animate loop below), so the wrap-around math

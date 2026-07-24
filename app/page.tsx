@@ -6,7 +6,7 @@ import RecentProposals from '@/components/RecentProposals';
 import CitySlider from '@/components/CitySlider';
 import CountrySlider from '@/components/CountrySlider';
 import PostRishtaButton from '@/components/PostRishtaButton';
-import AnimatedCounter from '@/components/AnimatedCounter';
+import HeroStats from '@/components/HeroStats';
 import type { Proposal } from '@/lib/supabase';
 import type { Metadata } from 'next';
 
@@ -210,18 +210,7 @@ export default async function HomePage() {
           </div>
 
           {/* Stats */}
-          <div className="hero-stats">
-            {[
-              { label: 'Total Proposals', value: stats.total },
-              { label: 'Groom Profiles', value: stats.male },
-              { label: 'Bride Profiles', value: stats.female },
-            ].map(s => (
-              <div key={s.label} className="hero-stat-card">
-                <div style={{ fontSize: 28, fontWeight: 900 }}><AnimatedCounter target={s.value} /></div>
-                <div style={{ fontSize: 12, opacity: 0.8, marginTop: 2 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
+          <HeroStats initial={stats} />
         </div>
       </section>
 
