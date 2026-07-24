@@ -40,7 +40,17 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
   useEffect(() => { pausedRef.current = paused; }, [paused]);
 
   useEffect(() => {
-    if (!needsScrolling) return;
+    if (!needsScrolling) {
+      // Explicitly clear any leftover shift from a previous scrolling
+      // session (e.g. the unfiltered page had 4+ people and was actively
+      // auto-scrolling, then a filter dropped the count to 3 or fewer) —
+      // without this, the single static card renders visually shifted
+      // left by the stale transform and gets clipped by this
+      // container's overflow: hidden.
+      if (trackRef.current) trackRef.current.style.transform = '';
+      posRef.current = 0;
+      return;
+    }
     const track = trackRef.current;
     if (!track) return;
     let raf: number;
