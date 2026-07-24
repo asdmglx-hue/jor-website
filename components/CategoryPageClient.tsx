@@ -188,7 +188,7 @@ export default function CategoryPageClient({ initialProposals, initialFilters, f
         <div style={{ textAlign: 'center', padding: '40px 0', color: '#68629C' }}>Loading…</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginTop: 20, marginBottom: 24 }}>
-          {visibleProposals.map((p, i) => <ProposalCard key={p.id} proposal={p} index={i} />)}
+          {visibleProposals.map((p, i) => <ProposalCard key={p.id} proposal={p} index={i} forceFeatured={isCityOrCountry ? false : undefined} />)}
         </div>
       )}
     </>

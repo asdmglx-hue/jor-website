@@ -59,10 +59,19 @@ type Props = {
   // hash of the person's first name (which skews toward whichever colors
   // happen to land on common Pakistani first-name initials).
   index?: number;
+  // Overrides whether featured styling (badge, orange border/background)
+  // shows, regardless of the profile's own is_boosted flag. Needed on
+  // city/country pages: a boost is scoped to ONE specific location, so
+  // someone globally is_boosted but boosted for a DIFFERENT city than the
+  // one currently being viewed should NOT show as "Featured" here — that
+  // would misleadingly imply they're featured for this specific place.
+  // Left undefined everywhere else, which keeps the existing default
+  // behavior (based purely on the profile's own flags) unchanged.
+  forceFeatured?: boolean;
 };
 
-export default function ProposalCard({ proposal: p, onNotInterested, onSavedChange, index }: Props) {
-  const isFeatured = p.subscription_tier === 'featured' || p.is_boosted;
+export default function ProposalCard({ proposal: p, onNotInterested, onSavedChange, index, forceFeatured }: Props) {
+  const isFeatured = forceFeatured !== undefined ? forceFeatured : (p.subscription_tier === 'featured' || p.is_boosted);
   const isBasic = p.subscription_tier === 'basic';
   const cardBorder = isFeatured ? '#E8620A44' : isBasic ? '#534AB744' : '#E8E6F5';
   const cardBg = isFeatured ? '#FFFBF5' : '#FFFFFF';
