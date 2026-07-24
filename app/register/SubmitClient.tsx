@@ -1017,9 +1017,9 @@ export default function SubmitClient() {
       <div style={{ width: 72, height: 72, borderRadius: 20, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Proposal Submitted!</h2>
+      <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Profile Submitted!</h2>
       <p style={{ color: '#6B6893', marginBottom: 24, lineHeight: 1.6 }}>
-        Your proposal has been received and is under review. It will be published within 24 hours once approved. If you haven't paid yet, please complete the payment.
+        Thank you for submitting your profile! Please allow up to 24 hours for review.
       </p>
       <Link href="/" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: 12, background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>
         Back to Home
