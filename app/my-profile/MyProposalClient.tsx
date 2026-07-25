@@ -729,6 +729,7 @@ export default function MyProposalClient() {
         open={manageModalOpen}
         onClose={() => setManageModalOpen(false)}
         cnic={user.cnic || ''}
+        userId={user.id}
         boosts={featuredBoosts}
         onChanged={() => refreshFeaturedDataRef.current()}
       />

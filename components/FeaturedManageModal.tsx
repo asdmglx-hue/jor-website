@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 // cached listing pages instead of waiting on the 5-minute timer — see
 // lib/actions/revalidate-write.ts for the full explanation.
 import { cancelFeaturedBoostAction } from '@/lib/actions/featured-actions';
+import { supabase } from '@/lib/supabase';
 
 type Boost = { id: string; city: string; scheduled_date: string; is_used: boolean; created_at?: string };
 
@@ -55,17 +56,52 @@ function RunningBoostBar({ windowStart }: { windowStart: Date }) {
 }
 
 export default function FeaturedManageModal({
-  open, onClose, cnic, boosts, onChanged,
+  open, onClose, cnic, userId, boosts, onChanged,
 }: {
   open: boolean;
   onClose: () => void;
   cnic: string;
+  userId: string;
   boosts: Boost[];
   onChanged: () => void;
 }) {
   const [cancelling, setCancelling] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<{ boost: Boost; isRunning: boolean } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // History view — separate from the live `boosts` prop above (which only
+  // ever contains unused/current boosts). Fetched lazily, only once the
+  // person actually taps the History icon, and cached in state afterward
+  // so re-opening History doesn't refetch every time within the same
+  // modal session.
+  const [view, setView] = useState<'current' | 'history'>('current');
+  const [history, setHistory] = useState<Boost[] | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+
+  const openHistory = async () => {
+    setView('history');
+    if (history !== null || loadingHistory) return;
+    setLoadingHistory(true);
+    setHistoryError(null);
+    try {
+      const { data, error } = await supabase
+        .from('featured_boosts')
+        .select('id, city, scheduled_date, is_used, created_at')
+        .eq('user_id', userId)
+        .eq('is_used', true)
+        .order('scheduled_date', { ascending: false });
+      if (error) throw error;
+      setHistory((data || []) as Boost[]);
+    } catch (_) {
+      setHistoryError('Could not load history right now. Please try again.');
+    }
+    setLoadingHistory(false);
+  };
+
+  const handleClose = () => {
+    setView('current');
+    onClose();
+  };
 
   if (!open) return null;
 
@@ -123,14 +159,67 @@ export default function FeaturedManageModal({
   return (
     <div
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1150, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
       <div style={{ background: '#fff', borderRadius: 20, maxWidth: 440, width: '100%', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: 24, overflowY: 'auto' }}>
-          <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 6 }}>Manage Featured Posts</div>
-          <div style={{ fontSize: 12.5, color: '#6B6893', lineHeight: 1.4, marginBottom: 18 }}>Make your profile stand out and get noticed</div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830' }}>
+                {view === 'history' ? 'Featured Post History' : 'Manage Featured Posts'}
+              </div>
+            </div>
+            {view === 'current' ? (
+              <button
+                onClick={openHistory}
+                title="View past featured posts"
+                aria-label="View past featured posts"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 9, border: '1px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 11.5, cursor: 'pointer', flexShrink: 0 }}
+              >
+                <span style={{ fontSize: 13 }}>🕘</span> History
+              </button>
+            ) : (
+              <button
+                onClick={() => setView('current')}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 9, border: '1px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 11.5, cursor: 'pointer', flexShrink: 0 }}
+              >
+                ← Back
+              </button>
+            )}
+          </div>
+          <div style={{ fontSize: 12.5, color: '#6B6893', lineHeight: 1.4, marginBottom: 18 }}>
+            {view === 'history' ? 'Featured posts that have already run and finished.' : 'Make your profile stand out and get noticed'}
+          </div>
           {errorMsg && <div style={{ marginBottom: 14, fontSize: 12.5, color: '#DC2626', fontWeight: 600 }}>{errorMsg}</div>}
 
+          {view === 'history' ? (
+            <>
+              {loadingHistory && (
+                <div style={{ textAlign: 'center', padding: '18px 0', fontSize: 13, color: '#9990B8' }}>Loading history…</div>
+              )}
+              {!loadingHistory && historyError && (
+                <div style={{ textAlign: 'center', padding: '18px 0', fontSize: 13, color: '#DC2626' }}>{historyError}</div>
+              )}
+              {!loadingHistory && !historyError && history?.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '18px 0', fontSize: 13, color: '#9990B8' }}>No past featured posts yet.</div>
+              )}
+              {!loadingHistory && !historyError && history && history.length > 0 && history.map((b, i) => (
+                <div key={b.id}>
+                  {i > 0 && <div style={{ height: 1, background: '#E8E6F599', margin: '10px 0' }} />}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, background: '#E8E6F5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: 16 }}>✅</span>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: '#1A1830', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.city}</div>
+                      <div style={{ fontSize: 11.5, color: '#6B6893' }}>{fmtDate(b.scheduled_date)}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : (
+          <>
           {running.length === 0 && scheduled.length === 0 && (
             <div style={{ textAlign: 'center', padding: '18px 0', fontSize: 13, color: '#9990B8' }}>No running or scheduled featured posts.</div>
           )}
@@ -158,8 +247,10 @@ export default function FeaturedManageModal({
               ))}
             </div>
           )}
+          </>
+          )}
 
-          <button onClick={onClose} style={{ width: '100%', marginTop: 20, padding: '13px', borderRadius: 12, border: '1px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, cursor: 'pointer' }}>
+          <button onClick={handleClose} style={{ width: '100%', marginTop: 20, padding: '13px', borderRadius: 12, border: '1px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, cursor: 'pointer' }}>
             Close
           </button>
         </div>
