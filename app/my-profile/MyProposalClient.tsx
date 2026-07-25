@@ -671,7 +671,7 @@ export default function MyProposalClient() {
                 placement (never had an overlap problem there). Hidden on
                 mobile via the credits-badge-desktop class; the mobile
                 version below takes over instead. */}
-            <div className="credits-badge-desktop" style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '6px 10px', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+            <div className="credits-badge-desktop" style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
               <span style={{ color: '#fff', fontSize: 11, fontWeight: 800, lineHeight: 1 }}>Featured Credits: {available}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, position: 'relative' }}>
@@ -708,7 +708,7 @@ export default function MyProposalClient() {
                     narrow screen. Hidden by default (display:none inline);
                     credits-badge-mobile switches it on only under the
                     mobile breakpoint. */}
-                <div className="credits-badge-mobile" style={{ display: 'none', marginTop: 12, background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '6px 10px', alignItems: 'center', justifyContent: 'center', lineHeight: 1, width: 'fit-content' }}>
+                <div className="credits-badge-mobile" style={{ display: 'none', marginTop: 12, marginLeft: 'auto', background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '6px 10px', alignItems: 'center', justifyContent: 'center', lineHeight: 1, width: 'fit-content' }}>
                   <span style={{ color: '#fff', fontSize: 11, fontWeight: 800, lineHeight: 1, whiteSpace: 'nowrap' }}>Featured Credits: {available}</span>
                 </div>
               </div>
