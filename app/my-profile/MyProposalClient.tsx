@@ -689,26 +689,26 @@ export default function MyProposalClient() {
                 </div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                   {available > 0 ? (
-                    <button onClick={() => setBookModalOpen(true)} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+                    <button onClick={() => setBookModalOpen(true)} className="featured-btn-mobile" style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
                       Schedule Featured Post
                     </button>
                   ) : (
-                    <Link href="/plans?plan=featured" style={{ display: 'inline-block', padding: '9px 20px', borderRadius: 10, background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>
+                    <Link href="/plans?plan=featured" className="featured-btn-mobile" style={{ display: 'inline-block', textAlign: 'center', padding: '9px 20px', borderRadius: 10, background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>
                       Buy Featured Credits
                     </Link>
                   )}
-                  <button onClick={() => setManageModalOpen(true)} style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.5)', background: 'transparent', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                  <button onClick={() => setManageModalOpen(true)} className="featured-btn-mobile" style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.5)', background: 'transparent', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                     Manage
                   </button>
-                  {/* Mobile-only version — sits in this same row, pushed to
-                      the right edge next to Manage, instead of overlapping
-                      the heading text the way the desktop placement would
-                      on a narrow screen. Hidden by default (display:none
-                      inline); credits-badge-mobile switches it on only
-                      under the mobile breakpoint. */}
-                  <div className="credits-badge-mobile" style={{ display: 'none', marginLeft: 'auto', background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '6px 10px', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
-                    <span style={{ color: '#fff', fontSize: 11, fontWeight: 800, lineHeight: 1, whiteSpace: 'nowrap' }}>Featured Credits: {available}</span>
-                  </div>
+                </div>
+                {/* Mobile-only credit balance — sits on its own row below
+                    the buttons, instead of overlapping the heading text
+                    the way the desktop's top-right placement would on a
+                    narrow screen. Hidden by default (display:none inline);
+                    credits-badge-mobile switches it on only under the
+                    mobile breakpoint. */}
+                <div className="credits-badge-mobile" style={{ display: 'none', marginTop: 12, background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '6px 10px', alignItems: 'center', justifyContent: 'center', lineHeight: 1, width: 'fit-content' }}>
+                  <span style={{ color: '#fff', fontSize: 11, fontWeight: 800, lineHeight: 1, whiteSpace: 'nowrap' }}>Featured Credits: {available}</span>
                 </div>
               </div>
             </div>
