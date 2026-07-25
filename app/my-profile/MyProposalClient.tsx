@@ -690,7 +690,8 @@ export default function MyProposalClient() {
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                   {available > 0 ? (
                     <button onClick={() => setBookModalOpen(true)} className="featured-btn-mobile" style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-                      Schedule Featured Post
+                      <span className="btn-text-desktop" style={{ display: 'inline' }}>Schedule Featured Post</span>
+                      <span className="btn-text-mobile" style={{ display: 'none' }}>Schedule Post</span>
                     </button>
                   ) : (
                     <Link href="/plans?plan=featured" className="featured-btn-mobile" style={{ display: 'inline-block', textAlign: 'center', padding: '9px 20px', borderRadius: 10, background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>
