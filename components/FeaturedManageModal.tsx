@@ -16,6 +16,19 @@ function isSameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
+// Resolves a boost's actual 24h window start — created_at for same-day
+// bookings (so a boost booked and started today doesn't show hours
+// already "elapsed" purely because the stored date sits at midnight UTC
+// — 5am Pakistan time), otherwise the scheduled_date itself for
+// advance-scheduled boosts. Shared by both the running/scheduled
+// classification below and the row renderer, so they can never disagree
+// about when a boost's window actually started.
+function resolveWindowStart(b: Boost): Date {
+  const d = new Date(b.scheduled_date);
+  const createdAt = b.created_at ? new Date(b.created_at) : null;
+  return (createdAt && isSameDay(createdAt, d)) ? createdAt : d;
+}
+
 function fmtRemaining(ms: number) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
   const h = Math.floor(totalSeconds / 3600);
@@ -106,8 +119,13 @@ export default function FeaturedManageModal({
   if (!open) return null;
 
   const now = new Date();
-  const running = boosts.filter(b => !b.is_used && new Date(b.scheduled_date) <= now);
-  const scheduled = boosts.filter(b => !b.is_used && new Date(b.scheduled_date) > now);
+  const windowMs = 24 * 60 * 60 * 1000;
+  const running = boosts.filter(b => {
+    if (b.is_used) return false;
+    const start = resolveWindowStart(b);
+    return start <= now && now.getTime() - start.getTime() < windowMs;
+  });
+  const scheduled = boosts.filter(b => !b.is_used && resolveWindowStart(b) > now);
 
   const doCancel = async () => {
     if (!confirmTarget) return;
@@ -130,9 +148,7 @@ export default function FeaturedManageModal({
   };
 
   const row = (b: Boost, isRunning: boolean) => {
-    const d = new Date(b.scheduled_date);
-    const createdAt = b.created_at ? new Date(b.created_at) : null;
-    const windowStart = (createdAt && isSameDay(createdAt, d)) ? createdAt : d;
+    const windowStart = resolveWindowStart(b);
     return (
       <div key={b.id} style={{ marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
