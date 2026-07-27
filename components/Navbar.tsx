@@ -96,7 +96,7 @@ export default function Navbar() {
                 display: 'flex', alignItems: 'center', gap: 7, padding: '5px 12px 5px 5px', borderRadius: 10,
                 border: '1.5px solid #E8E6F5', background: '#EEEDFE', cursor: 'pointer', fontSize: 13, fontWeight: 700, color: '#534AB7',
               }}>
-                <div style={{ width: 28, height: 28, borderRadius: 14, overflow: 'hidden', flexShrink: 0, background: user.gender === 'Male' ? '#534AB7' : '#E11D48', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#fff', fontWeight: 800 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 14, overflow: 'hidden', flexShrink: 0, background: (user.gender || '').trim().toLowerCase() === 'male' ? '#534AB7' : '#E11D48', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#fff', fontWeight: 800 }}>
                   {user.profile_photo_url
                     ? <img src={user.profile_photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     : (user.name || '?').charAt(0).toUpperCase()}
@@ -131,7 +131,7 @@ export default function Navbar() {
                 display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px 4px 4px', borderRadius: 10,
                 border: '1.5px solid #E8E6F5', background: '#EEEDFE', cursor: 'pointer', fontSize: 13, fontWeight: 700, color: '#534AB7',
               }}>
-                <div style={{ width: 28, height: 28, borderRadius: 14, overflow: 'hidden', flexShrink: 0, background: user.gender === 'Male' ? '#534AB7' : '#E11D48', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#fff', fontWeight: 800 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 14, overflow: 'hidden', flexShrink: 0, background: (user.gender || '').trim().toLowerCase() === 'male' ? '#534AB7' : '#E11D48', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#fff', fontWeight: 800 }}>
                   {user.profile_photo_url
                     ? <img src={user.profile_photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     : (user.name || '?').charAt(0).toUpperCase()}
