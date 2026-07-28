@@ -167,7 +167,7 @@ export default function LoginClient() {
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 380, padding: 24 }}>
             <div style={{ fontSize: 17, fontWeight: 800, color: '#534AB7', marginBottom: 4 }}>Forgot Password</div>
             <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 16, lineHeight: 1.5 }}>
-              Enter your CNIC and upload a color photo of your CNIC front side — we&apos;ll reach out on WhatsApp to verify you and help reset your password.
+              We&apos;ll reach out on WhatsApp to verify your identity and reset your password.
             </div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>CNIC Number</label>
             <input

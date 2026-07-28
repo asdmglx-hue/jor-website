@@ -23,6 +23,14 @@
   box-sizing: border-box;
 }
 
+.bullet-purple {
+  list-style: disc;
+}
+
+.bullet-purple li::marker {
+  color: #534AB7;
+}
+
 @keyframes gradientSlide {
   0%   { background-position: 0% 0%; }
   100% { background-position: 100% 0%; }

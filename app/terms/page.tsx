@@ -42,7 +42,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="2. Eligibility">
-        <ul style={{ paddingLeft: 20 }}>
+        <ul className="bullet-purple" style={{ paddingLeft: 20 }}>
           <li style={{ marginBottom: 6 }}>You must be at least 18 years of age to use Jor.</li>
           <li style={{ marginBottom: 6 }}>You must be a Pakistani national or resident, or an overseas Pakistani.</li>
           <li style={{ marginBottom: 6 }}>You must provide accurate and truthful information when creating your profile.</li>
@@ -52,7 +52,7 @@ export default function TermsPage() {
 
       <Section title="3. User Responsibilities">
         <p>By posting a Rishta profile, you agree to:</p>
-        <ul style={{ paddingLeft: 20, marginTop: 8 }}>
+        <ul className="bullet-purple" style={{ paddingLeft: 20, marginTop: 8 }}>
           <li style={{ marginBottom: 6 }}>Provide accurate, honest, and up-to-date information about yourself.</li>
           <li style={{ marginBottom: 6 }}>Not impersonate another person or use someone else's photos or details.</li>
           <li style={{ marginBottom: 6 }}>Not use Jor for any commercial, fraudulent, or non-matrimonial purpose.</li>
@@ -63,7 +63,7 @@ export default function TermsPage() {
 
       <Section title="4. Profile Verification & Moderation">
         <p>Jor reviews all submitted profiles before they appear publicly. We reserve the right to:</p>
-        <ul style={{ paddingLeft: 20, marginTop: 8 }}>
+        <ul className="bullet-purple" style={{ paddingLeft: 20, marginTop: 8 }}>
           <li style={{ marginBottom: 6 }}>Reject or remove any profile that violates these terms.</li>
           <li style={{ marginBottom: 6 }}>Request additional verification documents (e.g. CNIC) to confirm identity.</li>
           <li style={{ marginBottom: 6 }}>Permanently ban users who misuse the platform.</li>
@@ -72,7 +72,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="5. Subscriptions & Payments">
-        <ul style={{ paddingLeft: 20 }}>
+        <ul className="bullet-purple" style={{ paddingLeft: 20 }}>
           <li style={{ marginBottom: 6 }}>Access to contact information and photos requires a paid subscription.</li>
           <li style={{ marginBottom: 6 }}>Subscription fees are non-refundable once an activation code has been issued.</li>
           <li style={{ marginBottom: 6 }}>Jor reserves the right to change subscription pricing with prior notice.</li>
@@ -82,7 +82,7 @@ export default function TermsPage() {
 
       <Section title="6. Prohibited Conduct">
         <p>The following are strictly prohibited on Jor:</p>
-        <ul style={{ paddingLeft: 20, marginTop: 8 }}>
+        <ul className="bullet-purple" style={{ paddingLeft: 20, marginTop: 8 }}>
           <li style={{ marginBottom: 6 }}>Posting false, misleading, or fabricated profile information.</li>
           <li style={{ marginBottom: 6 }}>Using contact details to solicit money, business, or anything other than marriage.</li>
           <li style={{ marginBottom: 6 }}>Sharing or reselling contact information obtained through the platform.</li>
@@ -106,7 +106,7 @@ export default function TermsPage() {
 
       <Section title="7. Disclaimer of Warranties">
         <p>Jor is a platform that facilitates introductions between families. We do not:</p>
-        <ul style={{ paddingLeft: 20, marginTop: 8 }}>
+        <ul className="bullet-purple" style={{ paddingLeft: 20, marginTop: 8 }}>
           <li style={{ marginBottom: 6 }}>Guarantee the accuracy of any profile information provided by users.</li>
           <li style={{ marginBottom: 6 }}>Conduct background checks beyond basic CNIC verification.</li>
           <li style={{ marginBottom: 6 }}>Take responsibility for any outcomes resulting from connections made through the platform.</li>

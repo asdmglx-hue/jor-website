@@ -44,3 +44,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+r2-cleanup-log-*.txt
+keys-to-delete.json
+r2-folders.json
+full-bucket-check.json
+

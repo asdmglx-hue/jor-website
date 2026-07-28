@@ -11,11 +11,11 @@ export const metadata: Metadata = {
 
 const features = [
   {
-    color: '#0F6E56', bg: '#E1F5EE', title: 'Verified Profiles', desc: 'We verify CNIC before posting',
+    color: '#0F6E56', bg: '#E1F5EE', title: 'Verified Profiles', desc: 'We verify identity before posting',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
   },
   {
-    color: '#534AB7', bg: '#EEEDFE', title: 'See All Contacts', desc: 'Phone numbers unlocked instantly',
+    color: '#534AB7', bg: '#EEEDFE', title: 'Connect with Families', desc: 'Phone numbers unlocked instantly',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 11.9a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.06 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16v.92z"/></svg>,
   },
   {
@@ -57,7 +57,7 @@ export default function AboutPage() {
         <Image src="/logo-icon.png" alt="Jor" width={559} height={447} style={{ height: 72, width: 'auto', display: 'block', margin: '0 auto 16px' }} />
         <h1 style={{ fontSize: 36, fontWeight: 900, color: '#1A1830', marginBottom: 12 }}>About Jor</h1>
         <p style={{ fontSize: 16, color: '#6B6893', lineHeight: 1.7, maxWidth: 560, margin: '0 auto' }}>
-          Jor is Pakistan&apos;s trusted matrimonial platform — connecting families with verified rishta proposals across every city and province.
+          Jor is Pakistan&apos;s trusted matrimonial platform — connecting Pakistani Muslim families worldwide with verified rishta proposals.
         </p>
       </div>
 

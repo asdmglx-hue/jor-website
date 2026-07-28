@@ -37,7 +37,7 @@ export default function PrivacyPolicyPage() {
 
       <Section title="1. Information We Collect">
         <p>When you create a Rishta profile on Jor, we collect:</p>
-        <ul style={{ paddingLeft: 20, marginTop: 8 }}>
+        <ul className="bullet-purple" style={{ paddingLeft: 20, marginTop: 8 }}>
           <li style={{ marginBottom: 6 }}><strong>Personal details:</strong> Name, age, gender, city, education, profession, and other profile information you provide.</li>
           <li style={{ marginBottom: 6 }}><strong>Contact information:</strong> Phone number(s) used for account verification and proposal contact.</li>
           <li style={{ marginBottom: 6 }}><strong>Identity verification:</strong> CNIC number, used solely for account authentication — never shared publicly.</li>
@@ -47,7 +47,7 @@ export default function PrivacyPolicyPage() {
       </Section>
 
       <Section title="2. How We Use Your Information">
-        <ul style={{ paddingLeft: 20 }}>
+        <ul className="bullet-purple" style={{ paddingLeft: 20 }}>
           <li style={{ marginBottom: 6 }}>To display your Rishta profile to other verified users.</li>
           <li style={{ marginBottom: 6 }}>To verify your identity and prevent fraudulent accounts.</li>
           <li style={{ marginBottom: 6 }}>To process subscription payments and send activation codes.</li>
@@ -68,14 +68,14 @@ export default function PrivacyPolicyPage() {
 
       <Section title="5. Data Sharing">
         <p>We do <strong>not</strong> sell, rent, or share your personal data with third parties for marketing purposes. We may share data only:</p>
-        <ul style={{ paddingLeft: 20, marginTop: 8 }}>
+        <ul className="bullet-purple" style={{ paddingLeft: 20, marginTop: 8 }}>
           <li style={{ marginBottom: 6 }}>When required by Pakistani law or a court order.</li>
           <li style={{ marginBottom: 6 }}>With payment processors, solely to process your subscription.</li>
         </ul>
       </Section>
 
       <Section title="6. Your Rights">
-        <ul style={{ paddingLeft: 20 }}>
+        <ul className="bullet-purple" style={{ paddingLeft: 20 }}>
           <li style={{ marginBottom: 6 }}><strong>Access:</strong> Request a copy of the data we hold about you.</li>
           <li style={{ marginBottom: 6 }}><strong>Correction:</strong> Update your profile information at any time through your account.</li>
           <li style={{ marginBottom: 6 }}><strong>Deletion:</strong> Request deletion of your account and all associated data.</li>
