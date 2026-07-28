@@ -71,27 +71,24 @@ export default function ReferClient() {
     }
   };
 
+  const [loginPassword, setLoginPassword] = useState('');
+
   const handleLogin = async () => {
     const code = loginCode.trim().toUpperCase();
     if (code.length < 4) { setLoginError('Enter your affiliate code.'); return; }
     setLoginLoading(true); setLoginError('');
-    const { data, error } = await supabase
-      .from('affiliates')
-      .select('id, name, code, total_commission, paid_commission, affiliate_referrals(commission_amount, is_paid)')
-      .eq('code', code)
-      .eq('deleted', false)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc('affiliate_login_secure', {
+      p_code: code,
+      p_password: loginPassword.trim() || null,
+    });
     const { data: rateRow } = await supabase.from('app_settings').select('value').eq('key', 'referral_commission').maybeSingle();
     setLoginLoading(false);
-    if (error || !data) { setLoginError('No affiliate found with this code.'); return; }
-    const referrals = (data.affiliate_referrals as { commission_amount: number; is_paid: boolean }[]) ?? [];
-    const paid = referrals.filter(r => r.is_paid).reduce((s, r) => s + (r.commission_amount || 0), 0);
-    const pending = referrals.filter(r => !r.is_paid).reduce((s, r) => s + (r.commission_amount || 0), 0);
+    if (error || !data || data.error) { setLoginError(data?.error || 'No affiliate found with this code.'); return; }
     setStats({
       name: data.name, code: data.code,
       total_commission: data.total_commission ?? 0,
       paid_commission: data.paid_commission ?? 0,
-      referrals: referrals.length, pending_amount: pending,
+      referrals: data.referrals ?? 0, pending_amount: data.pending_amount ?? 0,
       rate: Number(rateRow?.value ?? 500),
     });
     setMode('dashboard');
@@ -212,6 +209,11 @@ export default function ReferClient() {
         <div style={{ marginBottom: 20 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>Affiliate Code</label>
           <input value={loginCode} onChange={e => setLoginCode(e.target.value.toUpperCase())} placeholder="e.g. JOR4X2" maxLength={8} onKeyDown={e => e.key === 'Enter' && handleLogin()} style={{ ...inp, letterSpacing: 3, fontWeight: 700, fontSize: 16 }} />
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>Password</label>
+          <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Leave blank if you don't have one" onKeyDown={e => e.key === 'Enter' && handleLogin()} style={inp} />
         </div>
 
         <button onClick={handleLogin} disabled={loginLoading} style={{ width: '100%', padding: 13, borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, cursor: loginLoading ? 'not-allowed' : 'pointer', opacity: loginLoading ? 0.7 : 1 }}>
