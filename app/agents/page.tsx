@@ -46,16 +46,21 @@ export default async function AgentsPage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: agents.length === 1 ? 'minmax(320px, 420px)' : 'repeat(auto-fill, minmax(320px, 1fr))',
+        gap: 16,
+        justifyContent: agents.length === 1 ? 'center' : 'stretch',
+      }}>
         {agents.map(agent => (
           <div key={agent.id} style={{ background: '#fff', border: '1px solid #E8E6F5', borderRadius: 16, padding: 20 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>{agent.name}</span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#E1F5EE', color: '#0F6E56', fontSize: 11, fontWeight: 800, padding: '3px 9px 3px 6px', borderRadius: 999 }}>
-                  <svg width="14" height="14" viewBox="0 0 22 22" fill="none">
-                    <path d="M11 1.5l2.1 1.13 2.38-.2 1.13 2.1 2.1 1.13-.2 2.38 1.13 2.1-1.13 2.1.2 2.38-2.1 1.13-1.13 2.1-2.38-.2L11 20.5l-2.1-1.13-2.38.2-1.13-2.1-2.1-1.13.2-2.38L2.36 11l1.13-2.1-.2-2.38 2.1-1.13 1.13-2.1 2.38.2z" fill="#0F6E56"/>
-                    <path d="M7.5 11.2l2.4 2.4 4.6-5.2" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg width="16" height="16" viewBox="0 0 22 22" fill="none">
+                    <path d="M 9.83 2.39 Q 11.00 1.00 12.17 2.39 Q 13.35 3.77 15.11 3.34 Q 16.88 2.91 17.01 4.72 Q 17.15 6.53 18.83 7.22 Q 20.51 7.91 19.56 9.45 Q 18.60 11.00 19.56 12.55 Q 20.51 14.09 18.83 14.78 Q 17.15 15.47 17.01 17.28 Q 16.88 19.09 15.11 18.66 Q 13.35 18.23 12.17 19.61 Q 11.00 21.00 9.83 19.61 Q 8.65 18.23 6.89 18.66 Q 5.12 19.09 4.99 17.28 Q 4.85 15.47 3.17 14.78 Q 1.49 14.09 2.44 12.55 Q 3.40 11.00 2.44 9.45 Q 1.49 7.91 3.17 7.22 Q 4.85 6.53 4.99 4.72 Q 5.12 2.91 6.89 3.34 Q 8.65 3.77 9.83 2.39 Z" fill="#0F6E56"/>
+                    <path d="M7.3 11.2l2.4 2.4 4.8-5.4" stroke="#fff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   Verified
                 </span>
