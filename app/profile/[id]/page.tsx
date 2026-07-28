@@ -45,7 +45,20 @@ type Props = { params: Promise<{ id: string }> };
 // limit to get hit on a slower request (cold start, etc). Doubling the
 // interval is meant to be checked against real traffic/Cloudflare logs
 // before deciding whether to raise it further or this is already enough.
-export const revalidate = 600;
+// This is purely a fallback safety net, not the mechanism keeping content
+// fresh day-to-day — the on_proposal_change database trigger + webhook
+// (see app/api/webhooks/proposal-status-changed/route.ts) already
+// instantly revalidates this exact page for any real admin edit (status,
+// name, photo, city, education, and virtually every other editable
+// field). This 24-hour window only matters for the rare case a change
+// happens outside that tracked path — set this long deliberately (rather
+// than removing the safety net entirely) so a page can never go
+// permanently stale even if some future write path forgets to call the
+// on-demand revalidation functions. Widened specifically to cut
+// Worker/Supabase load from crawler-driven regenerations across a large
+// and growing number of profile pages, without slowing down real content
+// updates at all.
+export const revalidate = 86400;
 
 // React's cache() deduplicates calls with the same argument within one
 // render pass — so generateMetadata and the page component below share a
