@@ -91,7 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
                 <div className="footer-nav-legal" style={{ display: 'flex', gap: 24, fontSize: 15, fontWeight: 400, justifyContent: 'flex-end' }}>
                   <Link href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</Link>
-                  <RishtaCenterLink>Rishta Center</RishtaCenterLink>
+                  <RishtaCenterLink>Help Center</RishtaCenterLink>
                   <Link href="/privacy-policy" style={{ color: '#fff', textDecoration: 'none' }}>Privacy Policy</Link>
                   <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>Terms of Service</Link>
                 </div>
@@ -128,7 +128,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 10 }}>
                   <Link href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</Link>
                   <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
-                  <RishtaCenterLink>Rishta Center</RishtaCenterLink>
+                  <RishtaCenterLink>Help Center</RishtaCenterLink>
                   <FooterAffiliateLink>Affiliate</FooterAffiliateLink>
                 </div>
                 <div style={{ display: 'flex', gap: 20, fontSize: 13, marginBottom: 24 }}>

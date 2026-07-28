@@ -43,7 +43,7 @@ export default function ReportAgentButton({ agentId, agentName }: { agentId: str
     // Forward the same filled form to WhatsApp so the team sees it
     // immediately, in addition to it being saved for the record via the
     // RPC above.
-    const text = `Rishta Center Report\n\nAgent: ${agentName}\nReason: ${reason}${details.trim() ? `\nDetails: ${details.trim()}` : ''}${contact.trim() ? `\nReporter phone: ${contact.trim()}` : ''}`;
+    const text = `Help Center Report\n\nAgent: ${agentName}\nReason: ${reason}${details.trim() ? `\nDetails: ${details.trim()}` : ''}${contact.trim() ? `\nReporter phone: ${contact.trim()}` : ''}`;
     window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
 
     setDone(true);
