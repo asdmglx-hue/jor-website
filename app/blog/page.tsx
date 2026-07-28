@@ -69,7 +69,7 @@ export default async function BlogIndexPage() {
           Rishta advice, wedding planning, and everything in between
         </h1>
         <p style={{ fontSize: 15.5, color: '#6B6893', lineHeight: 1.6, margin: '0 auto 24px', maxWidth: 520 }}>
-          Practical guidance from Jor for families navigating rishta, nikah, and everything that comes with it.
+          Practical guidance from Jor for families navigating the marriage process—from finding the right match to planning the wedding.
         </p>
       </section>
 

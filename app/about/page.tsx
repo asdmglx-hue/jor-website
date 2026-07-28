@@ -65,7 +65,7 @@ export default function AboutPage() {
       <div style={{ background: 'linear-gradient(135deg, #534AB7, #3D35A0)', borderRadius: 20, padding: '32px', marginBottom: 32, color: '#fff' }}>
         <h2 style={{ fontSize: 20, fontWeight: 900, marginBottom: 12 }}>Our Mission</h2>
         <p style={{ fontSize: 15, lineHeight: 1.8, color: '#D4D1F7' }}>
-          Finding a life partner is one of the most important decisions a family makes. We built Jor to make that process simple, safe, and dignified — free from middlemen, fake profiles, and hidden costs. Every proposal on Jor is reviewed by a real person before it goes live.
+          Finding a life partner is one of the most important decisions a family makes. We built Jor to make that process simple, safe, and dignified — free from middlemen, fake profiles, and hidden costs. Every proposal on Jor is reviewed by our team before it goes live.
         </p>
       </div>
 
@@ -99,8 +99,8 @@ export default function AboutPage() {
       <div style={{ background: '#FAF9FF', border: '1px solid #E8E6F5', borderRadius: 20, padding: '28px', marginBottom: 32 }}>
         <h2 style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', marginBottom: 20 }}>How It Works</h2>
         {[
-          { step: '1', title: 'Post Your Rishta', desc: 'Fill out a detailed profile through the Jor app. Reviewed within 24 hours.' },
-          { step: '2', title: 'Subscribe to Browse', desc: 'Get a subscription to unlock contact numbers, photos, and advanced filters.' },
+          { step: '1', title: 'Post Your Rishta', desc: 'Fill out a detailed profile, pay the fee, and wait for approval.' },
+          { step: '2', title: 'Browse Matches', desc: 'Filter by city, caste, education, and more to find the right person.' },
           { step: '3', title: 'Connect Directly', desc: 'Contact the family directly — no middleman, no hidden fees.' },
         ].map(item => (
           <div key={item.step} style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 16 }}>
