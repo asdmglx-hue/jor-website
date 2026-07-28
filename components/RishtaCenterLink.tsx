@@ -14,13 +14,13 @@ export default function RishtaCenterLink({ children }: { children: React.ReactNo
   useEffect(() => {
     (async () => {
       try {
-        const [{ data: setting }, { data: agents }] = await Promise.all([
-          supabase.from('app_settings').select('value').eq('key', 'referral_enabled').maybeSingle(),
+        const [{ data: helpCenterSetting }, { data: agents }] = await Promise.all([
+          supabase.from('app_settings').select('value').eq('key', 'help_center_enabled').maybeSingle(),
           supabase.rpc('list_verified_agents_secure'),
         ]);
-        const enabled = setting?.value !== 'false';
+        const helpCenterOn = helpCenterSetting?.value !== 'false';
         const hasAgents = Array.isArray(agents) && agents.length > 0;
-        setVisible(enabled && hasAgents);
+        setVisible(helpCenterOn && hasAgents);
       } catch (_) {
         // Fail closed here (unlike FooterAffiliateLink's fail-open) — this
         // link points somewhere content-dependent, so showing it without
