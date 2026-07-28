@@ -61,10 +61,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={inter.className}>
         <Navbar />
-        <ContactSupportButton />
         <main className="site-main" style={{ minHeight: 'calc(100vh - 60px)' }}>
           {children}
         </main>
+        <div style={{ position: 'relative', height: 0 }}>
+          <ContactSupportButton />
+        </div>
         <footer className="site-footer" style={{ background: '#1A1830', color: '#B0ADCB', padding: '28px 48px 40px', marginTop: 48, position: 'relative', overflow: 'hidden' }}>
           {/* Background wedding image at very low opacity */}
           <Image src="/footer-wedding.jpg" alt="" aria-hidden="true" fill sizes="100vw" style={{ objectFit: 'cover', objectPosition: 'center', opacity: 0.07, pointerEvents: 'none' }} />

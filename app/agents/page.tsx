@@ -32,11 +32,11 @@ export default async function AgentsPage() {
   const agents = await getAgents();
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '48px 20px' }}>
+    <div style={{ maxWidth: 960, margin: '0 auto', padding: '48px 20px' }}>
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
         <h1 style={{ fontSize: 32, fontWeight: 900, color: '#1A1830', marginBottom: 10 }}>Jor Rishta Center</h1>
-        <p style={{ fontSize: 15, color: '#6B6893', lineHeight: 1.7, maxWidth: 560, margin: '0 auto' }}>
-          Get help creating your account and using the Jor App and Website — completely Free.
+        <p style={{ fontSize: 15, color: '#6B6893', lineHeight: 1.7, maxWidth: 680, margin: '0 auto' }}>
+          Get help with registration and using the Jor App and Website — completely Free.
         </p>
       </div>
 
@@ -46,14 +46,17 @@ export default async function AgentsPage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
         {agents.map(agent => (
           <div key={agent.id} style={{ background: '#fff', border: '1px solid #E8E6F5', borderRadius: 16, padding: 20 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>{agent.name}</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#E1F5EE', color: '#0F6E56', fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#E1F5EE', color: '#0F6E56', fontSize: 11, fontWeight: 800, padding: '3px 9px 3px 6px', borderRadius: 999 }}>
+                  <svg width="14" height="14" viewBox="0 0 22 22" fill="none">
+                    <path d="M11 1.5l2.1 1.13 2.38-.2 1.13 2.1 2.1 1.13-.2 2.38 1.13 2.1-1.13 2.1.2 2.38-2.1 1.13-1.13 2.1-2.38-.2L11 20.5l-2.1-1.13-2.38.2-1.13-2.1-2.1-1.13.2-2.38L2.36 11l1.13-2.1-.2-2.38 2.1-1.13 1.13-2.1 2.38.2z" fill="#0F6E56"/>
+                    <path d="M7.5 11.2l2.4 2.4 4.6-5.2" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                   Verified
                 </span>
               </div>

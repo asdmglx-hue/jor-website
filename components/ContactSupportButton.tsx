@@ -1,13 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-// Same reasoning as FooterWhatsAppLink — client-side fetch so this doesn't
-// add a Supabase query to every server-rendered page load. Fixed-position
-// pill, visible on every page (mounted once from the root layout), so
-// visitors always have a one-tap way to reach support now that the
-// footer's plain "Contact" link was removed from the desktop footer.
+// Homepage-only, positioned to sit right at the top edge of the footer —
+// poking up into the lighter section above it, matching the reference
+// design exactly — rather than floating fixed over every page.
 export default function ContactSupportButton() {
+  const pathname = usePathname();
   const [waNumber, setWaNumber] = useState('923287654333');
 
   useEffect(() => {
@@ -19,6 +19,8 @@ export default function ContactSupportButton() {
     })();
   }, []);
 
+  if (pathname !== '/') return null;
+
   return (
     <a
       href={`https://wa.me/${waNumber}`}
@@ -26,7 +28,7 @@ export default function ContactSupportButton() {
       rel="noopener noreferrer"
       className="contact-support-btn"
       style={{
-        position: 'fixed', top: 16, right: 16, zIndex: 900,
+        position: 'absolute', top: -22, right: 24, zIndex: 10,
         display: 'flex', alignItems: 'center', gap: 8,
         background: '#25D366', color: '#fff', textDecoration: 'none',
         padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14,
