@@ -41,16 +41,18 @@ export default function ReferClient() {
   const [loginError, setLoginError] = useState('');
   const [stats, setStats] = useState<Stats | null>(null);
   const [newSignupEnabled, setNewSignupEnabled] = useState(true);
+  const [signupSettingLoaded, setSignupSettingLoaded] = useState(false);
 
   useEffect(() => {
     supabase.from('app_settings').select('key, value')
       .in('key', ['referral_commission', 'referral_enabled', 'referral_signup_enabled'])
       .then(({ data }) => {
-        if (!data) return;
+        if (!data) { setSignupSettingLoaded(true); return; }
         const s: Record<string, string> = {};
         (data as { key: string; value: string }[]).forEach(r => { s[r.key] = r.value; });
         if (s.referral_commission) setCommissionRate(Number(s.referral_commission));
         if (s.referral_signup_enabled === 'false') setNewSignupEnabled(false);
+        setSignupSettingLoaded(true);
       });
   }, []);
 
@@ -251,7 +253,7 @@ export default function ReferClient() {
 
       {/* CTA buttons */}
       <div className="refer-cta-btns" style={{ display: 'flex', gap: 14, justifyContent: 'center', marginTop: 24 }}>
-        {newSignupEnabled && (
+        {signupSettingLoaded && newSignupEnabled && (
           <button onClick={() => setMode('join')} style={{ padding: '14px 32px', borderRadius: 14, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer', boxShadow: '0 4px 14px rgba(83,74,183,0.3)' }}>
             Join as Affiliate →
           </button>

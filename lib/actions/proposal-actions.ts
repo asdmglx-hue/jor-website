@@ -22,6 +22,7 @@
 // or a scheduled check, since that app can't call this site's Server
 // Actions directly.
 
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { supabase, type Proposal } from '@/lib/supabase';
 import { revalidateListings, revalidateProfile } from './revalidate-write';
 
@@ -77,11 +78,31 @@ export async function submitProposalAction(
     return { success: false, error: error?.message || 'Failed to submit proposal' };
   }
 
-  // Notify the admin device (fire-and-forget) — unchanged from the
-  // original implementation.
-  supabase.functions.invoke('notify-status-change', {
-    body: { type: 'new_order', proposal_id: result.id, name: data.name, city: data.city },
-  }).catch(() => {});
+  // Notify the admin device. Wrapped in ctx.waitUntil() rather than left as
+  // a bare fire-and-forget call: on Cloudflare Workers, the request (and
+  // any in-flight unawaited work) can be torn down the moment the response
+  // is sent — which was silently dropping this notification on some
+  // submissions (no error, no log entry, nothing). waitUntil() is
+  // Cloudflare's own native primitive for exactly this (more reliable here
+  // than next/server's after(), which has a known open bug on this exact
+  // adapter — see opennextjs/opennextjs-cloudflare#912). It keeps this
+  // work alive for up to 30s after the response is sent, without making
+  // the submitting user wait for it.
+  try {
+    const { ctx } = await getCloudflareContext({ async: true });
+    ctx.waitUntil(
+      supabase.functions.invoke('notify-status-change', {
+        body: { type: 'new_order', proposal_id: result.id, name: data.name, city: data.city },
+      }).catch(() => {})
+    );
+  } catch {
+    // getCloudflareContext isn't available in every environment (e.g. some
+    // local/dev setups) — fall back to the original fire-and-forget call
+    // rather than breaking the submission entirely.
+    supabase.functions.invoke('notify-status-change', {
+      body: { type: 'new_order', proposal_id: result.id, name: data.name, city: data.city },
+    }).catch(() => {});
+  }
 
   await revalidateListings();
 
