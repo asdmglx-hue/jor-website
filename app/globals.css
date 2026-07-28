@@ -209,6 +209,16 @@ body {
 .footer-nav-desktop { display: block !important; }
 .footer-nav-mobile-copy { display: none !important; }
 
+/* ── Contact Support floating button — icon-only on small screens ────────── */
+@media (max-width: 600px) {
+  .contact-support-btn {
+    padding: 10px !important;
+  }
+  .contact-support-text {
+    display: none;
+  }
+}
+
 /* ── Footer mobile responsive ────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .site-footer {

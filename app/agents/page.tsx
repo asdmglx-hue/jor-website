@@ -9,8 +9,8 @@ export const revalidate = 300;
 const SITE = 'https://joronline.com';
 
 export const metadata: Metadata = {
-  title: 'Verified Agents | Jor',
-  description: 'Find verified Jor affiliate agents near you — contact, support center address, and timings.',
+  title: 'Jor Rishta Center | Jor',
+  description: 'Get help creating your account and using the Jor App and Website — completely free.',
   alternates: { canonical: `${SITE}/agents` },
   robots: { index: true, follow: true },
 };
@@ -34,9 +34,9 @@ export default async function AgentsPage() {
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '48px 20px' }}>
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
-        <h1 style={{ fontSize: 32, fontWeight: 900, color: '#1A1830', marginBottom: 10 }}>Verified Agents</h1>
+        <h1 style={{ fontSize: 32, fontWeight: 900, color: '#1A1830', marginBottom: 10 }}>Jor Rishta Center</h1>
         <p style={{ fontSize: 15, color: '#6B6893', lineHeight: 1.7, maxWidth: 560, margin: '0 auto' }}>
-          Every agent listed here is verified and approved directly by Jor. If you ever have a concern about one, use the report option on that listing.
+          Get help creating your account and using the Jor App and Website — completely Free.
         </p>
       </div>
 

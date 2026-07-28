@@ -36,6 +36,28 @@ const inp: React.CSSProperties = {
   fontSize: 14, outline: 'none', color: '#1A1830', background: '#fff', boxSizing: 'border-box',
 };
 
+// Matches the styled upload box already used on the login page's Forgot
+// Password CNIC upload — dashed border, upload icon, filename shown once
+// selected — so this looks consistent across the site rather than a
+// plain browser file input.
+function CnicUploadButton({ label, file, onChange }: { label: string; file: File | null; onChange: (f: File | null) => void }) {
+  return (
+    <label style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+      padding: '14px', borderRadius: 12, border: '1.5px dashed #C4C2D8',
+      background: '#FAF9FF', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+      color: file ? '#16A34A' : '#534AB7',
+    }}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      {file ? file.name : label}
+      <input
+        type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }}
+        onChange={e => onChange(e.target.files?.[0] || null)}
+      />
+    </label>
+  );
+}
+
 export default function ReferClient() {
   const [mode, setMode] = useState<Mode>('home');
   const [commissionRate, setCommissionRate] = useState(500);
@@ -288,12 +310,12 @@ export default function ReferClient() {
           </div>
 
           <div style={{ marginBottom: 14 }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>CNIC Front Photo</label>
-            <input type="file" accept="image/*" onChange={e => setJoinCnicFront(e.target.files?.[0] || null)} style={inp} />
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>CNIC Front Photo (color)</label>
+            <CnicUploadButton label="Upload CNIC front photo" file={joinCnicFront} onChange={setJoinCnicFront} />
           </div>
           <div style={{ marginBottom: 14 }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>CNIC Back Photo</label>
-            <input type="file" accept="image/*" onChange={e => setJoinCnicBack(e.target.files?.[0] || null)} style={inp} />
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>CNIC Back Photo (color)</label>
+            <CnicUploadButton label="Upload CNIC back photo" file={joinCnicBack} onChange={setJoinCnicBack} />
           </div>
 
           <div style={{ marginBottom: 14 }}>
@@ -376,7 +398,7 @@ export default function ReferClient() {
         </div>
         <div style={{ marginBottom: 20 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>CNIC Front Photo (color)</label>
-          <input type="file" accept="image/*" onChange={e => setForgotCnicFront(e.target.files?.[0] || null)} style={inp} />
+          <CnicUploadButton label="Upload CNIC front photo" file={forgotCnicFront} onChange={setForgotCnicFront} />
         </div>
 
         <button onClick={handleForgotSubmit} disabled={forgotSubmitting} style={{ width: '100%', padding: 13, borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, cursor: forgotSubmitting ? 'not-allowed' : 'pointer', opacity: forgotSubmitting ? 0.7 : 1 }}>

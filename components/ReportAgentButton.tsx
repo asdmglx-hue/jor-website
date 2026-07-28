@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const REASONS = [
@@ -18,6 +18,12 @@ export default function ReportAgentButton({ agentId, agentName }: { agentId: str
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState('923000000000');
+
+  useEffect(() => {
+    supabase.from('app_settings').select('value').eq('key', 'whatsapp_number').maybeSingle()
+      .then(({ data }) => { if (data?.value) setWhatsappNumber(data.value as string); });
+  }, []);
 
   const reset = () => { setOpen(false); setReason(''); setDetails(''); setContact(''); setDone(false); setError(''); };
 
@@ -33,6 +39,13 @@ export default function ReportAgentButton({ agentId, agentName }: { agentId: str
     });
     setSubmitting(false);
     if (rpcError) { setError('Something went wrong. Please try again.'); return; }
+
+    // Forward the same filled form to WhatsApp so the team sees it
+    // immediately, in addition to it being saved for the record via the
+    // RPC above.
+    const text = `Rishta Center Report\n\nAgent: ${agentName}\nReason: ${reason}${details.trim() ? `\nDetails: ${details.trim()}` : ''}${contact.trim() ? `\nReporter phone: ${contact.trim()}` : ''}`;
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+
     setDone(true);
   };
 
@@ -52,7 +65,7 @@ export default function ReportAgentButton({ agentId, agentName }: { agentId: str
               <>
                 <div style={{ fontSize: 17, fontWeight: 800, color: '#534AB7', marginBottom: 8 }}>Report submitted</div>
                 <div style={{ fontSize: 13.5, color: '#6B6893', lineHeight: 1.6, marginBottom: 20 }}>
-                  Thanks — our team will review this and take action if needed.
+                  Thanks — we&apos;ve saved this and opened WhatsApp so our team sees it right away.
                 </div>
                 <button onClick={reset} style={{ width: '100%', padding: '12px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>
                   Close

@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import FooterWhatsAppLink from "@/components/FooterWhatsAppLink";
 import FooterAffiliateLink from "@/components/FooterAffiliateLink";
 import RishtaCenterLink from "@/components/RishtaCenterLink";
+import ContactSupportButton from "@/components/ContactSupportButton";
 
 const inter = { className: '' };
 
@@ -60,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={inter.className}>
         <Navbar />
+        <ContactSupportButton />
         <main className="site-main" style={{ minHeight: 'calc(100vh - 60px)' }}>
           {children}
         </main>
