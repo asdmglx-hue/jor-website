@@ -6,6 +6,7 @@ import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import FooterWhatsAppLink from "@/components/FooterWhatsAppLink";
+import { supabase } from "@/lib/supabase";
 
 const inter = { className: '' };
 
@@ -53,7 +54,17 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Controls whether the "Affiliate" footer link is shown at all. Mirrors
+  // the admin app's "Affiliate Program" toggle (key: referral_enabled),
+  // which defaults to ON unless explicitly set to 'false'.
+  const { data: affiliateSetting } = await supabase
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'referral_enabled')
+    .maybeSingle();
+  const affiliateEnabled = affiliateSetting?.value !== 'false';
+
   return (
     <html lang="en">
       <body className={inter.className}>
@@ -81,7 +92,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <Link href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</Link>
                   <Link href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</Link>
                   <Link href="/blog" style={{ color: '#fff', textDecoration: 'none' }}>Blog</Link>
-                  <Link href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</Link>
+                  {affiliateEnabled && <Link href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</Link>}
                 </div>
                 <div className="footer-nav-legal" style={{ display: 'flex', gap: 24, fontSize: 15, fontWeight: 400, justifyContent: 'flex-end' }}>
                   <Link href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</Link>
@@ -122,7 +133,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 10 }}>
                   <Link href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</Link>
                   <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
-                  <Link href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</Link>
+                  {affiliateEnabled && <Link href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</Link>}
                 </div>
                 <div style={{ display: 'flex', gap: 20, fontSize: 13, marginBottom: 24 }}>
                   <Link href="/privacy-policy" style={{ color: '#6B6893', textDecoration: 'none' }}>Privacy Policy</Link>
