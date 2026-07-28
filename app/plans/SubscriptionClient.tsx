@@ -208,7 +208,12 @@ export default function SubscriptionClient() {
           <button onClick={() => {
             if (selected === 0 && isFreeMode) {
               router.push('/register');
-            } else {
+            } else if ((settings['payment_mode'] ?? 'auto') === 'manual') {
+              // Manual Payment instructions only make sense to show while
+              // that mode is actually on. When it's off, this is reserved
+              // for a future automated payment API — nothing to show yet,
+              // so the click intentionally does nothing rather than
+              // displaying manual wallet/bank details that don't apply.
               setShowPayModal(true);
             }
           }} style={{
@@ -236,62 +241,58 @@ export default function SubscriptionClient() {
             </div>
             <div style={{ height: 1, background: '#E8E6F5', marginBottom: 16 }} />
 
-            {(settings['payment_mode'] ?? 'auto') === 'manual' ? (
+            {/* This modal only ever opens when payment_mode is 'manual'
+                (see the Continue button above), so the content here is
+                always the manual wallet/bank instructions — no auto-mode
+                branch needed until a real automated payment API exists. */}
+            {settings['account_number'] && (
               <>
-                {settings['account_number'] && (
-                  <>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: '#1A1830' }}>Wallet Transfer</div>
-                      <Image src="/wallet-logos.png" alt="Wallet" width={1363} height={211} style={{ height: 24, width: 'auto', objectFit: 'contain' }} />
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8F7FF', borderRadius: 10, marginBottom: 6 }}>
-                      <div>
-                        <div style={{ fontSize: 11, color: '#6B6893', fontWeight: 600 }}>{settings['account_title'] || 'Account'}</div>
-                        <div style={{ fontSize: 13, color: '#1A1830', fontWeight: 700 }}>{settings['account_number']}</div>
-                      </div>
-                      <button onClick={() => copyText(settings['account_number']!, 'wallet')}
-                        style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #E8E6F5', background: copied === 'wallet' ? '#534AB7' : '#fff', color: copied === 'wallet' ? '#fff' : '#534AB7', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
-                        {copied === 'wallet' ? 'Copied!' : 'Copy'}
-                      </button>
-                    </div>
-                  </>
-                )}
-
-                {settings['bank_name'] && settings['bank_account'] && (
-                  <>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '16px 0 8px' }}>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: '#1A1830' }}>Bank Transfer</div>
-                      <Image src="/bank-logos.png" alt="Bank" width={1248} height={393} style={{ height: 24, width: 'auto', objectFit: 'contain' }} />
-                    </div>
-                    {([
-                      { label: 'Bank', value: settings['bank_name'], key: 'bank' },
-                      ...(settings['bank_holder'] ? [{ label: 'Account Title', value: settings['bank_holder'], key: 'holder' }] : []),
-                      { label: 'IBAN', value: settings['bank_account'], key: 'iban' },
-                      ...(settings['bank_swift'] ? [{ label: 'Swift', value: settings['bank_swift'], key: 'swift' }] : []),
-                    ] as { label: string; value: string; key: string }[]).map(row => (
-                      <div key={row.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8F7FF', borderRadius: 10, marginBottom: 6 }}>
-                        <div>
-                          <div style={{ fontSize: 11, color: '#6B6893', fontWeight: 600 }}>{row.label}</div>
-                          <div style={{ fontSize: 13, color: '#1A1830', fontWeight: 700 }}>{row.value}</div>
-                        </div>
-                        <button onClick={() => copyText(row.value, row.key)}
-                          style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #E8E6F5', background: copied === row.key ? '#534AB7' : '#fff', color: copied === row.key ? '#fff' : '#534AB7', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
-                          {copied === row.key ? 'Copied!' : 'Copy'}
-                        </button>
-                      </div>
-                    ))}
-                  </>
-                )}
-
-                <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.6, margin: '16px 0' }}>
-                  {settings['payment_instruction'] || 'Send your payment proof on WhatsApp. Your subscription will be activated within 24 hours.'}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1A1830' }}>Wallet Transfer</div>
+                  <Image src="/wallet-logos.png" alt="Wallet" width={1363} height={211} style={{ height: 24, width: 'auto', objectFit: 'contain' }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8F7FF', borderRadius: 10, marginBottom: 6 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#6B6893', fontWeight: 600 }}>{settings['account_title'] || 'Account'}</div>
+                    <div style={{ fontSize: 13, color: '#1A1830', fontWeight: 700 }}>{settings['account_number']}</div>
+                  </div>
+                  <button onClick={() => copyText(settings['account_number']!, 'wallet')}
+                    style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #E8E6F5', background: copied === 'wallet' ? '#534AB7' : '#fff', color: copied === 'wallet' ? '#fff' : '#534AB7', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                    {copied === 'wallet' ? 'Copied!' : 'Copy'}
+                  </button>
                 </div>
               </>
-            ) : (
-              <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.6, marginBottom: 16 }}>
-                Contact support on WhatsApp to complete your payment.
-              </div>
             )}
+
+            {settings['bank_name'] && settings['bank_account'] && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '16px 0 8px' }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1A1830' }}>Bank Transfer</div>
+                  <Image src="/bank-logos.png" alt="Bank" width={1248} height={393} style={{ height: 24, width: 'auto', objectFit: 'contain' }} />
+                </div>
+                {([
+                  { label: 'Bank', value: settings['bank_name'], key: 'bank' },
+                  ...(settings['bank_holder'] ? [{ label: 'Account Title', value: settings['bank_holder'], key: 'holder' }] : []),
+                  { label: 'IBAN', value: settings['bank_account'], key: 'iban' },
+                  ...(settings['bank_swift'] ? [{ label: 'Swift', value: settings['bank_swift'], key: 'swift' }] : []),
+                ] as { label: string; value: string; key: string }[]).map(row => (
+                  <div key={row.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8F7FF', borderRadius: 10, marginBottom: 6 }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: '#6B6893', fontWeight: 600 }}>{row.label}</div>
+                      <div style={{ fontSize: 13, color: '#1A1830', fontWeight: 700 }}>{row.value}</div>
+                    </div>
+                    <button onClick={() => copyText(row.value, row.key)}
+                      style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #E8E6F5', background: copied === row.key ? '#534AB7' : '#fff', color: copied === row.key ? '#fff' : '#534AB7', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                      {copied === row.key ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                ))}
+              </>
+            )}
+
+            <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.6, margin: '16px 0' }}>
+              {settings['payment_instruction'] || 'Send your payment proof on WhatsApp. Your subscription will be activated within 24 hours.'}
+            </div>
 
             <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
               <button onClick={() => { setShowPayModal(false); setShowUploadModal(true); }}
