@@ -233,7 +233,7 @@ export default async function HomePage() {
       </section>
 
       {/* How it works */}
-      <section style={{ background: '#EEEDFE', padding: '56px 20px' }}>
+      <section className="home-last-section" style={{ background: '#EEEDFE', paddingTop: 56, paddingBottom: 56, paddingLeft: 20, paddingRight: 20 }}>
         <div style={{ maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: 28, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>How It Works</h2>
           <p style={{ color: '#6B6893', marginBottom: 40 }}>Simple, safe, and trusted by families across Pakistan</p>

@@ -23,6 +23,16 @@
   box-sizing: border-box;
 }
 
+/* On the homepage specifically, remove the footer's usual top gap so the
+   "How It Works" section's own light-lavender background flows directly
+   into the dark footer with no visible seam, instead of leaving a blank
+   strip of the page's default background in between. Scoped with :has()
+   so this only ever applies when .home-last-section actually exists in
+   the page — every other page keeps the normal footer spacing untouched. */
+body:has(.home-last-section) footer.site-footer {
+  margin-top: 0;
+}
+
 .bullet-purple {
   list-style: disc;
 }
