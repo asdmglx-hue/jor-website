@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import ContactButtons from '@/components/ContactButtons';
+import CertificateViewLink from '@/components/CertificateViewLink';
 import ShareButton from '@/components/ShareButton';
 import SaveButton from '@/components/SaveButton';
 import ProfileName from '@/components/ProfileName';
@@ -94,11 +95,7 @@ function InfoRow({ icon: _icon, label, value, certUrl }: { icon: string; label: 
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F5F5F5' }}>
       <span style={{ fontSize: 13, color: '#6B6893', flex: '0 0 130px' }}>{label}</span>
       <span style={{ fontSize: 14, fontWeight: 600, color: '#1A1830' }}>{display}</span>
-      {certUrl && (
-        <a href={certUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'underline', marginLeft: 'auto' }}>
-          View
-        </a>
-      )}
+      {certUrl && <CertificateViewLink url={certUrl} />}
     </div>
   );
 }
