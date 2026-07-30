@@ -1666,7 +1666,9 @@ export default function SubmitClient() {
                     </>
                   )}
 
-                  {(form.education || form.institute) && (
+                  {(form.education || form.degree_title || form.institute || degreeCert ||
+                    form.degree_title_2 || form.institute_2 || degreeCert2 ||
+                    form.degree_title_3 || form.institute_3 || degreeCert3) && (
                     <>
                       <div style={{ fontSize: 11, fontWeight: 700, color: '#534AB7', marginBottom: 8, marginTop: 12 }}>EDUCATION</div>
                       {form.education && R('Education', form.education)}
