@@ -98,6 +98,18 @@ function InfoRow({ icon: _icon, label, value }: { icon: string; label: string; v
   );
 }
 
+function CertLinkRow({ label, url }: { label: string; url?: string | null }) {
+  if (!url) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F5F5F5' }}>
+      <span style={{ fontSize: 13, color: '#6B6893', flex: '0 0 130px' }}>{label}</span>
+      <a href={url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, fontWeight: 600, color: '#534AB7', textDecoration: 'underline' }}>
+        View Certificate
+      </a>
+    </div>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ background: '#fff', border: '1px solid #E8E6F5', borderRadius: 16, padding: '20px', marginBottom: 16 }}>
@@ -232,10 +244,13 @@ export default async function ProposalDetailPage({ params }: Props) {
             <InfoRow icon="" label="Education" value={p.education} />
             <InfoRow icon="" label="Degree" value={p.degree_title} />
             <InfoRow icon="" label="Institute" value={p.institute} />
+            <CertLinkRow label="Degree Certificate" url={p.degree_certificate_url} />
             {p.degree_title_2 && <InfoRow icon="" label="Degree 2" value={p.degree_title_2} />}
             {p.institute_2 && <InfoRow icon="" label="Institute 2" value={p.institute_2} />}
+            <CertLinkRow label="Degree 2 Certificate" url={p.degree_certificate_2_url} />
             {p.degree_title_3 && <InfoRow icon="" label="Degree 3" value={p.degree_title_3} />}
             {p.institute_3 && <InfoRow icon="" label="Institute 3" value={p.institute_3} />}
+            <CertLinkRow label="Degree 3 Certificate" url={p.degree_certificate_3_url} />
             <InfoRow icon="" label="Occupation" value={p.profession} />
             <InfoRow icon="" label="Employment" value={p.employment_type} />
             <InfoRow icon="" label="Monthly Income" value={p.monthly_income} />

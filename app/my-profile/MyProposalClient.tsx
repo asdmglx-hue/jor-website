@@ -812,6 +812,62 @@ export default function MyProposalClient() {
               </svg>
             );
 
+            const DegreeCertField = ({ label, urlKey }: { label: string; urlKey: string }) => {
+              const url = user[urlKey as keyof typeof user] as string | null | undefined;
+              const [uploading, setUploading] = useState(false);
+              const [certErr, setCertErr] = useState('');
+              const disabled = fieldDisabled('degree_title'); // same lock rule as the degree text fields — admin-viewing sessions can't touch this either
+              const slot = urlKey === 'degree_certificate_url' ? '1' : urlKey === 'degree_certificate_2_url' ? '2' : '3';
+
+              const handleFile = async (file: File) => {
+                if (!user?.cnic) { setCertErr('CNIC must be set before uploading a certificate.'); return; }
+                setCertErr('');
+                setUploading(true);
+                try {
+                  const fd = new FormData();
+                  fd.append('cnic', user.cnic);
+                  fd.append('slot', slot);
+                  fd.append('file', file);
+                  const res = await fetch('/api/upload-degree-certificate', { method: 'POST', body: fd });
+                  const data = await res.json() as { url?: string; error?: string };
+                  if (!res.ok || !data.url) { setCertErr(data.error || 'Upload failed'); setUploading(false); return; }
+                  await saveInline(urlKey, data.url);
+                } catch {
+                  setCertErr('Upload failed. Please try again.');
+                }
+                setUploading(false);
+              };
+
+              return (
+                <div style={{ marginBottom: 14 }}>
+                  {lbl(label)}
+                  {url ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <a href={url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13.5, fontWeight: 600, color: '#534AB7', textDecoration: 'none' }}>
+                        View Certificate
+                      </a>
+                      {!disabled && (
+                        <label style={{ fontSize: 12, fontWeight: 600, color: '#68629C', cursor: uploading ? 'default' : 'pointer' }}>
+                          {uploading ? 'Uploading...' : 'Replace'}
+                          <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} disabled={uploading}
+                            onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
+                        </label>
+                      )}
+                    </div>
+                  ) : disabled ? (
+                    <span style={{ fontSize: 12, fontWeight: 500, color: '#68629C' }}>Not uploaded</span>
+                  ) : (
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#534AB7', background: '#EEEDFE', border: '1px dashed #C4C2D8', borderRadius: 20, padding: '3px 10px', cursor: uploading ? 'default' : 'pointer' }}>
+                      {uploading ? 'Uploading...' : (<><span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Upload Certificate</>)}
+                      <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} disabled={uploading}
+                        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
+                    </label>
+                  )}
+                  {certErr && <div style={{ fontSize: 11.5, color: '#DC2626', marginTop: 4 }}>{certErr}</div>}
+                </div>
+              );
+            };
+
             const Field = ({ label, fieldKey, type = 'text', options, grouped, info }: { label: string; fieldKey: string; type?: string; options?: string[]; grouped?: Record<string, string[]>; info?: string }) => {
               const val = user[fieldKey as keyof typeof user];
               const isEditing = inlineKey === fieldKey;
@@ -1043,6 +1099,7 @@ export default function MyProposalClient() {
                   <div style={{ gridColumn: '1 / -1', fontSize: 13, fontWeight: 700, color: '#534AB7', marginBottom: 2 }}>Degree</div>
                   <Field label="Title" fieldKey="degree_title" />
                   <Field label="Institute" fieldKey="institute" />
+                  <div style={{ gridColumn: '1 / -1' }}><DegreeCertField label="Degree Certificate" urlKey="degree_certificate_url" /></div>
                   {!showDeg2 && (
                     <div style={{ gridColumn: '1 / -1', marginBottom: 22 }}>
                       <button onClick={() => setShowDeg2(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#534AB7', fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0' }}>
@@ -1057,6 +1114,7 @@ export default function MyProposalClient() {
                     </div>
                     <Field label="Title" fieldKey="degree_title_2" />
                     <Field label="Institute 2" fieldKey="institute_2" />
+                    <div style={{ gridColumn: '1 / -1' }}><DegreeCertField label="Degree 2 Certificate" urlKey="degree_certificate_2_url" /></div>
                     {!showDeg3 && (
                       <div style={{ gridColumn: '1 / -1', marginBottom: 22 }}>
                         <button onClick={() => setShowDeg3(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#534AB7', fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0' }}>
@@ -1072,6 +1130,7 @@ export default function MyProposalClient() {
                     </div>
                     <Field label="Title" fieldKey="degree_title_3" />
                     <Field label="Institute 3" fieldKey="institute_3" />
+                    <div style={{ gridColumn: '1 / -1' }}><DegreeCertField label="Degree 3 Certificate" urlKey="degree_certificate_3_url" /></div>
                   </>}
                   <Field label="Occupation" fieldKey="profession" options={PROFESSION_LIST} grouped={PROFESSION_GROUPS} />
                   <Field label="Employment Type" fieldKey="employment_type" options={['Full-time','Part-time','Self-employed','Business','Freelance','Not employed']} />
