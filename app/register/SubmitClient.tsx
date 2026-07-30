@@ -324,10 +324,10 @@ function SubSection({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DegreePair({ degreeKey, instituteKey, form, set, inp, certFile, onCertChange }: {
+function DegreePair({ degreeKey, instituteKey, form, set, inp, certFile, onCertChange, setViewImg }: {
   degreeKey: keyof FormData; instituteKey: keyof FormData;
   form: FormData; set: (k: keyof FormData, v: string) => void; inp: React.CSSProperties;
-  certFile: File | null; onCertChange: (f: File | null) => void;
+  certFile: File | null; onCertChange: (f: File | null) => void; setViewImg: (url: string) => void;
 }) {
   return (
     <div style={{ padding: 12, background: '#F8F7FF', borderRadius: 12, border: '1px solid #E8E6F5' }}>
@@ -339,13 +339,18 @@ function DegreePair({ degreeKey, instituteKey, form, set, inp, certFile, onCertC
         <div style={{ fontSize: 11.5, fontWeight: 600, color: '#9990B8', marginBottom: 4 }}>Institute</div>
         <input value={form[instituteKey] as string} onChange={e => set(instituteKey, e.target.value)} style={inp} placeholder="e.g. University of Punjab" />
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#534AB7', background: '#EEEDFE', border: '1px dashed #C4C2D8', borderRadius: 20, padding: '3px 10px', cursor: 'pointer' }}>
           <span style={{ fontSize: 16, lineHeight: 1 }}>{certFile ? '✓' : '+'}</span>
           {certFile ? 'Certificate selected — tap to change' : 'Upload Degree Certificate (optional)'}
           <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }}
             onChange={e => { const f = e.target.files?.[0]; if (f) onCertChange(f); e.target.value = ''; }} />
         </label>
+        {certFile && (
+          <span onClick={() => setViewImg(URL.createObjectURL(certFile))} style={{ fontSize: 12, fontWeight: 600, color: '#534AB7', textDecoration: 'underline', cursor: 'pointer' }}>
+            View
+          </span>
+        )}
         {certFile && (
           <button onClick={() => onCertChange(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 12, padding: 0 }}>
             ✕
@@ -356,11 +361,12 @@ function DegreePair({ degreeKey, instituteKey, form, set, inp, certFile, onCertC
   );
 }
 
-function DegreeFields({ form, set, inp, degreeCert, setDegreeCert, degreeCert2, setDegreeCert2, degreeCert3, setDegreeCert3 }: {
+function DegreeFields({ form, set, inp, degreeCert, setDegreeCert, degreeCert2, setDegreeCert2, degreeCert3, setDegreeCert3, setViewImg }: {
   form: FormData; set: (k: keyof FormData, v: string) => void; inp: React.CSSProperties;
   degreeCert: File | null; setDegreeCert: (f: File | null) => void;
   degreeCert2: File | null; setDegreeCert2: (f: File | null) => void;
   degreeCert3: File | null; setDegreeCert3: (f: File | null) => void;
+  setViewImg: (url: string) => void;
 }) {
   const [show2, setShow2] = useState(!!(form.degree_title_2 || form.institute_2));
   const [show3, setShow3] = useState(!!(form.degree_title_3 || form.institute_3));
@@ -381,7 +387,7 @@ function DegreeFields({ form, set, inp, degreeCert, setDegreeCert, degreeCert2, 
     <div style={{ marginBottom: 14 }}>
       <div style={{ fontSize: 13, fontWeight: 700, color: '#1A1830', marginBottom: 6 }}>Degree</div>
       <DegreePair degreeKey="degree_title" instituteKey="institute" form={form} set={set} inp={inp}
-        certFile={degreeCert} onCertChange={setDegreeCert} />
+        certFile={degreeCert} onCertChange={setDegreeCert} setViewImg={setViewImg} />
 
       {show2 && (
         <div style={{ marginTop: 10 }}>
@@ -392,7 +398,7 @@ function DegreeFields({ form, set, inp, degreeCert, setDegreeCert, degreeCert2, 
             </button>
           </div>
           <DegreePair degreeKey="degree_title_2" instituteKey="institute_2" form={form} set={set} inp={inp}
-            certFile={degreeCert2} onCertChange={setDegreeCert2} />
+            certFile={degreeCert2} onCertChange={setDegreeCert2} setViewImg={setViewImg} />
         </div>
       )}
 
@@ -405,7 +411,7 @@ function DegreeFields({ form, set, inp, degreeCert, setDegreeCert, degreeCert2, 
             </button>
           </div>
           <DegreePair degreeKey="degree_title_3" instituteKey="institute_3" form={form} set={set} inp={inp}
-            certFile={degreeCert3} onCertChange={setDegreeCert3} />
+            certFile={degreeCert3} onCertChange={setDegreeCert3} setViewImg={setViewImg} />
         </div>
       )}
 
@@ -1413,7 +1419,8 @@ export default function SubmitClient() {
             <DegreeFields form={form} set={set} inp={inp}
               degreeCert={degreeCert} setDegreeCert={setDegreeCert}
               degreeCert2={degreeCert2} setDegreeCert2={setDegreeCert2}
-              degreeCert3={degreeCert3} setDegreeCert3={setDegreeCert3} />
+              degreeCert3={degreeCert3} setDegreeCert3={setDegreeCert3}
+              setViewImg={setViewImg} />
 
             {/* CAREER */}
             <SecHeader title="CAREER" />
