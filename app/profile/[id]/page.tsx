@@ -87,25 +87,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-function InfoRow({ icon: _icon, label, value }: { icon: string; label: string; value?: string | number | boolean | null }) {
+function InfoRow({ icon: _icon, label, value, certUrl }: { icon: string; label: string; value?: string | number | boolean | null; certUrl?: string | null }) {
   if (value === null || value === undefined || value === '') return null;
   const display = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value);
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F5F5F5' }}>
       <span style={{ fontSize: 13, color: '#6B6893', flex: '0 0 130px' }}>{label}</span>
       <span style={{ fontSize: 14, fontWeight: 600, color: '#1A1830' }}>{display}</span>
-    </div>
-  );
-}
-
-function CertLinkRow({ label, url }: { label: string; url?: string | null }) {
-  if (!url) return null;
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F5F5F5' }}>
-      <span style={{ fontSize: 13, color: '#6B6893', flex: '0 0 130px' }}>{label}</span>
-      <a href={url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, fontWeight: 600, color: '#534AB7', textDecoration: 'underline' }}>
-        View Certificate
-      </a>
+      {certUrl && (
+        <a href={certUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'underline', marginLeft: 'auto' }}>
+          View
+        </a>
+      )}
     </div>
   );
 }
@@ -242,15 +235,12 @@ export default async function ProposalDetailPage({ params }: Props) {
           {/* Education & Career */}
           <Section title="Education & Career">
             <InfoRow icon="" label="Education" value={p.education} />
-            <InfoRow icon="" label="Degree" value={p.degree_title} />
+            <InfoRow icon="" label="Degree" value={p.degree_title} certUrl={p.degree_certificate_url} />
             <InfoRow icon="" label="Institute" value={p.institute} />
-            <CertLinkRow label="Degree Certificate" url={p.degree_certificate_url} />
-            {p.degree_title_2 && <InfoRow icon="" label="Degree 2" value={p.degree_title_2} />}
+            {p.degree_title_2 && <InfoRow icon="" label="Degree 2" value={p.degree_title_2} certUrl={p.degree_certificate_2_url} />}
             {p.institute_2 && <InfoRow icon="" label="Institute 2" value={p.institute_2} />}
-            <CertLinkRow label="Degree 2 Certificate" url={p.degree_certificate_2_url} />
-            {p.degree_title_3 && <InfoRow icon="" label="Degree 3" value={p.degree_title_3} />}
+            {p.degree_title_3 && <InfoRow icon="" label="Degree 3" value={p.degree_title_3} certUrl={p.degree_certificate_3_url} />}
             {p.institute_3 && <InfoRow icon="" label="Institute 3" value={p.institute_3} />}
-            <CertLinkRow label="Degree 3 Certificate" url={p.degree_certificate_3_url} />
             <InfoRow icon="" label="Occupation" value={p.profession} />
             <InfoRow icon="" label="Employment" value={p.employment_type} />
             <InfoRow icon="" label="Monthly Income" value={p.monthly_income} />
