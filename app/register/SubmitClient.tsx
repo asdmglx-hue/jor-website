@@ -324,9 +324,10 @@ function SubSection({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DegreePair({ degreeKey, instituteKey, form, set, inp }: {
+function DegreePair({ degreeKey, instituteKey, form, set, inp, certFile, onCertChange }: {
   degreeKey: keyof FormData; instituteKey: keyof FormData;
   form: FormData; set: (k: keyof FormData, v: string) => void; inp: React.CSSProperties;
+  certFile: File | null; onCertChange: (f: File | null) => void;
 }) {
   return (
     <div style={{ padding: 12, background: '#F8F7FF', borderRadius: 12, border: '1px solid #E8E6F5' }}>
@@ -334,16 +335,32 @@ function DegreePair({ degreeKey, instituteKey, form, set, inp }: {
         <div style={{ fontSize: 11.5, fontWeight: 600, color: '#9990B8', marginBottom: 4 }}>Title</div>
         <input value={form[degreeKey] as string} onChange={e => set(degreeKey, e.target.value)} style={inp} placeholder="e.g. BS Computer Science" />
       </div>
-      <div>
+      <div style={{ marginBottom: 14 }}>
         <div style={{ fontSize: 11.5, fontWeight: 600, color: '#9990B8', marginBottom: 4 }}>Institute</div>
         <input value={form[instituteKey] as string} onChange={e => set(instituteKey, e.target.value)} style={inp} placeholder="e.g. University of Punjab" />
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#534AB7', background: '#EEEDFE', border: '1px dashed #C4C2D8', borderRadius: 20, padding: '3px 10px', cursor: 'pointer' }}>
+          <span style={{ fontSize: 16, lineHeight: 1 }}>{certFile ? '✓' : '+'}</span>
+          {certFile ? 'Certificate selected — tap to change' : 'Upload Degree Certificate (optional)'}
+          <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }}
+            onChange={e => { const f = e.target.files?.[0]; if (f) onCertChange(f); e.target.value = ''; }} />
+        </label>
+        {certFile && (
+          <button onClick={() => onCertChange(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 12, padding: 0 }}>
+            ✕
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function DegreeFields({ form, set, inp }: {
+function DegreeFields({ form, set, inp, degreeCert, setDegreeCert, degreeCert2, setDegreeCert2, degreeCert3, setDegreeCert3 }: {
   form: FormData; set: (k: keyof FormData, v: string) => void; inp: React.CSSProperties;
+  degreeCert: File | null; setDegreeCert: (f: File | null) => void;
+  degreeCert2: File | null; setDegreeCert2: (f: File | null) => void;
+  degreeCert3: File | null; setDegreeCert3: (f: File | null) => void;
 }) {
   const [show2, setShow2] = useState(!!(form.degree_title_2 || form.institute_2));
   const [show3, setShow3] = useState(!!(form.degree_title_3 || form.institute_3));
@@ -351,17 +368,20 @@ function DegreeFields({ form, set, inp }: {
   const remove2 = () => {
     set('degree_title_2', ''); set('institute_2', '');
     set('degree_title_3', ''); set('institute_3', '');
+    setDegreeCert2(null); setDegreeCert3(null);
     setShow2(false); setShow3(false);
   };
   const remove3 = () => {
     set('degree_title_3', ''); set('institute_3', '');
+    setDegreeCert3(null);
     setShow3(false);
   };
 
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{ fontSize: 13, fontWeight: 700, color: '#1A1830', marginBottom: 6 }}>Degree</div>
-      <DegreePair degreeKey="degree_title" instituteKey="institute" form={form} set={set} inp={inp} />
+      <DegreePair degreeKey="degree_title" instituteKey="institute" form={form} set={set} inp={inp}
+        certFile={degreeCert} onCertChange={setDegreeCert} />
 
       {show2 && (
         <div style={{ marginTop: 10 }}>
@@ -371,7 +391,8 @@ function DegreeFields({ form, set, inp }: {
               ✕ Remove
             </button>
           </div>
-          <DegreePair degreeKey="degree_title_2" instituteKey="institute_2" form={form} set={set} inp={inp} />
+          <DegreePair degreeKey="degree_title_2" instituteKey="institute_2" form={form} set={set} inp={inp}
+            certFile={degreeCert2} onCertChange={setDegreeCert2} />
         </div>
       )}
 
@@ -383,7 +404,8 @@ function DegreeFields({ form, set, inp }: {
               ✕ Remove
             </button>
           </div>
-          <DegreePair degreeKey="degree_title_3" instituteKey="institute_3" form={form} set={set} inp={inp} />
+          <DegreePair degreeKey="degree_title_3" instituteKey="institute_3" form={form} set={set} inp={inp}
+            certFile={degreeCert3} onCertChange={setDegreeCert3} />
         </div>
       )}
 
@@ -686,6 +708,9 @@ export default function SubmitClient() {
   const [viewImg, setViewImg] = useState('');
   const [cnicFront, setCnicFront] = useState<File | null>(null);
   const [cnicBack, setCnicBack] = useState<File | null>(null);
+  const [degreeCert, setDegreeCert] = useState<File | null>(null);
+  const [degreeCert2, setDegreeCert2] = useState<File | null>(null);
+  const [degreeCert3, setDegreeCert3] = useState<File | null>(null);
   const [compressingCnicFront, setCompressingCnicFront] = useState(false);
   const [compressingCnicBack, setCompressingCnicBack] = useState(false);
   const [compressingProfilePhoto, setCompressingProfilePhoto] = useState(false);
@@ -918,6 +943,32 @@ export default function SubmitClient() {
       }
     }
 
+    // Degree certificates — all optional, each uploaded individually
+    // through the same secure server-side R2 endpoint as CNIC photos.
+    const uploadCert = async (file: File | null, slot: string): Promise<string | undefined> => {
+      if (!file) return undefined;
+      const uploadForm = new FormData();
+      uploadForm.append('cnic', digits);
+      uploadForm.append('slot', slot);
+      uploadForm.append('file', file);
+      const res = await fetch('/api/upload-degree-certificate', { method: 'POST', body: uploadForm });
+      const uploaded = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(uploaded.error || 'Failed to upload a degree certificate.');
+      return uploaded.url;
+    };
+    let degreeCertUrl: string | undefined;
+    let degreeCert2Url: string | undefined;
+    let degreeCert3Url: string | undefined;
+    try {
+      degreeCertUrl = await uploadCert(degreeCert, '1');
+      degreeCert2Url = await uploadCert(degreeCert2, '2');
+      degreeCert3Url = await uploadCert(degreeCert3, '3');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to upload a degree certificate. Please try again.');
+      setSubmitting(false);
+      return;
+    }
+
     const { success, error: apiErr } = await submitProposal({
       name: form.name.trim(),
       gender: form.gender,
@@ -951,10 +1002,13 @@ export default function SubmitClient() {
       education: form.education || undefined,
       degree_title: form.degree_title || undefined,
       institute: form.institute || undefined,
+      degree_certificate_url: degreeCertUrl,
       degree_title_2: form.degree_title_2 || undefined,
       institute_2: form.institute_2 || undefined,
+      degree_certificate_2_url: degreeCert2Url,
       degree_title_3: form.degree_title_3 || undefined,
       institute_3: form.institute_3 || undefined,
+      degree_certificate_3_url: degreeCert3Url,
       monthly_income: form.monthly_income || undefined,
       employment_type: form.employment_type || undefined,
       weight_kg: form.weight_kg ? +form.weight_kg : undefined,
@@ -1356,7 +1410,10 @@ export default function SubmitClient() {
             <Field label="Education Level (Highest)">
               <Sel value={form.education} onChange={v => set('education', v)} options={['Matric','FSc/FA','Diploma',"Bachelor's","Master's",'MPhil','PhD','Other']} placeholder="Select" />
             </Field>
-            <DegreeFields form={form} set={set} inp={inp} />
+            <DegreeFields form={form} set={set} inp={inp}
+              degreeCert={degreeCert} setDegreeCert={setDegreeCert}
+              degreeCert2={degreeCert2} setDegreeCert2={setDegreeCert2}
+              degreeCert3={degreeCert3} setDegreeCert3={setDegreeCert3} />
 
             {/* CAREER */}
             <SecHeader title="CAREER" />
@@ -1608,10 +1665,28 @@ export default function SubmitClient() {
                       {form.education && R('Education', form.education)}
                       {form.degree_title && R('Degree', form.degree_title)}
                       {form.institute && R('Institute', form.institute)}
+                      {degreeCert && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 10, marginBottom: 10, borderBottom: '1px solid #F0EFF8' }}>
+                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>Degree Certificate</span>
+                          <span onClick={() => setViewImg(URL.createObjectURL(degreeCert))} style={{ fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'underline', cursor: 'pointer' }}>View</span>
+                        </div>
+                      )}
                       {form.degree_title_2 && R('Degree 2', form.degree_title_2)}
                       {form.institute_2 && R('Institute 2', form.institute_2)}
+                      {degreeCert2 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 10, marginBottom: 10, borderBottom: '1px solid #F0EFF8' }}>
+                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>Degree 2 Certificate</span>
+                          <span onClick={() => setViewImg(URL.createObjectURL(degreeCert2))} style={{ fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'underline', cursor: 'pointer' }}>View</span>
+                        </div>
+                      )}
                       {form.degree_title_3 && R('Degree 3', form.degree_title_3)}
                       {form.institute_3 && R('Institute 3', form.institute_3)}
+                      {degreeCert3 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 10, marginBottom: 10, borderBottom: '1px solid #F0EFF8' }}>
+                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>Degree 3 Certificate</span>
+                          <span onClick={() => setViewImg(URL.createObjectURL(degreeCert3))} style={{ fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'underline', cursor: 'pointer' }}>View</span>
+                        </div>
+                      )}
                     </>
                   )}
 
