@@ -552,7 +552,7 @@ export default function MyProposalClient() {
               <button type="button" onClick={async () => {
                 if (!confirm('Remove your profile photo?')) return;
                 await updateOwnProposalAction({ p_id: user.id, p_updates: { profile_photo_url: null }, proposalNumber: user.proposal_number });
-                const updated = { ...user, profile_photo_url: null };
+                const updated = { ...user, profile_photo_url: undefined };
                 setUser(updated as typeof user);
                 import('@/lib/auth').then(m => m.saveSession(updated as typeof user));
               }}
