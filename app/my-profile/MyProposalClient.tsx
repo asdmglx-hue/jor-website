@@ -417,6 +417,21 @@ export default function MyProposalClient() {
       }
     }
 
+    // The empty-check above never actually enforced an upper bound —
+    // someone could previously type an enormous number here that the
+    // database can't store as an integer, causing a raw database error
+    // instead of a proper message.
+    if (key === 'age' && (Number(finalVal) < 18 || Number(finalVal) > 99)) {
+      setSaveMsg('Age must be between 18 and 99.'); setSaveMsgType('warning');
+      setTimeout(() => setSaveMsg(''), 3000);
+      return;
+    }
+    if (key === 'weight_kg' && finalVal !== '' && finalVal !== null && (Number(finalVal) <= 0 || Number(finalVal) > 999)) {
+      setSaveMsg('Weight must be between 1 and 999 kg.'); setSaveMsgType('warning');
+      setTimeout(() => setSaveMsg(''), 3000);
+      return;
+    }
+
     // Stops someone bypassing the subscription-gated contact system by
     // just typing their phone number into a publicly-visible text field
     // instead (About, Looking For, etc.) — only applied to fields
@@ -928,7 +943,7 @@ export default function MyProposalClient() {
               );
             };
 
-            const Field = ({ label, fieldKey, type = 'text', options, grouped, info }: { label: string; fieldKey: string; type?: string; options?: string[]; grouped?: Record<string, string[]>; info?: string }) => {
+            const Field = ({ label, fieldKey, type = 'text', options, grouped, info, maxLength }: { label: string; fieldKey: string; type?: string; options?: string[]; grouped?: Record<string, string[]>; info?: string; maxLength?: number }) => {
               const val = user[fieldKey as keyof typeof user];
               const isEditing = inlineKey === fieldKey;
               const rawDisplayVal = val != null && val !== '' && !(type === 'number' && Number(val) === 0) ? String(val) : null;
@@ -950,7 +965,9 @@ export default function MyProposalClient() {
                             </select>
                         : type === 'tel'
                           ? <PhoneInput value={inlineVal} onChange={setInlineVal} dialCode={inlineDialCode} onDialChange={setInlineDialCode} inputStyle={fieldStyle} />
-                          : <input type={type} value={inlineVal} onChange={e => setInlineVal(e.target.value)} style={fieldStyle} autoFocus />
+                          : <input type={type} value={inlineVal} maxLength={maxLength}
+                              onChange={e => setInlineVal(maxLength ? e.target.value.slice(0, maxLength) : e.target.value)}
+                              style={fieldStyle} autoFocus />
                       }
                       {inlineButtons(fieldKey, type === 'number' ? Number(inlineVal) : type === 'tel' ? `${inlineDialCode}${inlineVal}` : inlineVal)}
                     </>
@@ -1124,13 +1141,13 @@ export default function MyProposalClient() {
               <>
                 {sec('Basic Information', grid(<>
                   <Field label="Full Name" fieldKey="name" />
-                  <Field label="Age" fieldKey="age" type="number" />
+                  <Field label="Age" fieldKey="age" type="number" maxLength={2} />
                   <Field label="Gender" fieldKey="gender" />
                   <Field label="CNIC" fieldKey="cnic" />
                   <Field label="City" fieldKey="city" options={['Lahore','Karachi','Islamabad','Rawalpindi','Faisalabad','Multan','Gujranwala','Sialkot','Bahawalpur','Sargodha','Peshawar','Quetta','Hyderabad','Abbottabad','Other']} />
                   <Field label="Country (Overseas)" fieldKey="country" options={['Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan','Bahrain','Bangladesh','Belgium','Bosnia & Herzegovina','Brunei','Bulgaria','Cambodia','Canada','China','Colombia','Croatia','Cyprus','Czech Republic','Denmark','Egypt','Estonia','Ethiopia','Finland','France','Georgia','Germany','Ghana','Greece','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Jamaica','Japan','Jordan','Kazakhstan','Kenya','Kuwait','Latvia','Lebanon','Libya','Lithuania','Luxembourg','Malaysia','Maldives','Malta','Mexico','Moldova','Monaco','Mongolia','Morocco','Myanmar','Namibia','Nepal','Netherlands','New Zealand','Nigeria','Norway','Oman','Pakistan','Palestine','Philippines','Poland','Portugal','Qatar','Romania','Russia','Saudi Arabia','Serbia','Singapore','Slovakia','Slovenia','South Africa','South Korea','Spain','Sri Lanka','Sudan','Sweden','Switzerland','Syria','Taiwan','Tanzania','Thailand','Turkey','UAE','Uganda','Ukraine','United Kingdom','United States','Uruguay','Uzbekistan','Vietnam','Yemen','Zambia','Zimbabwe']} />
                   <Field label="Location (Area)" fieldKey="location" />
-                  <Field label="Weight (kg)" fieldKey="weight_kg" type="number" />
+                  <Field label="Weight (kg)" fieldKey="weight_kg" type="number" maxLength={3} />
                   <HeightField />
                   <Field label="Complexion" fieldKey="complexion" options={['Fair','Wheatish','Brown','Dark']} />
                   <Field label="Marital Status" fieldKey="marital_status" options={maritalOpts} />

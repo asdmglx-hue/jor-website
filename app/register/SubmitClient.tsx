@@ -584,6 +584,14 @@ export default function SubmitClient() {
       }
     }
 
+    // Weight is optional, so only validated when a value is actually
+    // provided — but needs a real upper bound, since nothing currently
+    // stops someone typing an enormous number that the database can't
+    // store as an integer.
+    if (form.weight_kg && (+form.weight_kg <= 0 || +form.weight_kg > 999)) {
+      return fail('Weight must be between 1 and 999 kg', 'weight_kg');
+    }
+
     if (step === 1) {
       const cnicDigits = form.cnic.replace(/\D/g, '');
       if (!cnicDigits) return fail('CNIC number is required', 'cnic');
@@ -594,7 +602,7 @@ export default function SubmitClient() {
     if (step === 2) {
       if (!form.name.trim()) return fail('Full name is required', 'name');
       if (!form.gender) return fail('Gender is required', 'gender');
-      if (!form.age || +form.age < 18 || +form.age > 80) return fail('Valid age (18–80) is required', 'age');
+      if (!form.age || +form.age < 18 || +form.age > 99) return fail('Valid age (18–99) is required', 'age');
       if (!form.phone.trim()) return fail('Phone number is required', 'phone');
       if (form.phone_dial_code === '+92') {
         const digits = form.phone.replace(/\D/g, '');
@@ -994,7 +1002,7 @@ export default function SubmitClient() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="Age" required>
-                <input type="number" min={18} max={80} value={form.age} onChange={e => set('age', e.target.value)} style={{ ...inp, ...err('age') }} placeholder="e.g. 26" />
+                <input type="number" min={18} max={99} maxLength={2} value={form.age} onChange={e => set('age', e.target.value.slice(0, 2))} style={{ ...inp, ...err('age') }} placeholder="e.g. 26" />
               </Field>
               <Field label="Gender" required>
                 <Sel value={form.gender} onChange={v => { set('gender', v); if (v === 'Female' && form.marital_status === 'Married') set('marital_status', ''); if (v === 'Male' && form.marital_status === 'Khula') set('marital_status', ''); }} options={['Male','Female']} placeholder="Select" hasError={errorField === 'gender'} />
@@ -1215,7 +1223,7 @@ export default function SubmitClient() {
             <SecHeader title="PHYSICAL" />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: -14 }}>
               <Field label="Weight (kg)">
-                <input type="number" value={form.weight_kg} onChange={e => set('weight_kg', e.target.value)} style={inp} placeholder="e.g. 65" />
+                <input type="number" maxLength={3} value={form.weight_kg} onChange={e => set('weight_kg', e.target.value.slice(0, 3))} style={inp} placeholder="e.g. 65" />
               </Field>
               <Field label="Complexion">
                 <Sel value={form.complexion} onChange={v => set('complexion', v)} options={COMPLEXIONS} placeholder="Select" />
