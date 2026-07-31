@@ -49,6 +49,14 @@ const nextConfig: NextConfig = {
   // by default without this being explicitly turned on.
   webpack: (config) => {
     config.experiments = { ...config.experiments, asyncWebAssembly: true };
+    // serverExternalPackages (above) stops Next.js from bundling
+    // @cf-wasm/photon's contents in — but webpack still separately needs
+    // to be told "workerd" is a real condition to recognize when it
+    // resolves *which file* that import even points to. Without this,
+    // it doesn't know the package's workerd-specific entrypoint exists
+    // at all, even though it isn't being asked to bundle it.
+    // '...' keeps webpack's own default conditions alongside this one.
+    config.resolve.conditionNames = ['workerd', '...'];
     return config;
   },
   // Security headers applied to every response. Not a full Content-Security-Policy
