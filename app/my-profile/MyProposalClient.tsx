@@ -275,6 +275,7 @@ export default function MyProposalClient() {
   // isOther ? otherCtrl.text.trim() : selected! in subscription_screen.dart).
   const effectiveDeleteReason = deleteReason === 'Other' ? deleteOtherReason.trim() : deleteReason;
   const [saveMsg, setSaveMsg] = useState('');
+  const [saveMsgType, setSaveMsgType] = useState<'success' | 'warning' | 'error'>('success');
   // Inline editing
   const [inlineKey, setInlineKey] = useState<string | null>(null);
   const [inlineVal, setInlineVal] = useState<string>('');
@@ -410,10 +411,10 @@ export default function MyProposalClient() {
       setUser(updated as typeof user);
       import('@/lib/auth').then(m => m.saveSession(updated as typeof user));
       setCropSrc(null);
-      setSaveMsg('Photo updated successfully.');
+      setSaveMsg('Photo updated successfully.'); setSaveMsgType('success');
       setTimeout(() => setSaveMsg(''), 3000);
     } catch {
-      setSaveMsg('Failed to upload photo. Please try again.');
+      setSaveMsg('Failed to upload photo. Please try again.'); setSaveMsgType('error');
       setTimeout(() => setSaveMsg(''), 3000);
     }
     setUploadingPhoto(false);
@@ -436,7 +437,7 @@ export default function MyProposalClient() {
       const isEmpty = finalVal === null || finalVal === undefined || finalVal === '' ||
         (key === 'age' && (!finalVal || Number(finalVal) <= 0));
       if (isEmpty) {
-        setSaveMsg(`${REQUIRED_FIELDS[key]} cannot be left empty.`);
+        setSaveMsg(`${REQUIRED_FIELDS[key]} cannot be left empty.`); setSaveMsgType('warning');
         setTimeout(() => setSaveMsg(''), 3000);
         return;
       }
@@ -453,7 +454,7 @@ export default function MyProposalClient() {
         const digits = trimmed.replace(/\D/g, '').replace(/^92/, '');
         const required = digits.startsWith('0') ? 11 : 10;
         if (digits.length !== required) {
-          setSaveMsg(`Enter a valid Pakistani number (${required} digits).`);
+          setSaveMsg(`Enter a valid Pakistani number (${required} digits).`); setSaveMsgType('warning');
           setTimeout(() => setSaveMsg(''), 3000);
           return;
         }
@@ -488,11 +489,11 @@ export default function MyProposalClient() {
         });
         setInlineKey(null);
         setInlineCustomVal('');
-        setSaveMsg('Changes saved successfully.');
+        setSaveMsg('Changes saved successfully.'); setSaveMsgType('success');
         setTimeout(() => setSaveMsg(''), 3000);
       }
     } catch {
-      setSaveMsg('Failed to save. Please try again.');
+      setSaveMsg('Failed to save. Please try again.'); setSaveMsgType('error');
       setTimeout(() => setSaveMsg(''), 3000);
     }
     setInlineSaving(false);
@@ -810,7 +811,23 @@ export default function MyProposalClient() {
       {/* Profile tab */}
       {tab === 'profile' && (
         <div>
-          {saveMsg && <div style={{ background: saveMsg.includes('not allowed') || saveMsg.includes('Failed') ? '#FEE2E2' : '#DCFCE7', border: `1px solid ${saveMsg.includes('not allowed') || saveMsg.includes('Failed') ? '#DC262644' : '#16A34A44'}`, borderRadius: 10, padding: '10px 14px', fontSize: 13, color: saveMsg.includes('not allowed') || saveMsg.includes('Failed') ? '#DC2626' : '#16A34A', marginBottom: 16 }}>{saveMsg}</div>}
+          {saveMsg && (() => {
+            const colors = {
+              success: { bg: '#DCFCE7', border: '#16A34A44', text: '#16A34A' },
+              warning: { bg: '#FEF3C7', border: '#D9770644', text: '#B45309' },
+              error: { bg: '#FEE2E2', border: '#DC262644', text: '#DC2626' },
+            }[saveMsgType];
+            return (
+              <div style={{
+                position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
+                background: colors.bg, border: `1px solid ${colors.border}`, borderRadius: 10,
+                padding: '10px 18px', fontSize: 13, fontWeight: 600, color: colors.text,
+                boxShadow: '0 6px 20px rgba(0,0,0,0.12)', maxWidth: '90vw', textAlign: 'center',
+              }}>
+                {saveMsg}
+              </div>
+            );
+          })()}
 
           {(() => {
             const fieldStyle = { width: '100%', padding: '9px 12px', borderRadius: 10, border: '1.5px solid #534AB7', fontSize: 14, outline: 'none', boxSizing: 'border-box' as const };
@@ -934,7 +951,27 @@ export default function MyProposalClient() {
                               <option value="">— Select —</option>
                               {options.map(o => <option key={o} value={o}>{o}</option>)}
                             </select>
-                        : <input type={type} value={inlineVal} onChange={e => setInlineVal(e.target.value)} style={fieldStyle} autoFocus />
+                        : <input type={type} value={inlineVal}
+                            onChange={e => {
+                              if (type !== 'tel') { setInlineVal(e.target.value); return; }
+                              // Same limits the registration form enforces — stops
+                              // someone typing an obviously-too-long number in the
+                              // first place, rather than only rejecting it on save.
+                              const raw = e.target.value;
+                              const hasPlus = raw.trim().startsWith('+');
+                              const digitsOnly = raw.replace(/\D/g, '');
+                              const isPakistani = raw.trim().startsWith('+92') || !hasPlus;
+                              if (isPakistani) {
+                                const local = raw.trim().startsWith('+92') ? digitsOnly.replace(/^92/, '') : digitsOnly;
+                                const maxDigits = local.startsWith('0') || local.length === 0 ? 11 : 10;
+                                const capped = local.slice(0, maxDigits);
+                                setInlineVal(raw.trim().startsWith('+92') ? `+92${capped}` : capped);
+                              } else {
+                                // International: E.164 allows at most 15 digits total.
+                                setInlineVal('+' + digitsOnly.slice(0, 15));
+                              }
+                            }}
+                            style={fieldStyle} autoFocus />
                       }
                       {inlineButtons(fieldKey, type === 'number' ? Number(inlineVal) : inlineVal)}
                     </>
