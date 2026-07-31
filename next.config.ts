@@ -39,6 +39,13 @@ const nextConfig: NextConfig = {
   // (that needs a careful audit of every external script/resource domain — Supabase,
   // GA4, R2, the flag CDN — to avoid silently breaking the site) — these are the
   // safe, broadly-applicable ones.
+  // Needed specifically for @cf-wasm/photon (image watermarking) — it
+  // ships a .wasm file, and webpack doesn't handle WebAssembly imports
+  // by default without this being explicitly turned on.
+  webpack: (config) => {
+    config.experiments = { ...config.experiments, asyncWebAssembly: true };
+    return config;
+  },
   async headers() {
     return [
       {
