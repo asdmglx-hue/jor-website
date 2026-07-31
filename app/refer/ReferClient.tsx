@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import SearchableSelect from '@/components/SearchableSelect';
+import { CITY_GROUPS } from '@/lib/constants';
 
 type Mode = 'home' | 'join' | 'login' | 'forgot' | 'dashboard';
 
@@ -68,6 +70,7 @@ export default function ReferClient() {
   const [joinPassword, setJoinPassword] = useState('');
   const [joinConfirmPassword, setJoinConfirmPassword] = useState('');
   const [joinAddress, setJoinAddress] = useState('');
+  const [joinCity, setJoinCity] = useState('');
   const [joinOpenTime, setJoinOpenTime] = useState(''); // "HH:MM" from <input type="time">
   const [joinCloseTime, setJoinCloseTime] = useState('');
   const [joinCnicFront, setJoinCnicFront] = useState<File | null>(null);
@@ -137,6 +140,7 @@ export default function ReferClient() {
         p_password: joinPassword,
         p_code: joinCode,
         p_support_center_address: joinAddress.trim() || null,
+        p_support_center_city: joinCity || null,
         p_timing: `${formatTime24to12(joinOpenTime)} - ${formatTime24to12(joinCloseTime)}`,
         p_cnic_front_url: uploaded.front,
         p_cnic_back_url: uploaded.back,
@@ -287,6 +291,10 @@ export default function ReferClient() {
             <input value={joinPhone} onChange={e => setJoinPhone(e.target.value.replace(/[^\d]/g, '').slice(0, 11))} placeholder="03XXXXXXXXX" type="tel" style={inp} />
           </div>
           <div style={{ marginBottom: 14 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>City</label>
+            <SearchableSelect value={joinCity} onChange={v => setJoinCity(v || '')} groups={CITY_GROUPS} placeholder="Select city" />
+          </div>
+          <div style={{ marginBottom: 14 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>Support Center Address (optional)</label>
             <input value={joinAddress} onChange={e => setJoinAddress(e.target.value)} placeholder="Address" style={inp} />
           </div>
@@ -418,7 +426,7 @@ export default function ReferClient() {
         </div>
         <h1 style={{ fontSize: 32, fontWeight: 900, color: '#1A1830', marginBottom: 10 }}>Refer & Earn</h1>
         <p style={{ fontSize: 15, color: '#6B6893', lineHeight: 1.7, maxWidth: 480, margin: '0 auto' }}>
-          Help others find their life partner with Jor. Earn <strong style={{ color: '#534AB7' }}>Rs {commissionRate}</strong> for every person who subscribes using your referral code.
+          Help others find their life partner with Jor. Earn a commission for every person who subscribes using your referral code.
         </p>
       </div>
 
