@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSession, clearSession, getSavedIds } from '@/lib/auth';
-import { fetchProposalById, heightDisplay, Proposal, isSubscriptionActive, supabase, PROFILE_DETAIL_COLS } from '@/lib/supabase';
+import { fetchProposalById, heightDisplay, Proposal, isSubscriptionActive, supabase, PROFILE_DETAIL_COLS, phoneDisplay } from '@/lib/supabase';
 import { buildProposalShareText } from '@/lib/shareText';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -421,6 +421,43 @@ export default function MyProposalClient() {
     if (!user) return;
     const finalVal = inlineOtherFields.includes(key) && val === 'Other' && inlineCustomVal.trim()
       ? inlineCustomVal.trim() : val;
+
+    // Same fields the registration form requires — this editor had no
+    // such protection, so any of these could silently be cleared to
+    // empty even though the form itself would never have let the profile
+    // be created without them in the first place.
+    const REQUIRED_FIELDS: Record<string, string> = {
+      name: 'Full Name', age: 'Age', city: 'City', marital_status: 'Marital Status',
+      caste: 'Caste', sect: 'Sect', profession: 'Occupation', home_type: 'Home Type',
+    };
+    if (key in REQUIRED_FIELDS) {
+      const isEmpty = finalVal === null || finalVal === undefined || finalVal === '' ||
+        (key === 'age' && (!finalVal || Number(finalVal) <= 0));
+      if (isEmpty) {
+        setSaveMsg(`${REQUIRED_FIELDS[key]} cannot be left empty.`);
+        setTimeout(() => setSaveMsg(''), 3000);
+        return;
+      }
+    }
+
+    // Same rule the registration form enforces for Pakistani numbers —
+    // the inline editor here had no validation at all, so it was
+    // possible to save an incomplete or invalid number that the
+    // registration form would never have accepted in the first place.
+    if ((key === 'contact_phone' || key === 'contact_phone_2') && typeof finalVal === 'string' && finalVal.trim()) {
+      const trimmed = finalVal.trim();
+      const isPakistani = trimmed.startsWith('+92') || !trimmed.startsWith('+');
+      if (isPakistani) {
+        const digits = trimmed.replace(/\D/g, '').replace(/^92/, '');
+        const required = digits.startsWith('0') ? 11 : 10;
+        if (digits.length !== required) {
+          setSaveMsg(`Enter a valid Pakistani number (${required} digits).`);
+          setTimeout(() => setSaveMsg(''), 3000);
+          return;
+        }
+      }
+    }
+
     const updates: Record<string, unknown> = { [key]: key === 'languages' ? (finalVal ? [finalVal] : []) : finalVal };
     const oldValues: Record<string, unknown> = {};
     if (key in user) oldValues[key] = (user as Record<string, unknown>)[key];
@@ -474,8 +511,15 @@ export default function MyProposalClient() {
         <h1 style={{ fontSize: 22, fontWeight: 900, color: '#1A1830' }}>My Account</h1>
       </div>
 
-      {/* Profile card */}
-      <div style={{ background: user.is_boosted ? '#FFFBF5' : '#fff', border: `1px solid ${user.is_boosted ? '#E8620A44' : '#E8E6F5'}`, borderRadius: 20, padding: '20px', marginBottom: 16, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+      {/* Profile card — a paused profile takes priority over the boosted
+          highlight below: being paused already overrides any active boost
+          in practice, and the banner should look calm/neutral (matching
+          the grey "Profile Paused" notice) rather than still celebratory. */}
+      <div style={{
+        background: user.status === 'paused' ? '#F9FAFB' : user.is_boosted ? '#FFFBF5' : '#fff',
+        border: `1px solid ${user.status === 'paused' ? '#D1D5DB' : user.is_boosted ? '#E8620A44' : '#E8E6F5'}`,
+        borderRadius: 20, padding: '20px', marginBottom: 16, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between',
+      }}>
         <div className="my-account-left" style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
           <div onClick={() => photoInputRef.current?.click()} style={{ position: 'relative', width: 72, height: 72, borderRadius: 36, flexShrink: 0, cursor: 'pointer' }}>
             <div style={{ width: 72, height: 72, borderRadius: 36, background: user.gender === 'Male' ? '#534AB7' : '#E11D48', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, color: '#fff', fontWeight: 900, overflow: 'hidden' }}>
@@ -871,7 +915,8 @@ export default function MyProposalClient() {
             const Field = ({ label, fieldKey, type = 'text', options, grouped, info }: { label: string; fieldKey: string; type?: string; options?: string[]; grouped?: Record<string, string[]>; info?: string }) => {
               const val = user[fieldKey as keyof typeof user];
               const isEditing = inlineKey === fieldKey;
-              const displayVal = val != null && val !== '' && !(type === 'number' && Number(val) === 0) ? String(val) : null;
+              const rawDisplayVal = val != null && val !== '' && !(type === 'number' && Number(val) === 0) ? String(val) : null;
+              const displayVal = rawDisplayVal && type === 'tel' ? phoneDisplay(rawDisplayVal) : rawDisplayVal;
               return (
                 <div style={{ marginBottom: 14 }}>
                   {lbl(label, ALWAYS_LOCKED.includes(fieldKey) ? lockIcon : (info ? <InfoPopover text={info} /> : undefined))}
@@ -895,7 +940,7 @@ export default function MyProposalClient() {
                     fieldDisabled(fieldKey) ? (
                       <div style={{ fontSize: 14, color: '#1A1830', fontWeight: 500 }}>{displayVal}</div>
                     ) : (
-                    <div onClick={() => { setInlineKey(fieldKey); setInlineVal(displayVal); }}
+                    <div onClick={() => { setInlineKey(fieldKey); setInlineVal(rawDisplayVal ?? ''); }}
                       style={{ fontSize: 14, color: '#1A1830', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                       onMouseEnter={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '1'; }}
                       onMouseLeave={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '0'; }}>
