@@ -4,6 +4,7 @@ import { getSession, clearSession, getSavedIds } from '@/lib/auth';
 import { fetchProposalById, heightDisplay, Proposal, isSubscriptionActive, supabase, PROFILE_DETAIL_COLS, phoneDisplay } from '@/lib/supabase';
 import { buildProposalShareText } from '@/lib/shareText';
 import { addWatermark } from '@/lib/watermarkImage';
+import PhoneInput, { DIAL_CODES } from '@/components/PhoneInput';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProposalCard from '@/components/ProposalCard';
@@ -276,6 +277,22 @@ export default function MyProposalClient() {
   const effectiveDeleteReason = deleteReason === 'Other' ? deleteOtherReason.trim() : deleteReason;
   const [saveMsg, setSaveMsg] = useState('');
   const [saveMsgType, setSaveMsgType] = useState<'success' | 'warning' | 'error'>('success');
+  const [inlineDialCode, setInlineDialCode] = useState('+92');
+
+  // The stored value is one combined string (e.g. "+923001234567"), but
+  // PhoneInput needs the country code and local number as two separate
+  // pieces — this splits on whichever known dial code the number actually
+  // starts with, checking longest codes first so e.g. "+1" doesn't
+  // incorrectly match before a longer code that also starts with "1".
+  function splitPhone(raw: string): { dialCode: string; local: string } {
+    const trimmed = (raw || '').trim();
+    if (!trimmed) return { dialCode: '+92', local: '' };
+    if (!trimmed.startsWith('+')) return { dialCode: '+92', local: trimmed };
+    const sorted = [...DIAL_CODES].sort((a, b) => b.code.length - a.code.length);
+    const match = sorted.find(d => trimmed.startsWith(d.code));
+    if (match) return { dialCode: match.code, local: trimmed.slice(match.code.length) };
+    return { dialCode: '+92', local: trimmed.replace(/^\+/, '') };
+  }
   // Inline editing
   const [inlineKey, setInlineKey] = useState<string | null>(null);
   const [inlineVal, setInlineVal] = useState<string>('');
@@ -524,13 +541,26 @@ export default function MyProposalClient() {
         borderRadius: 20, padding: '20px', marginBottom: 16, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between',
       }}>
         <div className="my-account-left" style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-          <div onClick={() => photoInputRef.current?.click()} style={{ position: 'relative', width: 72, height: 72, borderRadius: 36, flexShrink: 0, cursor: 'pointer' }}>
-            <div style={{ width: 72, height: 72, borderRadius: 36, background: user.gender === 'Male' ? '#534AB7' : '#E11D48', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, color: '#fff', fontWeight: 900, overflow: 'hidden' }}>
+          <div style={{ position: 'relative', width: 72, height: 72, borderRadius: 36, flexShrink: 0 }}>
+            <div onClick={() => photoInputRef.current?.click()} style={{ width: 72, height: 72, borderRadius: 36, background: user.gender === 'Male' ? '#534AB7' : '#E11D48', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, color: '#fff', fontWeight: 900, overflow: 'hidden', cursor: 'pointer' }}>
               {user.profile_photo_url ? <img src={user.profile_photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (user.name || '?').charAt(0)}
             </div>
-            <div style={{ position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, borderRadius: 11, background: '#534AB7', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div onClick={() => photoInputRef.current?.click()} style={{ position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, borderRadius: 11, background: '#534AB7', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             </div>
+            {user.profile_photo_url && (
+              <button type="button" onClick={async () => {
+                if (!confirm('Remove your profile photo?')) return;
+                await updateOwnProposalAction({ p_id: user.id, p_updates: { profile_photo_url: null }, proposalNumber: user.proposal_number });
+                const updated = { ...user, profile_photo_url: null };
+                setUser(updated as typeof user);
+                import('@/lib/auth').then(m => m.saveSession(updated as typeof user));
+              }}
+                style={{ position: 'absolute', top: -4, right: -4, width: 20, height: 20, borderRadius: 10, border: '2px solid #fff', background: '#DC2626', color: '#fff', fontSize: 11, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                aria-label="Remove photo">
+                ✕
+              </button>
+            )}
           </div>
           <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
           <div style={{ flex: 1 }}>
@@ -951,35 +981,26 @@ export default function MyProposalClient() {
                               <option value="">— Select —</option>
                               {options.map(o => <option key={o} value={o}>{o}</option>)}
                             </select>
-                        : <input type={type} value={inlineVal}
-                            onChange={e => {
-                              if (type !== 'tel') { setInlineVal(e.target.value); return; }
-                              // Same limits the registration form enforces — stops
-                              // someone typing an obviously-too-long number in the
-                              // first place, rather than only rejecting it on save.
-                              const raw = e.target.value;
-                              const hasPlus = raw.trim().startsWith('+');
-                              const digitsOnly = raw.replace(/\D/g, '');
-                              const isPakistani = raw.trim().startsWith('+92') || !hasPlus;
-                              if (isPakistani) {
-                                const local = raw.trim().startsWith('+92') ? digitsOnly.replace(/^92/, '') : digitsOnly;
-                                const maxDigits = local.startsWith('0') || local.length === 0 ? 11 : 10;
-                                const capped = local.slice(0, maxDigits);
-                                setInlineVal(raw.trim().startsWith('+92') ? `+92${capped}` : capped);
-                              } else {
-                                // International: E.164 allows at most 15 digits total.
-                                setInlineVal('+' + digitsOnly.slice(0, 15));
-                              }
-                            }}
-                            style={fieldStyle} autoFocus />
+                        : type === 'tel'
+                          ? <PhoneInput value={inlineVal} onChange={setInlineVal} dialCode={inlineDialCode} onDialChange={setInlineDialCode} inputStyle={fieldStyle} />
+                          : <input type={type} value={inlineVal} onChange={e => setInlineVal(e.target.value)} style={fieldStyle} autoFocus />
                       }
-                      {inlineButtons(fieldKey, type === 'number' ? Number(inlineVal) : inlineVal)}
+                      {inlineButtons(fieldKey, type === 'number' ? Number(inlineVal) : type === 'tel' ? `${inlineDialCode}${inlineVal}` : inlineVal)}
                     </>
                   ) : displayVal ? (
                     fieldDisabled(fieldKey) ? (
                       <div style={{ fontSize: 14, color: '#1A1830', fontWeight: 500 }}>{displayVal}</div>
                     ) : (
-                    <div onClick={() => { setInlineKey(fieldKey); setInlineVal(rawDisplayVal ?? ''); }}
+                    <div onClick={() => {
+                        setInlineKey(fieldKey);
+                        if (type === 'tel') {
+                          const { dialCode, local } = splitPhone(rawDisplayVal ?? '');
+                          setInlineDialCode(dialCode);
+                          setInlineVal(local);
+                        } else {
+                          setInlineVal(rawDisplayVal ?? '');
+                        }
+                      }}
                       style={{ fontSize: 14, color: '#1A1830', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                       onMouseEnter={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '1'; }}
                       onMouseLeave={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '0'; }}>
