@@ -937,13 +937,6 @@ export default function SubmitClient() {
                         <div className="spin" style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%' }} />
                       </div>
                     )}
-                    {profilePhoto && !compressingProfilePhoto && (
-                      <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setProfilePhoto(null); setProfilePhotoPreview(''); }}
-                        style={{ position: 'absolute', top: 2, right: 2, width: 20, height: 20, borderRadius: 10, border: 'none', background: 'rgba(17,17,17,0.65)', color: '#fff', fontSize: 12, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        aria-label="Remove photo">
-                        ✕
-                      </button>
-                    )}
                   </div>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: profilePhoto ? '#534AB7' : '#1A1830' }}>
