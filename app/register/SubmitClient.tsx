@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { trackEvent } from '@/lib/analytics';
 import { CITY_GROUPS, COUNTRY_GROUPS } from '@/lib/constants';
 import PhoneInput from '@/components/PhoneInput';
+import { containsPhoneNumber } from '@/lib/phoneDetector';
 import SearchableSelect from '@/components/SearchableSelect';
 // Moved server-side — see lib/actions/proposal-actions.ts and
 // lib/actions/revalidate-write.ts for why.
@@ -555,6 +556,34 @@ export default function SubmitClient() {
 
   const validateStep = (): { msg: string; field: string } => {
     const fail = (msg: string, field: string) => ({ msg, field });
+
+    // Stops someone bypassing the subscription-gated contact system by
+    // just typing their phone number into a publicly-visible text field
+    // instead. Runs on every step regardless of which step a given field
+    // actually belongs to — a not-yet-reached field is simply empty, and
+    // the detector already ignores anything under 5 characters, so this
+    // is harmless to check early rather than only at final submission.
+    const phoneCheckFields: { key: string; label: string }[] = [
+      { key: 'name', label: 'Full name' },
+      { key: form.caste === 'Other' ? 'caste_custom' : '', label: 'Caste' },
+      { key: form.profession === 'Other' ? 'profession_custom' : '', label: 'Occupation' },
+      { key: 'about', label: 'About' },
+      { key: 'looking_for', label: 'Looking For' },
+      { key: 'degree_title', label: 'Degree Title' },
+      { key: 'institute', label: 'Institute' },
+      { key: 'degree_title_2', label: 'Degree Title 2' },
+      { key: 'institute_2', label: 'Institute 2' },
+      { key: 'degree_title_3', label: 'Degree Title 3' },
+      { key: 'institute_3', label: 'Institute 3' },
+    ];
+    for (const { key, label } of phoneCheckFields) {
+      if (!key) continue;
+      const value = form[key as keyof typeof form];
+      if (typeof value === 'string' && containsPhoneNumber(value)) {
+        return fail(`${label} cannot contain phone numbers`, key);
+      }
+    }
+
     if (step === 1) {
       const cnicDigits = form.cnic.replace(/\D/g, '');
       if (!cnicDigits) return fail('CNIC number is required', 'cnic');

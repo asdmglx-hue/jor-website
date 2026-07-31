@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSession, clearSession, getSavedIds } from '@/lib/auth';
 import { fetchProposalById, heightDisplay, Proposal, isSubscriptionActive, supabase, PROFILE_DETAIL_COLS, phoneDisplay } from '@/lib/supabase';
+import { containsPhoneNumber, PUBLIC_PHONE_CHECK_FIELDS, PHONE_CHECK_ERROR } from '@/lib/phoneDetector';
 import { buildProposalShareText } from '@/lib/shareText';
 import { addWatermark } from '@/lib/watermarkImage';
 import PhoneInput, { DIAL_CODES } from '@/components/PhoneInput';
@@ -103,50 +104,6 @@ function StatusBadge({ user, featuredBoost = false, isAdmin = false }: { user: P
 }
 
 // ── Phone number detection ──────────────────────────────────────────────────
-function containsPhoneNumber(text: string): boolean {
-  if (!text || text.length < 5) return false;
-  let t = text;
-  // Unicode digits → ASCII
-  t = t.split('').map(ch => {
-    const code = ch.codePointAt(0)!;
-    if (code >= 0x0660 && code <= 0x0669) return String(code - 0x0660);
-    if (code >= 0x06F0 && code <= 0x06F9) return String(code - 0x06F0);
-    if (code >= 0xFF10 && code <= 0xFF19) return String(code - 0xFF10);
-    return ch;
-  }).join('');
-  // Emoji numbers
-  t = t.replace(/0️⃣/g,'0').replace(/1️⃣/g,'1').replace(/2️⃣/g,'2').replace(/3️⃣/g,'3')
-       .replace(/4️⃣/g,'4').replace(/5️⃣/g,'5').replace(/6️⃣/g,'6').replace(/7️⃣/g,'7')
-       .replace(/8️⃣/g,'8').replace(/9️⃣/g,'9');
-  t = t.toLowerCase();
-  // Word substitutions
-  const words: Record<string,string> = {
-    zero:'0',zer0:'0',sifar:'0',oh:'0',one:'1',aik:'1',ek:'1',two:'2',do:'2',
-    three:'3',teen:'3',four:'4',char:'4',five:'5',panch:'5',six:'6',chay:'6',
-    seven:'7',sat:'7',eight:'8',aath:'8',nine:'9',nau:'9',niner:'9',ate:'8',
-  };
-  for (const [w,d] of Object.entries(words)) t = t.replace(new RegExp(`\\b${w}\\b`,'g'), d);
-  // Letter subs between digits
-  t = t.replace(/([0-9])[oO]([0-9])/g,'$10$2').replace(/([0-9])[lIi]([0-9])/g,'$11$2');
-  // Dot-removed variant for "z.e.r.o" style
-  const t2 = t.replace(/([a-z])\.([a-z])/g,'$1$2');
-  const check = (s: string) => {
-    if (/03\d([\s\-./_()|,]{0,3}\d){8}/.test(s)) return true;
-    if (/(\+92|0092|92)[\s\-./]*3\d[\s\-./]*\d{8}/.test(s)) return true;
-    const stripped = s.replace(/[\s\-./_()|,\\:;+*#@!\[\]{}<>~`'"^=]/g,'').replace(/[^0-9]/g,'');
-    if (/\d{10,}/.test(stripped)) return true;
-    const groups = (s.match(/\d+/g)||[]).join('');
-    if (groups.length >= 10 && (/^(03|923|0092)/.test(groups) || groups.length >= 11)) return true;
-    if (groups.length >= 10 && /^(03|923)/.test(groups.split('').reverse().join(''))) return true;
-    if (/(^|[\s,])(\d[\s\-./|,]{1,4}){7,}\d/.test(s)) return true;
-    if (/whatsapp|watsapp|call me|contact me|reach me|ping me|my number|mera number|mob:|cell:|ph:|tel:/.test(s) && /\d{4,}/.test(s)) return true;
-    return false;
-  };
-  return check(t) || check(t2);
-}
-
-const PHONE_ERROR = 'Phone numbers are not allowed. Contact details are visible to subscribed members only.';
-const PHONE_FIELDS = ['name','location','degree_title','institute','degree_title_2','institute_2','degree_title_3','institute_3','father_occupation','mother_occupation','about','looking_for','caste','profession','disability_details','house_size','car_name'];
 
 // ── Profession groups ───────────────────────────────────────────────────────
 const CASTE_GROUPS: Record<string, string[]> = {
@@ -458,6 +415,16 @@ export default function MyProposalClient() {
         setTimeout(() => setSaveMsg(''), 3000);
         return;
       }
+    }
+
+    // Stops someone bypassing the subscription-gated contact system by
+    // just typing their phone number into a publicly-visible text field
+    // instead (About, Looking For, etc.) — only applied to fields
+    // actually shown on the public profile page, not every field.
+    if ((PUBLIC_PHONE_CHECK_FIELDS as readonly string[]).includes(key) && typeof finalVal === 'string' && containsPhoneNumber(finalVal)) {
+      setSaveMsg(PHONE_CHECK_ERROR); setSaveMsgType('warning');
+      setTimeout(() => setSaveMsg(''), 3000);
+      return;
     }
 
     // Same rule the registration form enforces for Pakistani numbers —
