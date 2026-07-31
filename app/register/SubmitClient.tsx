@@ -10,6 +10,7 @@ import SearchableSelect from '@/components/SearchableSelect';
 import { submitProposalAction as submitProposal } from '@/lib/actions/proposal-actions';
 import PasswordInput from '@/components/PasswordInput';
 import { compressImage } from '@/lib/compressImage';
+import { addWatermark } from '@/lib/watermarkImage';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const CASTE_GROUPS: Record<string, string[]> = {
@@ -1056,7 +1057,8 @@ export default function SubmitClient() {
         const rawFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
         setCropSrc('');
         setCompressingProfilePhoto(true);
-        const file = await compressImage(rawFile);
+        const compressed = await compressImage(rawFile);
+        const file = await addWatermark(compressed);
         setProfilePhoto(file);
         setProfilePhotoPreview(URL.createObjectURL(file));
         setCompressingProfilePhoto(false);

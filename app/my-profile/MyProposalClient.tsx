@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSession, clearSession, getSavedIds } from '@/lib/auth';
 import { fetchProposalById, heightDisplay, Proposal, isSubscriptionActive, supabase, PROFILE_DETAIL_COLS, phoneDisplay } from '@/lib/supabase';
 import { buildProposalShareText } from '@/lib/shareText';
+import { addWatermark } from '@/lib/watermarkImage';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProposalCard from '@/components/ProposalCard';
@@ -390,6 +391,7 @@ export default function MyProposalClient() {
     setUploadingPhoto(true);
     try {
       const blob = await getCroppedImg(cropSrc, croppedAreaPixels);
+      const watermarked = await addWatermark(new File([blob], 'profile.jpg', { type: 'image/jpeg' }));
       // Uploads via the same secure server-side R2 endpoint already used
       // during registration, instead of uploading straight to Supabase
       // Storage from the browser — keeps every profile photo on R2 (zero
@@ -398,7 +400,7 @@ export default function MyProposalClient() {
       const cnicDigits = (user.cnic || '').replace(/\D/g, '') || user.id;
       const photoForm = new FormData();
       photoForm.append('cnic', cnicDigits);
-      photoForm.append('photo', new File([blob], 'profile.jpg', { type: 'image/jpeg' }));
+      photoForm.append('photo', watermarked);
       const res = await fetch('/api/upload-profile-photo', { method: 'POST', body: photoForm });
       const uploaded = await res.json().catch(() => ({}));
       if (!res.ok || !uploaded.url) throw new Error(uploaded.error || 'Upload failed');
