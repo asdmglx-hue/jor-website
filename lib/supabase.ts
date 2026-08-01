@@ -202,7 +202,24 @@ export function chipDateRange(chip: number): { postedAfter?: string; postedBefor
 // max_featured_general setting, though in practice that's expected to be
 // set generously high now that the carousel — not a server-side pick —
 // is what fairly shows everyone in turn.
+// Wrapped in the same withTimeout+try/catch pattern as
+// fetchProposalByNumber below (see its comment) — this is called from
+// every category page (city, caste, sect, profession, overseas) and the
+// main /proposals page, so a transient Supabase hiccup here previously
+// threw an unhandled exception and crashed the whole page with a 500
+// instead of just rendering without a Featured section. Now it fails
+// safe: the carousel simply doesn't render for that request, same as
+// the deliberate "zero matches" case already handled below.
 export async function fetchFeaturedForCarousel(filters: FilterState = {}): Promise<Proposal[]> {
+  try {
+    return await withTimeout(fetchFeaturedForCarouselInner(filters), 20000, 'fetchFeaturedForCarousel');
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise<Proposal[]> {
   const { data: settingRow } = await supabase
     .from('app_settings').select('value').eq('key', 'max_featured_general').maybeSingle();
   const max = Number(settingRow?.value) || 20;
@@ -606,7 +623,29 @@ export async function getQualifyingCountries(): Promise<{ value: string; slug: s
 // Preview list of proposals matching one category filter — capped, since a
 // city like Lahore could have hundreds; the full interactive /proposals
 // search page is where deeper browsing happens. Real content either way.
+// Wrapped the same way as fetchFeaturedForCarousel/fetchProposalByNumber
+// above — every /proposals/{category} page (city, caste, sect, marital
+// status, profession, overseas country) depends on this one call, so an
+// unprotected network hiccup here was a direct path to a 500 on any of
+// those pages. On failure this now returns an empty result, which the
+// caller (app/proposals/[slug]/page.tsx) already treats as "no matches"
+// and resolves via its own notFound() — i.e. a clean 404 instead of a
+// crash, exactly like the profile page's existing behavior.
 export async function fetchProposalsForCategory(
+  dbColumn: 'city' | 'caste' | 'sect' | 'marital_status' | 'profession' | 'country',
+  value: string,
+  limit = 24,
+  extra?: { gender?: string }
+): Promise<{ proposals: Proposal[]; featured: Proposal[] }> {
+  try {
+    return await withTimeout(fetchProposalsForCategoryInner(dbColumn, value, limit, extra), 20000, `fetchProposalsForCategory(${dbColumn}=${value})`);
+  } catch (e) {
+    console.error(e);
+    return { proposals: [], featured: [] };
+  }
+}
+
+async function fetchProposalsForCategoryInner(
   dbColumn: 'city' | 'caste' | 'sect' | 'marital_status' | 'profession' | 'country',
   value: string,
   limit = 24,
@@ -863,15 +902,28 @@ export async function fetchBlogPosts(limit = 50): Promise<BlogPost[]> {
   return (data || []) as BlogPost[];
 }
 
+// Wrapped the same way as fetchProposalByNumber/fetchProposalsForCategory
+// above — the blog post page (app/blog/[slug]/page.tsx) already calls
+// notFound() when this returns null, so a genuine Supabase hiccup now
+// resolves to a clean 404 instead of an unhandled 500.
 export async function fetchBlogPostBySlug(slug: string): Promise<BlogPost | null> {
-  const { data } = await supabase
-    .from('blog_posts')
-    .select(BLOG_COLS)
-    .eq('slug', slug)
-    .eq('is_published', true)
-    .lte('published_at', new Date().toISOString())
-    .maybeSingle();
-  return (data as BlogPost | null) || null;
+  try {
+    const { data } = await withTimeout(
+      supabase
+        .from('blog_posts')
+        .select(BLOG_COLS)
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .lte('published_at', new Date().toISOString())
+        .maybeSingle(),
+      20000,
+      `fetchBlogPostBySlug(${slug})`
+    );
+    return (data as BlogPost | null) || null;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
 }
 
 // Sitemap only needs the slug + when it was last meaningfully updated.
