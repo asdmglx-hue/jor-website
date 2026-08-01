@@ -5,10 +5,8 @@ import Link from "next/link";
 import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import FooterWhatsAppLink from "@/components/FooterWhatsAppLink";
-import FooterAffiliateLink from "@/components/FooterAffiliateLink";
-import RishtaCenterLink from "@/components/RishtaCenterLink";
 import ContactSupportButton from "@/components/ContactSupportButton";
+import { supabase } from "@/lib/supabase";
 
 const inter = { className: '' };
 
@@ -56,7 +54,35 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+// Cache indefinitely — the /api/revalidate endpoint invalidates this
+// immediately whenever a footer-relevant setting changes in the admin app,
+// so there's no need for a fixed revalidation interval. This means zero
+// unnecessary Supabase queries (only fetches when something actually
+// changed) while still reflecting changes instantly.
+export const revalidate = false;
+
+async function getFooterSettings(): Promise<{ helpCenterName: string; affiliateEnabled: boolean; helpCenterVisible: boolean; waNumber: string }> {
+  try {
+    const [{ data: settings }, { data: agents }] = await Promise.all([
+      supabase.from('app_settings').select('key,value'),
+      supabase.rpc('list_verified_agents_secure'),
+    ]);
+    const map = Object.fromEntries((settings ?? []).map((r: any) => [r.key, r.value]));
+    const helpCenterOn = map['help_center_enabled'] !== 'false';
+    const hasAgents = Array.isArray(agents) && agents.length > 0;
+    return {
+      helpCenterName: map['help_center_page_name'] || 'Help Center',
+      affiliateEnabled: map['referral_enabled'] !== 'false',
+      helpCenterVisible: helpCenterOn && hasAgents,
+      waNumber: map['whatsapp_number'] || '923287654333',
+    };
+  } catch {
+    return { helpCenterName: 'Help Center', affiliateEnabled: true, helpCenterVisible: false, waNumber: '923287654333' };
+  }
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { helpCenterName, affiliateEnabled, helpCenterVisible, waNumber } = await getFooterSettings();
   return (
     <html lang="en">
       <body className={inter.className}>
@@ -87,11 +113,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <Link href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</Link>
                   <Link href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</Link>
                   <Link href="/blog" style={{ color: '#fff', textDecoration: 'none' }}>Blog</Link>
-                  <FooterAffiliateLink>Affiliate</FooterAffiliateLink>
+                  {affiliateEnabled && <Link href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</Link>}
                 </div>
                 <div className="footer-nav-legal" style={{ display: 'flex', gap: 24, fontSize: 15, fontWeight: 400, justifyContent: 'flex-end' }}>
                   <Link href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</Link>
-                  <RishtaCenterLink>Help Center</RishtaCenterLink>
+                  {helpCenterVisible && <Link href="/agents" style={{ color: '#fff', textDecoration: 'none' }}>{helpCenterName}</Link>}
                   <Link href="/privacy-policy" style={{ color: '#fff', textDecoration: 'none' }}>Privacy Policy</Link>
                   <Link href="/terms" style={{ color: '#fff', textDecoration: 'none' }}>Terms of Service</Link>
                 </div>
@@ -127,9 +153,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 10 }}>
                   <Link href="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</Link>
-                  <FooterWhatsAppLink>Contact</FooterWhatsAppLink>
-                  <RishtaCenterLink>Help Center</RishtaCenterLink>
-                  <FooterAffiliateLink>Affiliate</FooterAffiliateLink>
+                  <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none' }}>Contact</a>
+                  {helpCenterVisible && <Link href="/agents" style={{ color: '#fff', textDecoration: 'none' }}>{helpCenterName}</Link>}
+                  {affiliateEnabled && <Link href="/refer" style={{ color: '#fff', textDecoration: 'none' }}>Affiliate</Link>}
                 </div>
                 <div style={{ display: 'flex', gap: 20, fontSize: 13, marginBottom: 24 }}>
                   <Link href="/privacy-policy" style={{ color: '#6B6893', textDecoration: 'none' }}>Privacy Policy</Link>
