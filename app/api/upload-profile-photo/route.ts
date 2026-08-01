@@ -61,6 +61,7 @@ export async function POST(request: Request) {
       finalBytes = await photo.arrayBuffer();
     }
 
+    // @ts-expect-error — CNIC_BUCKET is a Cloudflare R2 binding, typed via cloudflare-env.d.ts after running `npm run cf-typegen`
     await env.CNIC_BUCKET.put(objectPath, finalBytes, {
       httpMetadata: { contentType: 'image/jpeg' },
     });
