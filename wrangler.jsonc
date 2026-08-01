@@ -52,5 +52,12 @@
       "binding": "NEXT_INC_CACHE_R2_BUCKET",
       "bucket_name": "jor-website-isr-cache"
     }
-  ]
+  ],
+  "images": {
+    // Cloudflare Images binding — used in /api/upload-profile-photo to
+    // composite the joronline.com watermark bar onto profile photos
+    // server-side before storing in R2. No CORS issues (server-side),
+    // no extra packages needed. Free tier: 5,000 transforms/month.
+    "binding": "IMAGES"
+  }
 }
