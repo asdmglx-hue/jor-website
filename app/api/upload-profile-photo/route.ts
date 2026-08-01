@@ -42,20 +42,14 @@ export async function POST(request: Request) {
         // Cloudflare's official Images binding API. The watermark bar PNG is
         // 2000×123px — width:1 (100% of base width) scales it to fill the
         // full width of any photo; bottom:0 pins it flush to the bottom edge.
-        // @ts-expect-error — Cloudflare Images binding API
         const output = await env.IMAGES
-          // @ts-expect-error
           .input(photoBytes)
-          // @ts-expect-error
           .draw(
-            // @ts-expect-error
             env.IMAGES.input(wmResponse.body).transform({ width: 1, fit: 'scale-down' }),
             { bottom: 0, left: 0, right: 0 }
           )
-          // @ts-expect-error
           .output({ format: 'image/jpeg', quality: 90 });
 
-        // @ts-expect-error
         finalBytes = await output.response().then((r: Response) => r.arrayBuffer());
       } catch (_) {
         // Watermarking failed — fall back to original photo so the upload
@@ -67,7 +61,6 @@ export async function POST(request: Request) {
       finalBytes = await photo.arrayBuffer();
     }
 
-    // @ts-expect-error — CNIC_BUCKET is a Cloudflare R2 binding
     await env.CNIC_BUCKET.put(objectPath, finalBytes, {
       httpMetadata: { contentType: 'image/jpeg' },
     });
