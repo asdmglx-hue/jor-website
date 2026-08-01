@@ -29,7 +29,6 @@ export async function POST(request: Request) {
     const objectPath = `proposals/${cnicDigits}/profile_${Date.now()}.jpg`;
     let finalBytes: ArrayBuffer;
 
-    // @ts-expect-error — IMAGES is a Cloudflare Images binding
     if (env.IMAGES) {
       try {
         // Fetch the watermark from R2 — no CORS issues here since this runs
