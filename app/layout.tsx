@@ -54,12 +54,11 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-// Cache indefinitely — the /api/revalidate endpoint invalidates this
-// immediately whenever a footer-relevant setting changes in the admin app,
-// so there's no need for a fixed revalidation interval. This means zero
-// unnecessary Supabase queries (only fetches when something actually
-// changed) while still reflecting changes instantly.
-export const revalidate = false;
+// Primary: on-demand revalidation via /api/revalidate (called by admin app
+// immediately after any footer setting changes). Fallback: 30-second timer
+// catches any missed calls. Gives instant updates in practice while
+// guaranteeing the footer never stays stale longer than 30 seconds.
+export const revalidate = 30;
 
 async function getFooterSettings(): Promise<{ helpCenterName: string; affiliateEnabled: boolean; helpCenterVisible: boolean; waNumber: string }> {
   try {

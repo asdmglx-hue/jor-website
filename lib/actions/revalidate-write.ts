@@ -110,3 +110,29 @@ export async function revalidateBlog(slug?: string): Promise<void> {
 export async function revalidateStories(): Promise<void> {
   revalidatePath('/stories');
 }
+
+/**
+ * Refreshes all pages when footer-relevant settings change (affiliate toggle,
+ * help center toggle, page rename, whatsapp number). Called via the existing
+ * proposal-status-changed webhook with { footer_changed: true } payload —
+ * same doorway, same pattern as everything else.
+ */
+export async function revalidateFooter(): Promise<void> {
+  revalidatePath('/');
+  revalidatePath('/proposals');
+  revalidatePath('/proposals/[slug]', 'page');
+  revalidatePath('/proposals/[slug]/[gender]', 'page');
+  revalidatePath('/proposals/overseas/[country]', 'page');
+  revalidatePath('/plans');
+  revalidatePath('/register');
+  revalidatePath('/login');
+  revalidatePath('/my-profile');
+  revalidatePath('/my-proposal');
+  revalidatePath('/refer');
+  revalidatePath('/agents');
+  revalidatePath('/about');
+  revalidatePath('/stories');
+  revalidatePath('/blog');
+  revalidatePath('/privacy-policy');
+  revalidatePath('/terms');
+}

@@ -1,5 +1,5 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import { revalidateListings, revalidateProfile, revalidateHelpCenter, revalidateBlog, revalidateStories } from '@/lib/actions/revalidate-write';
+import { revalidateListings, revalidateProfile, revalidateHelpCenter, revalidateBlog, revalidateStories, revalidateFooter } from '@/lib/actions/revalidate-write';
 
 // Receives a ping from a Supabase Database Webhook the instant something
 // changes that this website can't react to on its own, because the write
@@ -51,6 +51,7 @@ export async function POST(request: Request) {
       new_status?: string;
       setting_key?: string;
       affiliate_changed?: boolean;
+      footer_changed?: boolean;
     } | null;
 
     if (payload?.proposal_number) {
@@ -89,7 +90,12 @@ export async function POST(request: Request) {
       return jsonResponse({ success: true }, 200);
     }
 
-    return jsonResponse({ error: 'Missing proposal_number, setting_key, or affiliate_changed' }, 400);
+    if (payload?.footer_changed) {
+      await revalidateFooter();
+      return jsonResponse({ success: true }, 200);
+    }
+
+    return jsonResponse({ error: 'Missing proposal_number, setting_key, affiliate_changed, or footer_changed' }, 400);
   } catch {
     return jsonResponse({ error: 'Webhook processing failed' }, 500);
   }
