@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { isSubscriptionActive, supabase, Proposal, phoneDisplay } from '@/lib/supabase';
 import { getSession, saveSession } from '@/lib/auth';
+import { trackEvent } from '@/lib/analytics';
 
-export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2 }: { phone: string; phone2?: string }) {
+export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2, proposalNumber }: { phone: string; phone2?: string; proposalNumber?: number }) {
   const phone = phoneDisplay(rawPhone);
   const phone2 = rawPhone2 ? phoneDisplay(rawPhone2) : rawPhone2;
   const [revealed, setRevealed] = useState(false);
@@ -70,7 +71,7 @@ export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2 }: {
           </svg>
           WhatsApp
         </div>
-        <Link href="/plans?plan=rishta-profile" style={{
+        <Link href="/plans?plan=rishta-profile" onClick={() => trackEvent('subscribe_prompt_click', { proposal_number: proposalNumber ?? 0 })} style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           width: '100%', padding: '11px', borderRadius: 12, boxSizing: 'border-box',
           background: '#534AB7', color: '#fff', fontWeight: 700, fontSize: 13,
@@ -91,7 +92,7 @@ export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2 }: {
     <>
       {!revealed ? (
         <button
-          onClick={() => setRevealed(true)}
+          onClick={() => { setRevealed(true); trackEvent('contact_reveal', { proposal_number: proposalNumber ?? 0 }); }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '13px', borderRadius: 12,
             background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15,
@@ -106,7 +107,7 @@ export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2 }: {
         </button>
       ) : (
         <>
-          <a href={`tel:${phone}`} style={{
+          <a href={`tel:${phone}`} onClick={() => trackEvent('phone_call', { proposal_number: proposalNumber ?? 0, phone_index: 1 })} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
             width: '100%', padding: '13px', borderRadius: 12,
             background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 17,
@@ -119,7 +120,7 @@ export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2 }: {
             {phone}
           </a>
           {phone2 && (
-            <a href={`tel:${phone2}`} style={{
+            <a href={`tel:${phone2}`} onClick={() => trackEvent('phone_call', { proposal_number: proposalNumber ?? 0, phone_index: 2 })} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               width: '100%', padding: '13px', borderRadius: 12,
               background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 17,
@@ -139,6 +140,7 @@ export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2 }: {
         href={`https://wa.me/${waNumber}`}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => trackEvent('whatsapp_click', { proposal_number: proposalNumber ?? 0 })}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           width: '100%', padding: '13px', borderRadius: 12,

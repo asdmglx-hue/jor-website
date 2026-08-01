@@ -6,6 +6,7 @@ import { redeemCode, isSubscriptionActive, Proposal, supabase } from '@/lib/supa
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PaymentProofModal from './PaymentProofModal';
+import { trackEvent } from '@/lib/analytics';
 
 const ADMIN_WHATSAPP = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '923000000000';
 
@@ -83,6 +84,7 @@ export default function SubscriptionClient() {
   const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
+    trackEvent('plans_view');
     setUser(getSession() ?? null);
     const params = new URLSearchParams(window.location.search);
     if (params.get('plan') === 'featured') setSelected(1);

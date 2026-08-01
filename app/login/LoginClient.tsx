@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PasswordInput from '@/components/PasswordInput';
 import { compressImage } from '@/lib/compressImage';
+import { trackEvent } from '@/lib/analytics';
 
 const ADMIN_WHATSAPP = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '923000000000';
 
@@ -53,6 +54,7 @@ export default function LoginClient() {
       const proposal = await loginWithCnic(cleanCnic, password);
       if (!proposal) { setError('Incorrect CNIC or password. Please try again.'); return; }
       saveSession(proposal);
+      trackEvent('login_success');
       router.push('/my-profile');
     } catch {
       // Network hiccup, or anything else unexpected — this previously had
