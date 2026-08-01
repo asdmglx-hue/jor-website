@@ -7,7 +7,11 @@ import AboutCta from '@/components/AboutCta';
 // renders fresh on first visit after this window, then serves the cached
 // version until the next visitor after that triggers a background
 // refresh. New posts show up without a redeploy.
-export const revalidate = 300;
+// Cached indefinitely — on-demand revalidation via database triggers
+// pings the webhook the moment content changes, so no fixed timer needed.
+// The 5-minute fallback (revalidate = 300) was the old approach; this is
+// strictly better: zero unnecessary regenerations, instant real updates.
+export const revalidate = false;
 
 const SITE = 'https://joronline.com';
 

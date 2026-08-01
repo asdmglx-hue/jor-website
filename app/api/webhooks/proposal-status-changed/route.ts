@@ -1,5 +1,5 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import { revalidateListings, revalidateProfile } from '@/lib/actions/revalidate-write';
+import { revalidateListings, revalidateProfile, revalidateHelpCenter, revalidateBlog, revalidateStories } from '@/lib/actions/revalidate-write';
 
 // Receives a ping from a Supabase Database Webhook the instant something
 // changes that this website can't react to on its own, because the write
@@ -50,6 +50,7 @@ export async function POST(request: Request) {
       old_status?: string;
       new_status?: string;
       setting_key?: string;
+      affiliate_changed?: boolean;
     } | null;
 
     if (payload?.proposal_number) {
@@ -63,14 +64,32 @@ export async function POST(request: Request) {
     }
 
     if (payload?.setting_key) {
-      // A cap/limit changed (e.g. max_featured_per_city) — no specific
-      // profile to target, just refresh the listing pages that display
-      // based on that cap.
-      await revalidateListings();
+      const key = payload.setting_key;
+      // Route to the right revalidation function based on which setting changed.
+      // Help Center settings affect /agents; blog/stories have their own pages.
+      // Everything else (max_featured_per_city, max_featured_general, etc.)
+      // affects listing pages — same as before.
+      if (key === 'help_center_enabled' || key === 'help_center_page_name') {
+        await revalidateHelpCenter();
+      } else if (key === 'blog_updated') {
+        await revalidateBlog();
+      } else if (key === 'stories_updated') {
+        await revalidateStories();
+      } else {
+        await revalidateListings();
+      }
       return jsonResponse({ success: true }, 200);
     }
 
-    return jsonResponse({ error: 'Missing proposal_number or setting_key' }, 400);
+    // Also handle affiliate center changes — when an affiliate is marked/
+    // unmarked as a center in the admin app, the Help Center page needs
+    // to refresh. These come as { affiliate_changed: true } in the payload.
+    if (payload?.affiliate_changed) {
+      await revalidateHelpCenter();
+      return jsonResponse({ success: true }, 200);
+    }
+
+    return jsonResponse({ error: 'Missing proposal_number, setting_key, or affiliate_changed' }, 400);
   } catch {
     return jsonResponse({ error: 'Webhook processing failed' }, 500);
   }

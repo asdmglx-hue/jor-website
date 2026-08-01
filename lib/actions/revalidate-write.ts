@@ -84,3 +84,29 @@ export async function revalidateListings(): Promise<void> {
 export async function revalidateProfile(proposalNumber: number | string): Promise<void> {
   revalidatePath(`/profile/${proposalNumber}`);
 }
+
+/**
+ * Refreshes the Help Center page (/agents). Call this whenever an affiliate
+ * is marked/unmarked as a center in the admin app, or when the
+ * help_center_enabled setting changes — so the page appears/disappears
+ * and its content updates instantly rather than waiting 5 minutes.
+ */
+export async function revalidateHelpCenter(): Promise<void> {
+  revalidatePath('/agents');
+}
+
+/**
+ * Refreshes the blog listing and a specific post page if slug is provided.
+ * Call this when a new blog post is published or updated.
+ */
+export async function revalidateBlog(slug?: string): Promise<void> {
+  revalidatePath('/blog');
+  if (slug) revalidatePath(`/blog/${slug}`);
+}
+
+/**
+ * Refreshes the stories page. Call this when a new story is published.
+ */
+export async function revalidateStories(): Promise<void> {
+  revalidatePath('/stories');
+}

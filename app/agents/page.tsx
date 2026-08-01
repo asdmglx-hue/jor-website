@@ -4,7 +4,11 @@ import AgentsListClient from '@/components/AgentsListClient';
 
 // Affiliates change rarely — same 5-minute cadence as the other
 // mostly-static listing pages on the site.
-export const revalidate = 300;
+// Cached indefinitely — on-demand revalidation via database triggers
+// pings the webhook the moment content changes, so no fixed timer needed.
+// The 5-minute fallback (revalidate = 300) was the old approach; this is
+// strictly better: zero unnecessary regenerations, instant real updates.
+export const revalidate = false;
 
 const SITE = 'https://joronline.com';
 

@@ -8,7 +8,11 @@ import StoryScrollBox from '@/components/StoryScrollBox';
 
 // Same cadence as the homepage — the live family count below doesn't need
 // to be second-fresh, just not stale for long.
-export const revalidate = 300;
+// Cached indefinitely — on-demand revalidation via database triggers
+// pings the webhook the moment content changes, so no fixed timer needed.
+// The 5-minute fallback (revalidate = 300) was the old approach; this is
+// strictly better: zero unnecessary regenerations, instant real updates.
+export const revalidate = false;
 
 const SITE = 'https://joronline.com';
 
