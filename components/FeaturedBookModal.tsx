@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { supabase, isFeaturedSlotAvailable, getQualifyingCategoryEntries, getQualifyingCountries } from '@/lib/supabase';
-import { CITY_GROUPS } from '@/lib/constants';
+import { supabase, isFeaturedSlotAvailable, getQualifyingCategoryEntries, getQualifyingCountries, fetchCities } from '@/lib/supabase';
 // Moved server-side so a successful booking can instantly refresh cached
 // listing pages instead of waiting on the 5-minute timer — see
 // lib/actions/revalidate-write.ts for the full explanation.
@@ -68,11 +67,11 @@ export default function FeaturedBookModal({
     setErrorMsg(null);
     setSubmitting(false);
     setLoadingLocations(true);
-    Promise.all([getQualifyingCategoryEntries(), getQualifyingCountries()])
-      .then(([categoryEntries, countries]) => {
+    Promise.all([getQualifyingCategoryEntries(), getQualifyingCountries(), fetchCities()])
+      .then(([categoryEntries, countries, allCityGroups]) => {
         const qualifyingCitySet = new Set(categoryEntries.filter(e => e.type === 'city').map(e => e.value));
         const groups: Record<string, string[]> = {};
-        for (const [province, cities] of Object.entries(CITY_GROUPS)) {
+        for (const [province, cities] of Object.entries(allCityGroups)) {
           const qualifying = cities.filter(c => qualifyingCitySet.has(c));
           if (qualifying.length > 0) groups[province] = qualifying;
         }

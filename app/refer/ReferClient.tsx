@@ -1,8 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, fetchCities } from '@/lib/supabase';
 import SearchableSelect from '@/components/SearchableSelect';
-import { CITY_GROUPS } from '@/lib/constants';
 
 type Mode = 'home' | 'join' | 'login' | 'forgot' | 'dashboard';
 
@@ -62,6 +61,11 @@ function CnicUploadButton({ label, file, onChange }: { label: string; file: File
 
 export default function ReferClient() {
   const [mode, setMode] = useState<Mode>('home');
+  const [cityGroups, setCityGroups] = useState<Record<string, string[]>>({});
+  useEffect(() => {
+    fetchCities().then(data => { if (Object.keys(data).length > 0) setCityGroups(data); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [commissionRate, setCommissionRate] = useState(500);
 
   // Join / registration form
@@ -292,7 +296,7 @@ export default function ReferClient() {
           </div>
           <div style={{ marginBottom: 14 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>City</label>
-            <SearchableSelect value={joinCity} onChange={v => setJoinCity(v || '')} groups={CITY_GROUPS} placeholder="Select city" />
+            <SearchableSelect value={joinCity} onChange={v => setJoinCity(v || '')} groups={cityGroups} placeholder="Select city" />
           </div>
           <div style={{ marginBottom: 14 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>Support Center Address (optional)</label>

@@ -381,6 +381,28 @@ export async function fetchAllRows<T>(
   return all;
 }
 
+// ── Cities — fetched from the cities table ────────────────────────────────────
+export async function fetchCities(): Promise<Record<string, string[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('cities')
+      .select('name, province, sort_order')
+      .order('sort_order');
+    if (error || !data?.length) return {};
+    const raw: Record<string, string[]> = {};
+    for (const row of data) {
+      const p = row.province as string;
+      raw[p] = raw[p] ?? [];
+      raw[p].push(row.name as string);
+    }
+    const order = ['Punjab','Sindh','KPK','Balochistan','Islamabad','Gilgit Baltistan','Azad Kashmir'];
+    const grouped: Record<string, string[]> = {};
+    for (const p of order) { if (raw[p]) grouped[p] = raw[p]; }
+    for (const [k, v] of Object.entries(raw)) { if (!grouped[k]) grouped[k] = v; }
+    return grouped;
+  } catch { return {}; }
+}
+
 // ── Castes — fetched from the castes table (single source of truth) ──────────
 export async function fetchCastes(): Promise<Record<string, string[]>> {
   try {

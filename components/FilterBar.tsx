@@ -1,6 +1,6 @@
 'use client';
 import { useRef, useEffect, useState } from 'react';
-import { FilterState, fetchOverseasCountries, fetchCastes, fetchOccupations } from '@/lib/supabase';
+import { FilterState, fetchOverseasCountries, fetchCastes, fetchOccupations, fetchCities } from '@/lib/supabase';
 import { CITY_GROUPS } from '@/lib/constants';
 
 // Was a locally hand-typed duplicate of the same list now in
@@ -94,6 +94,7 @@ function FilterInfoIcon({ text }: { text: string }) {
 export default function FilterBar({ filters, onChange, total, showSaved, onSavedToggle, lockedGender }: Props) {
   const [showMore, setShowMore] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [cityGroups, setCityGroups] = useState<Record<string, string[]>>(Object.fromEntries(Object.entries(PAKISTAN_CITIES)));
   const [casteGroups, setCasteGroups] = useState<Record<string, string[]>>(CASTE_GROUPS_FALLBACK);
   const [occupationCategories, setOccupationCategories] = useState<string[]>(OCCUPATION_CATEGORIES_FALLBACK);
 
@@ -101,6 +102,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
   // truth as the user app. Falls back to the hardcoded lists above if the
   // fetch fails or hasn't resolved yet.
   useEffect(() => {
+    fetchCities().then(data => { if (Object.keys(data).length > 0) setCityGroups(data); });
     fetchCastes().then(data => { if (Object.keys(data).length > 0) setCasteGroups(data); });
     fetchOccupations().then(data => {
       if (Object.keys(data).length > 0) {
@@ -233,7 +235,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
       {locationMode === 'pakistan' && (
         <select value={selectedCity} onChange={e => handleCityChange(e.target.value)} style={dropStyle(!!selectedCity)}>
           <option value="">All Cities</option>
-          {Object.entries(PAKISTAN_CITIES).map(([province, cities]) => (
+          {Object.entries(cityGroups).map(([province, cities]) => (
             <optgroup key={province} label={province}>
               {cities.map(c => <option key={c} value={c}>{c}</option>)}
             </optgroup>

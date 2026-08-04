@@ -1,9 +1,9 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { supabase, fetchCastes, fetchOccupations } from '@/lib/supabase';
+import { supabase, fetchCastes, fetchOccupations, fetchCities } from '@/lib/supabase';
 import { trackEvent } from '@/lib/analytics';
-import { CITY_GROUPS, COUNTRY_GROUPS } from '@/lib/constants';
+import { COUNTRY_GROUPS } from '@/lib/constants';
 import PhoneInput from '@/components/PhoneInput';
 import { containsPhoneNumber } from '@/lib/phoneDetector';
 import SearchableSelect from '@/components/SearchableSelect';
@@ -461,10 +461,12 @@ const STEP_KEY  = 'jor_submit_step';
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function SubmitClient() {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [cityGroups, setCityGroups] = useState<Record<string, string[]>>({});
   const [casteGroups, setCasteGroups] = useState<Record<string, string[]>>(CASTE_GROUPS);
   const [professionGroups, setProfessionGroups] = useState<Record<string, string[]>>(PROFESSION_GROUPS);
 
   useEffect(() => {
+    fetchCities().then(data => { if (Object.keys(data).length > 0) setCityGroups(data); });
     fetchCastes().then(data => { if (Object.keys(data).length > 0) setCasteGroups(data); });
     fetchOccupations().then(data => { if (Object.keys(data).length > 0) setProfessionGroups(data); });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1049,7 +1051,7 @@ export default function SubmitClient() {
             </Field>
 
             <Field label="City" required>
-              <SearchableSelect value={form.city} onChange={v => set('city', v)} groups={CITY_GROUPS} placeholder="Select city" hasError={errorField === 'city'} />
+              <SearchableSelect value={form.city} onChange={v => set('city', v)} groups={cityGroups} placeholder="Select city" hasError={errorField === 'city'} />
             </Field>
 
             <Field label="House" required>
