@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { supabase, fetchCastes, fetchOccupations } from '@/lib/supabase';
 import { trackEvent } from '@/lib/analytics';
 import { CITY_GROUPS, COUNTRY_GROUPS } from '@/lib/constants';
 import PhoneInput from '@/components/PhoneInput';
@@ -461,6 +461,14 @@ const STEP_KEY  = 'jor_submit_step';
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function SubmitClient() {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [casteGroups, setCasteGroups] = useState<Record<string, string[]>>(CASTE_GROUPS);
+  const [professionGroups, setProfessionGroups] = useState<Record<string, string[]>>(PROFESSION_GROUPS);
+
+  useEffect(() => {
+    fetchCastes().then(data => { if (Object.keys(data).length > 0) setCasteGroups(data); });
+    fetchOccupations().then(data => { if (Object.keys(data).length > 0) setProfessionGroups(data); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [maxStep, setMaxStep] = useState<number>(1);
   const [form, setForm] = useState<FormData>(EMPTY);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
@@ -1065,7 +1073,7 @@ export default function SubmitClient() {
             )}
 
             <Field label="Caste" required>
-              <SearchableSelect value={form.caste} onChange={v => { set('caste', v); if (v !== 'Other') set('caste_custom', ''); }} groups={CASTE_GROUPS} placeholder="Select caste" hasError={errorField === 'caste'} />
+              <SearchableSelect value={form.caste} onChange={v => { set('caste', v); if (v !== 'Other') set('caste_custom', ''); }} groups={casteGroups} placeholder="Select caste" hasError={errorField === 'caste'} />
             </Field>
             {form.caste === 'Other' && (
               <SubSection>
@@ -1085,7 +1093,7 @@ export default function SubmitClient() {
             </div>
 
             <Field label="Occupation" required>
-              <SearchableSelect value={form.profession} onChange={v => { set('profession', v); if (v !== 'Other') set('profession_custom', ''); }} groups={PROFESSION_GROUPS} placeholder="Select profession" hasError={errorField === 'profession'} />
+              <SearchableSelect value={form.profession} onChange={v => { set('profession', v); if (v !== 'Other') set('profession_custom', ''); }} groups={professionGroups} placeholder="Select profession" hasError={errorField === 'profession'} />
             </Field>
             {form.profession === 'Other' && (
               <SubSection>
@@ -1177,7 +1185,7 @@ export default function SubmitClient() {
               </Field>
             </div>
             <Field label="Father's Occupation">
-              <SearchableSelect value={form.father_occupation} onChange={v => { set('father_occupation', v); if (v !== 'Other') set('father_occupation_custom', ''); }} groups={PROFESSION_GROUPS} placeholder="Select" />
+              <SearchableSelect value={form.father_occupation} onChange={v => { set('father_occupation', v); if (v !== 'Other') set('father_occupation_custom', ''); }} groups={professionGroups} placeholder="Select" />
             </Field>
             {form.father_occupation === 'Other' && (
               <SubSection>
@@ -1187,7 +1195,7 @@ export default function SubmitClient() {
               </SubSection>
             )}
             <Field label="Mother's Occupation">
-              <SearchableSelect value={form.mother_occupation} onChange={v => { set('mother_occupation', v); if (v !== 'Other') set('mother_occupation_custom', ''); }} groups={PROFESSION_GROUPS} placeholder="Select" />
+              <SearchableSelect value={form.mother_occupation} onChange={v => { set('mother_occupation', v); if (v !== 'Other') set('mother_occupation_custom', ''); }} groups={professionGroups} placeholder="Select" />
             </Field>
             {form.mother_occupation === 'Other' && (
               <SubSection>

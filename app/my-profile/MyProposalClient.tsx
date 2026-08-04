@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSession, clearSession, getSavedIds } from '@/lib/auth';
-import { fetchProposalById, heightDisplay, Proposal, isSubscriptionActive, supabase, PROFILE_DETAIL_COLS, phoneDisplay } from '@/lib/supabase';
+import { fetchProposalById, heightDisplay, Proposal, isSubscriptionActive, supabase, PROFILE_DETAIL_COLS, phoneDisplay, fetchCastes, fetchOccupations } from '@/lib/supabase';
 import { containsPhoneNumber, PUBLIC_PHONE_CHECK_FIELDS, PHONE_CHECK_ERROR } from '@/lib/phoneDetector';
 import { buildProposalShareText } from '@/lib/shareText';
 import { addWatermark } from '@/lib/watermarkImage';
@@ -205,9 +205,30 @@ function SearchableSelect({ value, options, onChange, placeholder = '— Select 
 export default function MyProposalClient() {
   const router = useRouter();
   const [user, setUser] = useState<Proposal | null>(null);
+  const [casteGroups, setCasteGroups] = useState<Record<string, string[]>>(CASTE_GROUPS);
+  const [casteList, setCasteList] = useState<string[]>(CASTE_LIST);
+  const [professionGroups, setProfessionGroups] = useState<Record<string, string[]>>(PROFESSION_GROUPS);
+  const [professionList, setProfessionList] = useState<string[]>(PROFESSION_LIST);
   const [tab, setTab] = useState<Tab>('profile');
   const [savedProposals, setSavedProposals] = useState<Proposal[]>([]);
   const [savedIds, setSavedIds] = useState<string[]>([]);
+
+  // Fetch castes and occupations from DB — same source as the user app and filter
+  useEffect(() => {
+    fetchCastes().then(data => {
+      if (Object.keys(data).length > 0) {
+        setCasteGroups(data);
+        setCasteList(Object.values(data).flat());
+      }
+    });
+    fetchOccupations().then(data => {
+      if (Object.keys(data).length > 0) {
+        setProfessionGroups(data);
+        setProfessionList(['Other', ...Object.values(data).flat()]);
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [loadingSaved, setLoadingSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [featuredBoosts, setFeaturedBoosts] = useState<{ id: string; city: string; scheduled_date: string; is_used: boolean; created_at?: string }[]>([]);
@@ -1176,7 +1197,7 @@ export default function MyProposalClient() {
                   </>}
                   <Field label="Open to Polygamy?" fieldKey="open_to_polygamy" options={['Yes','No']}
                     info="Polygamy means marrying more than one woman (for men) or marrying a man who already has a wife (for women)." />
-                  <Field label="Caste" fieldKey="caste" options={CASTE_LIST} grouped={CASTE_GROUPS} />
+                  <Field label="Caste" fieldKey="caste" options={casteList} grouped={casteGroups} />
                   <Field label="Sect" fieldKey="sect" options={['Sunni','Shia','Barelvi','Deobandi','Ahl-e-Hadith','Other']} />
                   <Field label="Religion Practice Level" fieldKey="practice_level" options={['High','Moderate','Low']} />
                   {user.gender === 'Female' ? <Field label="Hijab" fieldKey="hijab" options={['Yes','No','Sometimes']} /> : <Field label="Beard" fieldKey="beard" options={['Yes','No','Trimmed']} />}
@@ -1189,8 +1210,8 @@ export default function MyProposalClient() {
                   <Field label="Family Type" fieldKey="family_type" options={['Joint family','Separated Family']} />
                   <BoolField label="Father Alive" fieldKey="father_alive" />
                   <BoolField label="Mother Alive" fieldKey="mother_alive" />
-                  <Field label="Father Occupation" fieldKey="father_occupation" options={PROFESSION_LIST} grouped={PROFESSION_GROUPS} />
-                  <Field label="Mother Occupation" fieldKey="mother_occupation" options={PROFESSION_LIST} grouped={PROFESSION_GROUPS} />
+                  <Field label="Father Occupation" fieldKey="father_occupation" options={professionList} grouped={professionGroups} />
+                  <Field label="Mother Occupation" fieldKey="mother_occupation" options={professionList} grouped={professionGroups} />
                   <BoolField label="Has Siblings" fieldKey="has_siblings" />
                   {(user.has_siblings === true || user.has_siblings as unknown === 'true') && <>
                     <Field label="Brothers" fieldKey="brothers" type="number" />
@@ -1236,7 +1257,7 @@ export default function MyProposalClient() {
                     <Field label="Institute 3" fieldKey="institute_3" />
                     <div style={{ gridColumn: '1 / -1' }}><DegreeCertField label="Degree 3 Certificate" urlKey="degree_certificate_3_url" /></div>
                   </>}
-                  <Field label="Occupation" fieldKey="profession" options={PROFESSION_LIST} grouped={PROFESSION_GROUPS} />
+                  <Field label="Occupation" fieldKey="profession" options={professionList} grouped={professionGroups} />
                   <Field label="Employment Type" fieldKey="employment_type" options={['Full-time','Part-time','Self-employed','Business','Freelance','Not employed']} />
                   <Field label="Monthly Income" fieldKey="monthly_income" options={['Below 30k','30k-60k','60k-100k','100k-150k','150k-200k','200k-300k','Above 300k']} />
                 </>))}

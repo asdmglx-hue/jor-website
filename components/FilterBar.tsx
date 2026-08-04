@@ -1,6 +1,6 @@
 'use client';
 import { useRef, useEffect, useState } from 'react';
-import { FilterState, fetchOverseasCountries } from '@/lib/supabase';
+import { FilterState, fetchOverseasCountries, fetchCastes, fetchOccupations } from '@/lib/supabase';
 import { CITY_GROUPS } from '@/lib/constants';
 
 // Was a locally hand-typed duplicate of the same list now in
@@ -11,7 +11,8 @@ const PAKISTAN_CITIES: Record<string, string[]> = Object.fromEntries(
   Object.entries(CITY_GROUPS).filter(([province]) => province !== 'Other')
 );
 
-const CASTE_GROUPS: Record<string, string[]> = {
+// ── Hardcoded fallbacks (used until DB fetch resolves on first load) ─────────
+const CASTE_GROUPS_FALLBACK: Record<string, string[]> = {
   'Punjab': ['Jatt','Rajput','Arain','Gujjar','Sheikh','Syed','Mughal','Malik','Awan','Bhatti','Khokhar','Dogar','Tiwana','Kamboh','Ansari','Qureshi','Kayani','Chohan','Janjua','Randhawa','Rana','Warraich','Ghumman','Gondal','Toor','Satti','Bajwa','Chattha','Hanjra','Wattoo','Sipra','Siyal','Gakhar','Ranjha'],
   'Sindh': ['Sindhi Syed','Soomro','Junejo','Memon','Lohana','Khuhro','Chandio','Brohi','Abbasi','Jatoi','Palijo'],
   'KPK / Pashtun': ['Afridi','Yousafzai','Khattak','Shinwari','Bangash','Mohmand','Wazir','Mehsud','Tareen','Pathan','Pashtun','Khan','Niazi','Kakazai','Tanoli'],
@@ -20,7 +21,11 @@ const CASTE_GROUPS: Record<string, string[]> = {
   'Urdu-speaking / Muhajir': ['Siddiqui','Farooqui','Usmani','Rizvi','Zaidi','Hashmi','Rehmani','Paracha','Alvi','Pirzada'],
   'General': ['Ghauri','Mirza','Baig','Chughtai','Qazi','Sherwani','Other'],
 };
-const CASTES = Object.values(CASTE_GROUPS).flat();
+const OCCUPATION_CATEGORIES_FALLBACK = [
+  'Healthcare','Engineering','IT & Tech','Education','Finance & Law',
+  'Business & Management','Government & Forces','Arts & Media',
+  'Skilled Trades','Services & Other','Other',
+];
 const SECTS = ['Sunni','Shia','Barelvi','Deobandi','Ahl-e-Hadith','Other'];
 const EDUCATIONS = ['Matric','FSc/FA','Diploma',"Bachelor's","Master's",'MPhil','PhD','Other'];
 const MARITAL_MALE   = ['Never married','Married','Divorced','Widowed'];
@@ -38,12 +43,6 @@ const HEIGHT_OPTIONS: { inches: number; label: string }[] = Array.from({ length:
   const inches = 48 + i;
   return { inches, label: `${Math.floor(inches / 12)}'${inches % 12}"` };
 });
-
-const OCCUPATION_CATEGORIES = [
-  'Healthcare','Engineering','IT & Tech','Education','Finance & Law',
-  'Business & Management','Government & Forces','Arts & Media',
-  'Skilled Trades','Services & Other','Other',
-];
 
 type Props = { filters: FilterState; onChange: (f: FilterState) => void; total: number; showSaved?: boolean; onSavedToggle?: () => void; lockedGender?: 'Male' | 'Female' | null; };
 
@@ -95,6 +94,23 @@ function FilterInfoIcon({ text }: { text: string }) {
 export default function FilterBar({ filters, onChange, total, showSaved, onSavedToggle, lockedGender }: Props) {
   const [showMore, setShowMore] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [casteGroups, setCasteGroups] = useState<Record<string, string[]>>(CASTE_GROUPS_FALLBACK);
+  const [occupationCategories, setOccupationCategories] = useState<string[]>(OCCUPATION_CATEGORIES_FALLBACK);
+
+  // Fetch castes and occupations from DB on mount — same single source of
+  // truth as the user app. Falls back to the hardcoded lists above if the
+  // fetch fails or hasn't resolved yet.
+  useEffect(() => {
+    fetchCastes().then(data => { if (Object.keys(data).length > 0) setCasteGroups(data); });
+    fetchOccupations().then(data => {
+      if (Object.keys(data).length > 0) {
+        const cats = Object.keys(data).filter(k => k !== 'Other');
+        cats.push('Other');
+        setOccupationCategories(cats);
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 'overseas' | 'pakistan' | ''
   const [locationMode, setLocationMode] = useState<string>(() => filters.overseas ? 'overseas' : filters.city ? 'pakistan' : '');
@@ -232,7 +248,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
       )}
       <select value={filters.caste || ''} onChange={e => set('caste', e.target.value)} style={dropStyle(!!filters.caste)}>
         <option value="">Caste</option>
-        {Object.entries(CASTE_GROUPS).flatMap(([group, castes]) =>
+        {Object.entries(casteGroups).flatMap(([group, castes]) =>
           castes.map(c => <option key={`${group}-${c}`} value={c}>{c}</option>)
         )}
       </select>
@@ -261,7 +277,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
         <option value="Own House">Own House</option>
         <option value="Rented House">Rented House</option>
       </select>
-      <Select label="Occupation" value={filters.profession} options={OCCUPATION_CATEGORIES} onChange={v => set('profession', v)} />
+      <Select label="Occupation" value={filters.profession} options={occupationCategories} onChange={v => set('profession', v)} />
       <Select label="Education" value={filters.education} options={EDUCATIONS} onChange={v => set('education', v)} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '2 1 220px' }}>
         <select value={filters.minHeight || ''} onChange={e => onChange({ ...filters, minHeight: e.target.value ? +e.target.value : undefined })}

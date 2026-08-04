@@ -41,6 +41,7 @@ export type Proposal = {
   institute_3?: string;
   degree_certificate_3_url?: string;
   profession: string;
+  profession_category?: string;
   employment_type?: string;
   monthly_income?: string;
   salary_start?: number;
@@ -378,6 +379,52 @@ export async function fetchAllRows<T>(
     from += BATCH;
   }
   return all;
+}
+
+// ── Castes — fetched from the castes table (single source of truth) ──────────
+export async function fetchCastes(): Promise<Record<string, string[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('castes')
+      .select('name, group_name, sort_order, group_order')
+      .order('group_order')
+      .order('sort_order');
+    if (error || !data?.length) return {};
+    const raw: Record<string, string[]> = {};
+    for (const row of data) {
+      const g = row.group_name as string;
+      raw[g] = raw[g] ?? [];
+      raw[g].push(row.name as string);
+    }
+    // Fixed group order
+    const order = ['Punjab','Sindh','KPK / Pashtun','Kashmir & Northern','Balochistan','Urdu-speaking / Muhajir','General'];
+    const grouped: Record<string, string[]> = {};
+    for (const g of order) { if (raw[g]) grouped[g] = raw[g]; }
+    for (const [k, v] of Object.entries(raw)) { if (!grouped[k]) grouped[k] = v; }
+    return grouped;
+  } catch { return {}; }
+}
+
+// ── Occupations — fetched from the occupations table ─────────────────────────
+export async function fetchOccupations(): Promise<Record<string, string[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('occupations')
+      .select('name, category, sort_order')
+      .order('sort_order');
+    if (error || !data?.length) return {};
+    const raw: Record<string, string[]> = {};
+    for (const row of data) {
+      const c = row.category as string;
+      raw[c] = raw[c] ?? [];
+      raw[c].push(row.name as string);
+    }
+    const order = ['Healthcare','Engineering','IT & Tech','Education','Finance & Law','Business & Management','Government & Forces','Arts & Media','Skilled Trades','Services & Other','Other'];
+    const grouped: Record<string, string[]> = {};
+    for (const g of order) { if (raw[g]) grouped[g] = raw[g]; }
+    for (const [k, v] of Object.entries(raw)) { if (!grouped[k]) grouped[k] = v; }
+    return grouped;
+  } catch { return {}; }
 }
 
 export async function fetchOverseasCountries(): Promise<string[]> {
