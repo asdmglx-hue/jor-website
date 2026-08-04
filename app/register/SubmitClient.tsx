@@ -16,28 +16,40 @@ import { addWatermark } from '@/lib/watermarkImage';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const CASTE_GROUPS: Record<string, string[]> = {
-  'Other': ['Other'],
-  'Punjab': ['Jatt','Rajput','Arain','Gujjar','Sheikh','Syed','Mughal','Malik','Awan','Bhatti','Khokhar','Dogar','Tiwana','Kamboh','Ansari','Qureshi'],
+  'Punjab': ['Jatt','Rajput','Arain','Gujjar','Sheikh','Syed','Mughal','Malik','Awan','Bhatti','Khokhar','Dogar','Tiwana','Kamboh','Ansari','Qureshi','Kayani','Chohan','Janjua','Randhawa','Rana','Warraich','Ghumman','Gondal','Toor','Satti','Bajwa','Chattha','Hanjra','Wattoo','Sipra','Siyal','Gakhar','Ranjha'],
   'Sindh': ['Sindhi Syed','Soomro','Junejo','Memon','Lohana','Khuhro','Chandio','Brohi','Abbasi','Jatoi','Palijo'],
-  'Balochistan': ['Bugti','Marri','Mengal','Rind','Raisani'],
-  'KPK / Pashtun': ['Afridi','Yousafzai','Khattak','Shinwari','Bangash','Mohmand','Wazir','Mehsud','Tareen'],
-  'Kashmir & Northern': ['Butt','Dar','Lone','Mir','Chaudhry','Raja'],
-  'Urdu-speaking / Muhajir': ['Siddiqui','Farooqui','Usmani','Rizvi','Zaidi','Memon'],
+  'KPK / Pashtun': ['Afridi','Yousafzai','Khattak','Shinwari','Bangash','Mohmand','Wazir','Mehsud','Tareen','Pathan','Pashtun','Khan','Niazi','Kakazai','Tanoli'],
+  'Kashmir & Northern': ['Butt','Dar','Lone','Mir','Chaudhry','Raja','Kashmiri','Khawaja'],
+  'Balochistan': ['Bugti','Marri','Mengal','Rind','Raisani','Lashari','Baloch'],
+  'Urdu-speaking / Muhajir': ['Siddiqui','Farooqui','Usmani','Rizvi','Zaidi','Hashmi','Rehmani','Paracha','Alvi','Pirzada'],
+  'General': ['Ghauri','Mirza','Baig','Chughtai','Qazi','Sherwani','Other'],
 };
 
 const PROFESSION_GROUPS: Record<string, string[]> = {
+  'Healthcare': ['Doctor','General Physician','Dentist','Dermatologist','Pediatrician','Orthopedic Surgeon','Surgeon','ENT Specialist','Psychiatrist','Psychologist','Radiologist','Pathologist','Nurse','Nutritionist','Physiotherapist','Dental Assistant','Lab Technician','Pharmacist','Ultrasound Technician','Medical Representative','Optician','Microbiologist','Biochemist','Biomedical Engineer','Genetic Engineer','Chemist','X-Ray Technician','Laboratory Scientist','Other'],
+  'Engineering': ['Software Engineer','Civil Engineer','Mechanical Engineer','Electrical Engineer','Electronics Engineer','Chemical Engineer','Aeronautical Engineer','Agricultural Engineer','Automobile Engineer','Computer Engineer','Telecom Engineer','Textile Engineer','Industrial Engineer','Flight Engineer','Robotics Engineer','Hardware Engineer','Network Engineer','Cloud Engineer','Food Technologist','Quantity Surveyor','Architect','Other'],
+  'IT & Tech': ['Developer','Frontend Developer','Java Developer','Web Developer','Web Designer','UI Designer','UI/UX Designer','Graphic Designer','Programmer','Data Analyst','Data Scientist','Cyber Security Expert','Information Security Analyst','IT Administrator','IT Support Specialist','Network Administrator','SEO Expert','Digital Marketer','Social Media Manager','Blogger','Content Creator','Copywriter','Freelancer','YouTuber','QA Engineer','Drone Operator','Media Buyer','Other'],
+  'Education': ['Teacher','School Teacher','Lecturer','Professor','University Professor','Principal','Headmaster','Home Tutor','Coach','Trainer','Qari','Imam','Research Scientist','Research Assistant','Other'],
+  'Finance & Law': ['Accountant','Chartered Accountant','Financial Advisor','Investment Banker','Tax Consultant','Insurance Agent','Economist','Business Analyst','Lawyer','Advocate','Judge','CSS Officer','Other'],
+  'Business & Management': ['Business Owner','General Manager','Operation Manager','Product Manager','Project Manager','HR Manager','Human Resource Officer','Marketing Manager','Sales Executive','Bank Manager','Hotel Manager','Construction Manager','Logistic Manager','Warehouse Manager','Import Export Agent','Property Dealer','Real Estate Agent','Trader','Consultant','Office Assistant','Clerk','Other'],
+  'Government & Forces': ['Army Officer','Police Officer','Traffic Police Officer','Government Officer','Administrative Officer','Agriculture Officer','Field Officer','Railway Officer','Naib Qasid','Security Guard','Firefighter','Politician','Other'],
+  'Arts & Media': ['Photographer','Videographer','Video Editor','Cameraman','Actor','Fashion Model','Model','Television Host','Journalist','Editor','Multimedia Specialist','Animator','Sound Engineer','Music Teacher','Influencer','Artist','Other'],
+  'Skilled Trades': ['Electrician','Plumber','Carpenter','Mason','Brick Mason','Welder','Painter','Auto Electrician','Mobile Repair Technician','Solar Technician','Technician','Lab Technician','Machine Operator','Tailor','Embroidery Worker','Baker','Chef','Barber','Beautician','Builder','Other'],
+  'Services & Other': ['Driver','Truck Driver','Rider','Delivery Rider','Courier Rider','Food Panda Rider','Waiter','Receptionist','Cashier','Shopkeeper','JazzCash Agent','Call Center Agent','Dispatcher','Tour Guide','Social Worker','Veterinarian','Farmer','Livestock Farmer','Fisherman','Florist','Decorator','Interior Designer','Event Manager','Sports Coach','Athlete','Stenographer','Librarian','Interpreter','Translator','Virtual Assistant','Janitor','Kitchen Helper','Kitchen Supervisor','Safety Officer','Surveyor','Public Relations Officer','Zoologist','Scientist','Freelance Writer','Writer','Fashion Designer','Textile Designer','Makeup Artist','Designer','Businessman','Housewife','Gardener','Butcher','Cobbler','Pilot','Airline Pilot','Air Hostess','Other'],
   'Other': ['Other'],
-  'Healthcare': ['Doctor','General Physician','Dentist','Dermatologist','Pediatrician','Orthopedic Surgeon','Surgeon','ENT Specialist','Psychiatrist','Psychologist','Radiologist','Pathologist','Nurse','Nutritionist','Physiotherapist','Lab Technician','Pharmacist'],
-  'Engineering': ['Software Engineer','Civil Engineer','Mechanical Engineer','Electrical Engineer','Electronics Engineer','Chemical Engineer','Aeronautical Engineer','Computer Engineer','Telecom Engineer','Textile Engineer'],
-  'IT & Tech': ['Developer','Frontend Developer','Web Developer','Web Designer','UI/UX Designer','Graphic Designer','Programmer','Data Analyst','Data Scientist','Cyber Security Expert','IT Administrator','Network Engineer','Digital Marketer','Freelancer'],
-  'Education': ['Teacher','Lecturer','Professor','Principal','Home Tutor','Coach','Trainer','Qari'],
-  'Finance & Law': ['Accountant','Chartered Accountant','Financial Advisor','Investment Banker','Tax Consultant','Lawyer','Advocate','Judge','CSS Officer'],
-  'Business & Management': ['Business Owner','General Manager','HR Manager','Marketing Manager','Sales Executive','Bank Manager','Real Estate Agent','Trader','Consultant','Property Dealer'],
-  'Government & Forces': ['Army Officer','Police Officer','Government Officer','Administrative Officer','Field Officer'],
-  'Arts & Media': ['Photographer','Videographer','Video Editor','Journalist','Animator'],
-  'Skilled Trades': ['Electrician','Plumber','Carpenter','Welder','Painter','Tailor','Chef','Barber','Beautician'],
-  'Services & Other': ['Driver','Shopkeeper','Call Center Agent','Social Worker','Farmer','Interior Designer','Event Manager','Businessman','Housewife','Student'],
 };
+
+// Returns which profession_category a given job title belongs to.
+// Used to auto-populate profession_category at registration without an
+// extra manual step — same category mapping the filter uses.
+function getProfessionCategory(profession: string): string {
+  if (!profession || profession === 'Other') return 'Other';
+  for (const [cat, profs] of Object.entries(PROFESSION_GROUPS)) {
+    if (cat === 'Other') continue;
+    if (profs.includes(profession)) return cat;
+  }
+  return 'Other';
+}
 
 // CITY_GROUPS moved to lib/constants.ts (shared single source with
 // FeaturedBookModal.tsx — see that file's comment for why).
@@ -769,6 +781,7 @@ export default function SubmitClient() {
       caste: actualCaste,
       sect: form.sect,
       profession: actualProfession,
+      profession_category: getProfessionCategory(form.profession === 'Other' ? 'Other' : form.profession),
       marital_status: form.marital_status,
       marriage_number: form.marriage_number || undefined,
       boys: form.boys ? +form.boys : undefined,

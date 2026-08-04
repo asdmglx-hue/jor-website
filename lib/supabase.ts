@@ -118,12 +118,11 @@ export type FilterState = {
   minAge?: number;
   maxAge?: number;
   education?: string;
-  profession?: string;
+  profession?: string;       // stores a profession_category value (e.g. "Healthcare")
   maritalStatus?: string;
   homeType?: string;
   minHeight?: number;
   maxHeight?: number;
-  openToPolygamy?: string;
   search?: string;
   // "New / 1 Month / 2 Months / 3+ Months" time filter — posted_at bounds,
   // ISO strings. Mirrors the mobile app's chip-based date filter exactly
@@ -133,19 +132,6 @@ export type FilterState = {
   postedBefore?: string;
 };
 
-
-const PROFESSION_GROUPS: Record<string, string[]> = {
-  'Healthcare': ['Doctor','General Physician','Dentist','Dermatologist','Pediatrician','Orthopedic Surgeon','Surgeon','ENT Specialist','Psychiatrist','Psychologist','Radiologist','Pathologist','Nurse','Nutritionist','Physiotherapist','Dental Assistant','Lab Technician','Pharmacist','Ultrasound Technician','Medical Representative','Optician','Microbiologist','Biochemist','Biomedical Engineer','Genetic Engineer'],
-  'Engineering': ['Software Engineer','Civil Engineer','Mechanical Engineer','Electrical Engineer','Electronics Engineer','Chemical Engineer','Aeronautical Engineer','Agricultural Engineer','Automobile Engineer','Computer Engineer','Telecom Engineer','Textile Engineer','Industrial Engineer','Flight Engineer','Robotics Engineer','Hardware Engineer','Network Engineer','Cloud Engineer','Food Technologist','Quantity Surveyor'],
-  'IT & Tech': ['Developer','Frontend Developer','Java Developer','Web Developer','Web Designer','UI Designer','UI/UX Designer','Graphic Designer','Programmer','Data Analyst','Data Scientist','Cyber Security Expert','Information Security Analyst','IT Administrator','IT Support Specialist','Network Administrator','SEO Expert','Digital Marketer','Social Media Manager','Blogger','Content Creator','Copywriter','Freelancer','YouTuber','QA Engineer','Drone Operator'],
-  'Education': ['Teacher','School Teacher','Lecturer','Professor','University Professor','Principal','Headmaster','Home Tutor','Coach','Trainer','Qari','Research Scientist','Research Assistant'],
-  'Finance & Law': ['Accountant','Chartered Accountant','Financial Advisor','Investment Banker','Tax Consultant','Insurance Agent','Economist','Business Analyst','Lawyer','Advocate','Judge','CSS Officer'],
-  'Business & Management': ['Business Owner','General Manager','Operation Manager','Product Manager','Project Manager','HR Manager','Human Resource Officer','Marketing Manager','Sales Executive','Bank Manager','Hotel Manager','Construction Manager','Logistic Manager','Warehouse Manager','Import Export Agent','Property Dealer','Real Estate Agent','Trader','Consultant'],
-  'Government & Forces': ['Army Officer','Police Officer','Traffic Police Officer','Government Officer','Administrative Officer','Agriculture Officer','Field Officer','Railway Officer','Naib Qasid','Security Guard','Firefighter'],
-  'Arts & Media': ['Photographer','Videographer','Video Editor','Cameraman','Actor','Fashion Model','Model','Television Host','Journalist','Editor','Multimedia Specialist','Animator','Sound Engineer','Music Teacher','Influencer'],
-  'Skilled Trades': ['Electrician','Plumber','Carpenter','Mason','Brick Mason','Welder','Painter','Auto Electrician','Mobile Repair Technician','Solar Technician','Technician','Machine Operator','Tailor','Embroidery Worker','Baker','Chef','Barber','Beautician'],
-  'Services & Other': ['Driver','Truck Driver','Rider','Delivery Rider','Waiter','Receptionist','Cashier','Shopkeeper','Call Center Agent','Social Worker','Veterinarian','Farmer','Livestock Farmer','Interior Designer','Event Manager','Sports Coach','Athlete','Virtual Assistant','Scientist','Fashion Designer','Makeup Artist','Businessman','Housewife','Other'],
-};
 
 // Columns needed to render a ProposalCard (incl. share text fields)
 // Columns for the proposal-card / listing views specifically — kept to
@@ -247,14 +233,10 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
   if (filters.minAge) query = query.gte('age', filters.minAge);
   if (filters.maxAge) query = query.lte('age', filters.maxAge);
   if (filters.search) query = query.or(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
-  if (filters.profession) {
-    const profs = PROFESSION_GROUPS[filters.profession];
-    query = profs ? query.in('profession', profs) : query.eq('profession', filters.profession);
-  }
+  if (filters.profession) query = query.eq('profession_category', filters.profession);
   if (filters.homeType) query = query.eq('home_type', filters.homeType);
   if (filters.minHeight) query = query.gte('height_inches', filters.minHeight);
   if (filters.maxHeight) query = query.lte('height_inches', filters.maxHeight);
-  if (filters.openToPolygamy) query = query.eq('open_to_polygamy', filters.openToPolygamy);
 
   query = query.order('posted_at', { ascending: false }).limit(max);
 
@@ -348,18 +330,10 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   if (filters.minAge) query = query.gte('age', filters.minAge);
   if (filters.maxAge) query = query.lte('age', filters.maxAge);
   if (filters.search) query = query.or(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
-  if (filters.profession) {
-    const profs = PROFESSION_GROUPS[filters.profession];
-    if (profs) {
-      query = query.in('profession', profs);
-    } else {
-      query = query.eq('profession', filters.profession);
-    }
-  }
+  if (filters.profession) query = query.eq('profession_category', filters.profession);
   if (filters.homeType) query = query.eq('home_type', filters.homeType);
   if (filters.minHeight) query = query.gte('height_inches', filters.minHeight);
   if (filters.maxHeight) query = query.lte('height_inches', filters.maxHeight);
-  if (filters.openToPolygamy) query = query.eq('open_to_polygamy', filters.openToPolygamy);
   if (filters.postedAfter) query = query.gte('posted_at', filters.postedAfter);
   if (filters.postedBefore) query = query.lte('posted_at', filters.postedBefore);
 

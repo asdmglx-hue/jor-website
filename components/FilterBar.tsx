@@ -12,13 +12,13 @@ const PAKISTAN_CITIES: Record<string, string[]> = Object.fromEntries(
 );
 
 const CASTE_GROUPS: Record<string, string[]> = {
-  'Other': ['Other'],
-  'Punjab': ['Jatt / Jat','Rajput','Arain','Gujjar','Sheikh','Syed','Mughal','Malik','Awan','Bhatti','Khokhar','Dogar','Tiwana','Kamboh','Ansari','Qureshi'],
+  'Punjab': ['Jatt','Rajput','Arain','Gujjar','Sheikh','Syed','Mughal','Malik','Awan','Bhatti','Khokhar','Dogar','Tiwana','Kamboh','Ansari','Qureshi','Kayani','Chohan','Janjua','Randhawa','Rana','Warraich','Ghumman','Gondal','Toor','Satti','Bajwa','Chattha','Hanjra','Wattoo','Sipra','Siyal','Gakhar','Ranjha'],
   'Sindh': ['Sindhi Syed','Soomro','Junejo','Memon','Lohana','Khuhro','Chandio','Brohi','Abbasi','Jatoi','Palijo'],
-  'Balochistan': ['Bugti','Marri','Mengal','Rind','Raisani'],
-  'KPK / Pashtun': ['Afridi','Yousafzai','Khattak','Shinwari','Bangash','Mohmand','Wazir','Mehsud','Tareen'],
-  'Kashmir & Northern': ['Butt','Dar','Lone','Mir','Chaudhry','Raja'],
-  'Urdu-speaking / Muhajir': ['Siddiqui','Farooqui','Usmani','Rizvi','Zaidi','Memon'],
+  'KPK / Pashtun': ['Afridi','Yousafzai','Khattak','Shinwari','Bangash','Mohmand','Wazir','Mehsud','Tareen','Pathan','Pashtun','Khan','Niazi','Kakazai','Tanoli'],
+  'Kashmir & Northern': ['Butt','Dar','Lone','Mir','Chaudhry','Raja','Kashmiri','Khawaja'],
+  'Balochistan': ['Bugti','Marri','Mengal','Rind','Raisani','Lashari','Baloch'],
+  'Urdu-speaking / Muhajir': ['Siddiqui','Farooqui','Usmani','Rizvi','Zaidi','Hashmi','Rehmani','Paracha','Alvi','Pirzada'],
+  'General': ['Ghauri','Mirza','Baig','Chughtai','Qazi','Sherwani','Other'],
 };
 const CASTES = Object.values(CASTE_GROUPS).flat();
 const SECTS = ['Sunni','Shia','Barelvi','Deobandi','Ahl-e-Hadith','Other'];
@@ -39,79 +39,11 @@ const HEIGHT_OPTIONS: { inches: number; label: string }[] = Array.from({ length:
   return { inches, label: `${Math.floor(inches / 12)}'${inches % 12}"` };
 });
 
-const PROFESSIONS: Record<string, string[]> = {
-  'Healthcare': ['Doctor','General Physician','Dentist','Dermatologist','Pediatrician','Orthopedic Surgeon','Surgeon','ENT Specialist','Psychiatrist','Psychologist','Radiologist','Pathologist','Nurse','Nutritionist','Physiotherapist','Dental Assistant','Lab Technician','Pharmacist','Ultrasound Technician','Medical Representative','Optician','Microbiologist','Biochemist','Biomedical Engineer','Genetic Engineer'],
-  'Engineering': ['Software Engineer','Civil Engineer','Mechanical Engineer','Electrical Engineer','Electronics Engineer','Chemical Engineer','Aeronautical Engineer','Agricultural Engineer','Automobile Engineer','Computer Engineer','Telecom Engineer','Textile Engineer','Industrial Engineer','Flight Engineer','Robotics Engineer','Hardware Engineer','Network Engineer','Cloud Engineer','Food Technologist','Quantity Surveyor'],
-  'IT & Tech': ['Developer','Frontend Developer','Java Developer','Web Developer','Web Designer','UI Designer','UI/UX Designer','Graphic Designer','Programmer','Data Analyst','Data Scientist','Cyber Security Expert','Information Security Analyst','IT Administrator','IT Support Specialist','Network Administrator','SEO Expert','Digital Marketer','Social Media Manager','Blogger','Content Creator','Copywriter','Freelancer','YouTuber','QA Engineer','Drone Operator'],
-  'Education': ['Teacher','School Teacher','Lecturer','Professor','University Professor','Principal','Headmaster','Home Tutor','Coach','Trainer','Qari','Research Scientist','Research Assistant'],
-  'Finance & Law': ['Accountant','Chartered Accountant','Financial Advisor','Investment Banker','Tax Consultant','Insurance Agent','Economist','Business Analyst','Lawyer','Advocate','Judge','CSS Officer'],
-  'Business & Management': ['Business Owner','General Manager','Operation Manager','Product Manager','Project Manager','HR Manager','Human Resource Officer','Marketing Manager','Sales Executive','Bank Manager','Hotel Manager','Construction Manager','Logistic Manager','Warehouse Manager','Import Export Agent','Property Dealer','Real Estate Agent','Trader','Consultant'],
-  'Government & Forces': ['Army Officer','Police Officer','Traffic Police Officer','Government Officer','Administrative Officer','Agriculture Officer','Field Officer','Railway Officer','Naib Qasid','Security Guard','Firefighter'],
-  'Arts & Media': ['Photographer','Videographer','Video Editor','Cameraman','Actor','Fashion Model','Model','Television Host','Journalist','Editor','Multimedia Specialist','Animator','Sound Engineer','Music Teacher','Influencer'],
-  'Skilled Trades': ['Electrician','Plumber','Carpenter','Mason','Brick Mason','Welder','Painter','Auto Electrician','Mobile Repair Technician','Solar Technician','Technician','Machine Operator','Tailor','Embroidery Worker','Baker','Chef','Barber','Beautician'],
-  'Services & Other': ['Driver','Truck Driver','Rider','Delivery Rider','Waiter','Receptionist','Cashier','Shopkeeper','Call Center Agent','Social Worker','Veterinarian','Farmer','Livestock Farmer','Interior Designer','Event Manager','Sports Coach','Athlete','Virtual Assistant','Scientist','Fashion Designer','Makeup Artist','Businessman','Housewife','Other'],
-};
-
-
-function ProfessionSelect({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
-  const categories = Object.keys(PROFESSIONS);
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <select
-        value={value || ''}
-        onChange={e => {
-          if (e.target.value === '') { onChange(''); return; }
-          onChange(e.target.value);
-          setOpen(false);
-        }}
-        onClick={e => { e.preventDefault(); setOpen(!open); }}
-        style={{
-          padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5',
-          background: value ? '#EEEDFE' : '#fff', color: value ? '#534AB7' : '#6B6893',
-          fontSize: 13, fontWeight: value ? 700 : 500, cursor: 'pointer', outline: 'none', minWidth: 100,
-        }}
-      >
-        <option value="">{value || 'Occupation'}</option>
-      </select>
-      {open && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, marginTop: 4,
-          background: '#fff', border: '1px solid #E8E6F5', borderRadius: 10,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)', zIndex: 200,
-          minWidth: 180, overflow: 'hidden',
-        }}>
-          <div onClick={() => { onChange(''); setOpen(false); }}
-            style={{ padding: '9px 14px', fontSize: 13, cursor: 'pointer', color: '#6B6893',
-              borderBottom: '1px solid #F5F5F5' }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F8F7FF'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}>
-            All Professions
-          </div>
-          {categories.map(cat => (
-            <div key={cat} onClick={() => { onChange(cat); setOpen(false); }}
-              style={{ padding: '9px 14px', fontSize: 13, cursor: 'pointer',
-                color: value === cat ? '#534AB7' : '#1A1830',
-                fontWeight: value === cat ? 700 : 400,
-                background: value === cat ? '#EEEDFE' : 'transparent' }}
-              onMouseEnter={e => { if (value !== cat) (e.currentTarget as HTMLElement).style.background = '#F8F7FF'; }}
-              onMouseLeave={e => { if (value !== cat) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
-              {cat}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+const OCCUPATION_CATEGORIES = [
+  'Healthcare','Engineering','IT & Tech','Education','Finance & Law',
+  'Business & Management','Government & Forces','Arts & Media',
+  'Skilled Trades','Services & Other','Other',
+];
 
 type Props = { filters: FilterState; onChange: (f: FilterState) => void; total: number; showSaved?: boolean; onSavedToggle?: () => void; lockedGender?: 'Male' | 'Female' | null; };
 
@@ -329,7 +261,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
         <option value="Own House">Own House</option>
         <option value="Rented House">Rented House</option>
       </select>
-      <Select label="Occupation" value={filters.profession} options={Object.keys(PROFESSIONS)} onChange={v => set('profession', v)} />
+      <Select label="Occupation" value={filters.profession} options={OCCUPATION_CATEGORIES} onChange={v => set('profession', v)} />
       <Select label="Education" value={filters.education} options={EDUCATIONS} onChange={v => set('education', v)} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '2 1 220px' }}>
         <select value={filters.minHeight || ''} onChange={e => onChange({ ...filters, minHeight: e.target.value ? +e.target.value : undefined })}
@@ -344,10 +276,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
           {HEIGHT_OPTIONS.map(h => <option key={h.inches} value={h.inches}>{h.label}</option>)}
         </select>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '1 1 auto', minWidth: 0 }}>
-        <Select label="Open to Polygamy" value={filters.openToPolygamy} options={['Yes', 'No']} onChange={v => set('openToPolygamy', v)} />
-        <FilterInfoIcon text="Polygamy means marrying more than one woman (for men) or marrying a man who already has a wife (for women)." />
-      </div>
+
     </>
   );
 

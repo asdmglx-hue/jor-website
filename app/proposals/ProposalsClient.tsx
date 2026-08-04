@@ -315,7 +315,7 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
     const setIdentityFields = identityFields.filter(f => next[f]);
     const otherFiltersSet = !!(
       next.minAge || next.maxAge || next.education || next.homeType ||
-      next.minHeight || next.maxHeight || next.openToPolygamy || next.search ||
+      next.minHeight || next.maxHeight || next.search ||
       next.postedAfter || next.postedBefore
     );
 
