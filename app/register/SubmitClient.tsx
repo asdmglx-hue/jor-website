@@ -7,6 +7,7 @@ import { COUNTRY_GROUPS } from '@/lib/constants';
 import PhoneInput from '@/components/PhoneInput';
 import { containsPhoneNumber } from '@/lib/phoneDetector';
 import SearchableSelect from '@/components/SearchableSelect';
+import OccupationSelect from '@/components/OccupationSelect';
 // Moved server-side — see lib/actions/proposal-actions.ts and
 // lib/actions/revalidate-write.ts for why.
 import { submitProposalAction as submitProposal } from '@/lib/actions/proposal-actions';
@@ -1095,15 +1096,19 @@ export default function SubmitClient() {
             </div>
 
             <Field label="Occupation" required>
-              <SearchableSelect value={form.profession} onChange={v => { set('profession', v); if (v !== 'Other') set('profession_custom', ''); }} groups={professionGroups} placeholder="Select profession" hasError={errorField === 'profession'} />
+              <OccupationSelect
+                professionValue={form.profession}
+                categoryValue={getProfessionCategory(form.profession)}
+                customValue={form.profession_custom}
+                groups={professionGroups}
+                onSelect={(prof, cat) => { set('profession', prof); if (prof !== 'Other') set('profession_custom', ''); }}
+                onCustomChange={v => set('profession_custom', v)}
+                onCategoryChange={v => {/* category is auto-derived from profession */}}
+                hasError={errorField === 'profession'}
+                customHasError={errorField === 'profession_custom'}
+                placeholder="Search or select occupation"
+              />
             </Field>
-            {form.profession === 'Other' && (
-              <SubSection>
-                <Field label="Specify Profession">
-                  <input value={form.profession_custom} onChange={e => set('profession_custom', e.target.value)} style={{ ...inp, ...err('profession_custom') }} placeholder="e.g. Calligrapher, Gemologist" maxLength={30} />
-                </Field>
-              </SubSection>
-            )}
 
             <Field label="Marital Status" required>
               <Sel value={form.marital_status} onChange={v => { set('marital_status', v); if (v !== 'Married') set('marriage_number', ''); }} options={maritalOptions} placeholder="Select" hasError={errorField === 'marital_status'} />

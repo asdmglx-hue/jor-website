@@ -9,6 +9,7 @@ import PhoneInput, { DIAL_CODES } from '@/components/PhoneInput';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProposalCard from '@/components/ProposalCard';
+import OccupationSelect from '@/components/OccupationSelect';
 import PasswordInput from '@/components/PasswordInput';
 import FeaturedBookModal from '@/components/FeaturedBookModal';
 import FeaturedManageModal from '@/components/FeaturedManageModal';
@@ -285,6 +286,7 @@ export default function MyProposalClient() {
   const [inlineKey, setInlineKey] = useState<string | null>(null);
   const [inlineVal, setInlineVal] = useState<string>('');
   const [inlineCustomVal, setInlineCustomVal] = useState<string>('');
+  const [inlineProfessionCategory, setInlineProfessionCategory] = useState<string>('');
   const [inlineSaving, setInlineSaving] = useState(false);
   const inlineOtherFields = ['caste', 'profession', 'father_occupation', 'mother_occupation'];
   // House size
@@ -495,7 +497,11 @@ export default function MyProposalClient() {
     // When profession changes, auto-derive and save profession_category
     // at the same time so the filter always has a correct value.
     if (key === 'profession' && typeof finalVal === 'string') {
-      updates['profession_category'] = getProfessionCategory(finalVal);
+      // When Other is selected, use the category the user explicitly picked
+      // from the dropdown — otherwise derive it from the profession name.
+      updates['profession_category'] = finalVal === 'Other' && inlineProfessionCategory
+          ? inlineProfessionCategory
+          : getProfessionCategory(finalVal);
     }
     const oldValues: Record<string, unknown> = {};
     if (key in user) oldValues[key] = (user as Record<string, unknown>)[key];
@@ -524,6 +530,7 @@ export default function MyProposalClient() {
         });
         setInlineKey(null);
         setInlineCustomVal('');
+        setInlineProfessionCategory('');
         setSaveMsg('Changes saved successfully.'); setSaveMsgType('success');
         setTimeout(() => setSaveMsg(''), 3000);
       }
@@ -885,7 +892,7 @@ export default function MyProposalClient() {
                   style={{ padding: '5px 14px', borderRadius: 8, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
                   {inlineSaving ? '...' : 'Save'}
                 </button>
-                <button onClick={() => setInlineKey(null)}
+                <button onClick={() => { setInlineKey(null); setInlineProfessionCategory(''); }}
                   style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
                   Cancel
                 </button>
@@ -990,7 +997,21 @@ export default function MyProposalClient() {
                   {isEditing ? (
                     <>
                       {options
-                        ? options.length > 15
+                        ? fieldKey === 'profession'
+                          ? <OccupationSelect
+                              professionValue={inlineVal}
+                              categoryValue={inlineProfessionCategory || (user?.profession_category ?? '')}
+                              customValue={inlineCustomVal}
+                              groups={professionGroups}
+                              onSelect={(prof, cat) => {
+                                setInlineVal(prof);
+                                setInlineProfessionCategory(cat);
+                                if (prof !== 'Other') setInlineCustomVal('');
+                              }}
+                              onCustomChange={v => setInlineCustomVal(v)}
+                              onCategoryChange={v => setInlineProfessionCategory(v)}
+                            />
+                          : options.length > 15
                           ? <><SearchableSelect value={inlineVal} options={options} onChange={v => { setInlineVal(v); if (v !== 'Other') setInlineCustomVal(''); }} grouped={grouped} />
                               {inlineVal === 'Other' && inlineOtherFields.includes(fieldKey) && (
                                 <input value={inlineCustomVal} onChange={e => setInlineCustomVal(e.target.value)} placeholder="Please specify..." style={{ ...fieldStyle, marginTop: 8 }} autoFocus maxLength={inlineOtherFields.includes(inlineKey ?? '') ? 30 : undefined} />
