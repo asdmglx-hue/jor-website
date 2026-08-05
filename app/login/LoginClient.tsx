@@ -8,6 +8,17 @@ import PasswordInput from '@/components/PasswordInput';
 import { compressImage } from '@/lib/compressImage';
 import { trackEvent } from '@/lib/analytics';
 
+// Generates a persistent device ID for this browser.
+// Stored in localStorage so the same browser always uses the same ID.
+function getOrCreateWebDeviceId(): string {
+  const key = 'jor_web_device_id';
+  const existing = localStorage.getItem(key);
+  if (existing) return existing;
+  const fresh = 'web-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  localStorage.setItem(key, fresh);
+  return fresh;
+}
+
 const ADMIN_WHATSAPP = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '923000000000';
 
 export default function LoginClient() {
@@ -23,6 +34,13 @@ export default function LoginClient() {
   const [forgotUploading, setForgotUploading] = useState(false);
   const [compressingForgotPhoto, setCompressingForgotPhoto] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    // Show message if user was kicked due to new device login
+    if (typeof window !== 'undefined' && window.location.search.includes('kicked=1')) {
+      setError('You were logged out because your account was accessed from a new device. Only 2 devices can be logged in at a time.');
+    }
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -53,15 +71,20 @@ export default function LoginClient() {
     try {
       const proposal = await loginWithCnic(cleanCnic, password);
       if (!proposal) { setError('Incorrect CNIC or password. Please try again.'); return; }
+
+      // Register this device session — if over 2 devices, oldest is auto-kicked server-side
+      const deviceId = getOrCreateWebDeviceId();
+      await supabase.rpc('register_device_session', {
+        p_cnic: cleanCnic,
+        p_device_id: deviceId,
+        p_device_type: 'web',
+        p_max_devices: 2,
+      });
+
       saveSession(proposal);
       trackEvent('login_success');
       router.push('/my-profile');
     } catch {
-      // Network hiccup, or anything else unexpected — this previously had
-      // no catch at all, meaning a thrown error here (rather than a
-      // clean "wrong password" result) failed completely silently: no
-      // error shown, and the button stuck on "loading" forever since
-      // setLoading(false) below never even ran.
       setError('Something went wrong. Please check your connection and try again.');
     } finally {
       setLoading(false);

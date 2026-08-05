@@ -310,6 +310,20 @@ export default function MyProposalClient() {
   useEffect(() => {
     const session = getSession();
     if (!session) { router.replace('/login'); return; }
+
+    // Check if this browser session was kicked by a newer login
+    const deviceId = localStorage.getItem('jor_web_device_id');
+    if (session.cnic && deviceId) {
+      supabase.rpc('get_user_sessions', { p_cnic: session.cnic }).then(({ data }) => {
+        const sessions = (data as { device_id: string }[] | null) || [];
+        const stillActive = sessions.some(s => s.device_id === deviceId);
+        if (!stillActive) {
+          // Kicked — clear session and redirect with message
+          clearSession();
+          router.replace('/login?kicked=1');
+        }
+      }).catch(() => {}); // Silent fail on network error
+    }
     setUser(session);
     setSavedIds(getSavedIds());
     if (session.id) {
@@ -383,7 +397,18 @@ export default function MyProposalClient() {
     }
   }, [tab, user]);
 
-  const handleLogout = () => { clearSession(); router.push('/'); };
+  const handleLogout = () => {
+    // Remove this browser's session from the server
+    const session = getSession();
+    if (session?.cnic) {
+      const deviceId = localStorage.getItem('jor_web_device_id');
+      if (deviceId) {
+        supabase.rpc('remove_device_session', { p_cnic: session.cnic, p_device_id: deviceId }).then(() => {});
+      }
+    }
+    clearSession();
+    router.push('/');
+  };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
