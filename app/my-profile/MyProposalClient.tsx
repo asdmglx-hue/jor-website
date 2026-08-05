@@ -314,15 +314,14 @@ export default function MyProposalClient() {
     // Check if this browser session was kicked by a newer login
     const deviceId = localStorage.getItem('jor_web_device_id');
     if (session.cnic && deviceId) {
-      supabase.rpc('get_user_sessions', { p_cnic: session.cnic }).then(({ data }) => {
+      Promise.resolve(supabase.rpc('get_user_sessions', { p_cnic: session.cnic })).then(({ data }) => {
         const sessions = (data as { device_id: string }[] | null) || [];
         const stillActive = sessions.some(s => s.device_id === deviceId);
         if (!stillActive) {
-          // Kicked — clear session and redirect with message
           clearSession();
           router.replace('/login?kicked=1');
         }
-      }).catch(() => {}); // Silent fail on network error
+      }).catch(() => {});
     }
     setUser(session);
     setSavedIds(getSavedIds());
