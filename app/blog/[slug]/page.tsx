@@ -83,37 +83,40 @@ function renderContent(content: string): ReactNode {
       );
       i++; continue;
     }
-    // FAQ box — lines starting with ? are questions, ^ are answers
+    // FAQ box — collapsible accordion style
     if (block.startsWith('? ')) {
       const question = block.slice(2).trim();
       const answer = (i + 1 < blocks.length && blocks[i + 1].startsWith('^ '))
         ? blocks[i + 1].slice(2).trim()
         : '';
       output.push(
-        <div key={i} style={{ background: '#FAFAFE', border: '1.5px solid #E8E6F5', borderRadius: 12, padding: '16px 20px', margin: '0 0 12px' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: answer ? 10 : 0 }}>
-            <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: '#534AB7', color: '#fff', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>Q</span>
-            <p style={{ margin: 0, fontSize: 15.5, fontWeight: 700, color: '#1A1830', lineHeight: 1.6 }}>{renderInline(question, `faq-q-${i}`)}</p>
-          </div>
+        <details key={i} style={{ background: '#FAFAFE', border: '1.5px solid #E8E6F5', borderRadius: 12, padding: '0', margin: '0 0 10px', overflow: 'hidden' }}>
+          <summary style={{ padding: '14px 18px', fontSize: 15.5, fontWeight: 700, color: '#1A1830', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, listStyle: 'none', userSelect: 'none' }}>
+            <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: '#534AB7', color: '#fff', fontSize: 11, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Q</span>
+            <span style={{ flex: 1 }}>{renderInline(question, `faq-q-${i}`)}</span>
+            <span style={{ fontSize: 18, color: '#534AB7', fontWeight: 400 }}>＋</span>
+          </summary>
           {answer && (
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: '#E8E6F5', color: '#534AB7', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>A</span>
-              <p style={{ margin: 0, fontSize: 15, color: '#4A4768', lineHeight: 1.7 }}>{renderInline(answer, `faq-a-${i}`)}</p>
+            <div style={{ padding: '0 18px 14px 50px', borderTop: '1px solid #E8E6F5' }}>
+              <p style={{ margin: '12px 0 0', fontSize: 15, color: '#4A4768', lineHeight: 1.75 }}>
+                {renderInline(answer, `faq-a-${i}`)}
+              </p>
             </div>
           )}
-        </div>
+        </details>
       );
       i += answer ? 2 : 1; continue;
     }
-    // List
+    // List — use bullet character for consistent rendering
     const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-    const isList = lines.length > 0 && lines.every(l => l.startsWith('- ') || l.startsWith('* '));
+    const isList = lines.length > 0 && lines.every(l => l.startsWith('- ') || l.startsWith('* ') || l.startsWith('• '));
     if (isList) {
       output.push(
-        <ul key={i} style={{ margin: '0 0 20px', paddingLeft: 22 }}>
+        <ul key={i} style={{ margin: '0 0 20px', paddingLeft: 0, listStyle: 'none' }}>
           {lines.map((l, li) => (
-            <li key={li} style={{ fontSize: 16, lineHeight: 1.8, color: '#1A1830', marginBottom: 6 }}>
-              {renderInline(l.replace(/^[-*]\s+/, ''), `li-${i}-${li}`)}
+            <li key={li} style={{ fontSize: 16, lineHeight: 1.8, color: '#1A1830', marginBottom: 6, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <span style={{ flexShrink: 0, width: 6, height: 6, borderRadius: '50%', background: '#534AB7', marginTop: 10 }} />
+              <span>{renderInline(l.replace(/^[-*•]\s+/, ''), `li-${i}-${li}`)}</span>
             </li>
           ))}
         </ul>
