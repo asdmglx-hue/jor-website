@@ -20,7 +20,7 @@ import type { Metadata } from 'next';
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Jor – Find Your Perfect Rishta in Pakistan",
+  title: "Jor – Find Your Perfect Rishta Easily",
   description: "Browse thousands of verified rishta proposals from Pakistan and overseas. Filter by city, caste, sect, profession & more. Also available on Play Store & App Store.",
   alternates: { canonical: 'https://joronline.com' },
 };
