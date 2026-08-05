@@ -210,7 +210,15 @@ export async function fetchFeaturedForCarousel(filters: FilterState = {}): Promi
 async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise<Proposal[]> {
   const { data: settingRow } = await supabase
     .from('app_settings').select('value').eq('key', 'max_featured_general').maybeSingle();
-  const max = Number(settingRow?.value) || 20;
+  const maxGeneral = Number(settingRow?.value) || 20;
+
+  // Use per-city limit when a specific city or country is selected
+  let max = maxGeneral;
+  if (filters.city || filters.country) {
+    const { data: perCityRow } = await supabase
+      .from('app_settings').select('value').eq('key', 'max_featured_per_city').maybeSingle();
+    max = Number(perCityRow?.value) || 5;
+  }
 
   // Shows boosted profiles that ALSO match whatever non-location filter(s)
   // are currently active (caste, sect, marital status, etc. — combined
@@ -722,6 +730,11 @@ async function fetchProposalsForCategoryInner(
   // location step).
   let featured: Proposal[] = [];
   if (dbColumn === 'city' || dbColumn === 'country') {
+    // Read max_featured_per_city from admin settings
+    const { data: settingRow } = await supabase
+      .from('app_settings').select('value').eq('key', 'max_featured_per_city').maybeSingle();
+    const maxPerCity = Number(settingRow?.value) || 5;
+
     const now = new Date();
     const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const { data: activeBoosts } = await supabase
@@ -739,7 +752,8 @@ async function fetchProposalsForCategoryInner(
         .select(CARD_COLS)
         .eq('status', 'active')
         .or(notExpiredFilter())
-        .in('id', boostedIds);
+        .in('id', boostedIds)
+        .limit(maxPerCity);
       if (extra?.gender) featuredQuery = featuredQuery.eq('gender', extra.gender);
       const { data: featuredData } = await featuredQuery;
       featured = (featuredData as Proposal[]) || [];
