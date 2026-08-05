@@ -60,6 +60,33 @@ function renderContent(content: string): ReactNode {
     if (block.startsWith('## ')) {
       return <h2 key={i} style={{ fontSize: 22, fontWeight: 800, color: '#1A1830', margin: '32px 0 14px' }}>{renderInline(block.slice(3), `h2-${i}`)}</h2>;
     }
+    // Blockquote — renders as light purple box for Quran/Hadith references
+    if (block.startsWith('> ')) {
+      const lines = block.split('\n').map(l => l.replace(/^>\s?/, '').trim()).filter(Boolean);
+      return (
+        <div key={i} style={{
+          background: '#F0EEFF',
+          border: '1.5px solid #C4B8F5',
+          borderLeft: '4px solid #7C5CFC',
+          borderRadius: 10,
+          padding: '14px 18px',
+          margin: '0 0 20px',
+        }}>
+          {lines.map((line, li) => (
+            <p key={li} style={{
+              margin: li < lines.length - 1 ? '0 0 8px' : 0,
+              fontSize: 15,
+              lineHeight: 1.75,
+              color: '#2D1F6E',
+              fontStyle: line.startsWith('—') ? 'normal' : 'italic',
+              fontWeight: line.startsWith('—') ? 700 : 400,
+            }}>
+              {renderInline(line, `bq-${i}-${li}`)}
+            </p>
+          ))}
+        </div>
+      );
+    }
     const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
     const isList = lines.length > 0 && lines.every(l => l.startsWith('- ') || l.startsWith('* '));
     if (isList) {
