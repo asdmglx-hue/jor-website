@@ -26,10 +26,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!entry) return { title: 'Not Found | Jor' };
   const title = categoryPageTitle(entry);
   return {
-    title: `${title} | Jor – Pakistan's Trusted Matrimonial Platform`,
-    description: entry.type === 'city'
-      ? `Browse verified rishta proposals in ${entry.value}. Find your perfect match from ${entry.value} on Jor, Pakistan's trusted matrimonial platform.`
-      : `Browse verified ${entry.value} rishta proposals on Jor. Connect directly with families — no middlemen, no hidden fees.`,
+    title: `Rishta in ${entry.value} - Jor`,
+    description: `Browse verified rishta profiles in ${entry.value} and connect directly with families on Jor, Pakistan's trusted matrimonial platform.`,
     alternates: { canonical: `https://joronline.com/proposals/${entry.slug}` },
   };
 }

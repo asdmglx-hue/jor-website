@@ -25,8 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const value = await resolveCountrySlug(country);
   if (!value) return { title: 'Not Found | Jor' };
   return {
-    title: `Overseas Rishta in ${value} | Jor – Pakistan's Trusted Matrimonial Platform`,
-    description: `Browse verified Pakistani rishta proposals for families based in ${value}. Connect directly — no middlemen, no hidden fees.`,
+    title: `Rishta in ${value} - Jor`,
+    description: `Browse verified rishta profiles in ${value} and connect directly with families on Jor, Pakistan's trusted matrimonial platform.`,
     alternates: { canonical: `https://joronline.com/proposals/overseas/${slugify(value)}` },
   };
 }

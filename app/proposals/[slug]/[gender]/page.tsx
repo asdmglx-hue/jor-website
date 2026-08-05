@@ -38,8 +38,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!entry || entry.type !== 'city' || !genderValue) return { title: 'Not Found | Jor' };
   const label = gender === 'bride' ? 'Bride' : 'Groom';
   return {
-    title: `${label} Profiles in ${entry.value} | Jor – Pakistan's Trusted Matrimonial Platform`,
-    description: `Browse verified ${label.toLowerCase()} rishta profiles in ${entry.value}. Find your perfect match on Jor, Pakistan's trusted matrimonial platform.`,
+    title: `${label} Rishta in ${entry.value} - Jor`,
+    description: `Browse verified ${label.toLowerCase()} rishta profiles in ${entry.value} and connect directly with families on Jor, Pakistan's trusted matrimonial platform.`,
     alternates: { canonical: `https://joronline.com/proposals/${entry.slug}/${gender}` },
   };
 }
