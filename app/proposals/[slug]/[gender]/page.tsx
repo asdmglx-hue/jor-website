@@ -1,5 +1,5 @@
 import { fetchCategoryCounts, fetchProposalsForCategory, MIN_CATEGORY_PROFILES } from '@/lib/supabase';
-import { CATEGORY_ENTRIES, resolveCategoryBySlug } from '@/lib/categories';
+import { CATEGORY_ENTRIES, resolveCategoryBySlug, categoryPageTitle } from '@/lib/categories';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!entry || entry.type !== 'city' || !genderValue) return { title: 'Not Found | Jor' };
   const label = gender === 'bride' ? 'Bride' : 'Groom';
   return {
-    title: `${label} ${title} - Jor`,
+    title: `${label} ${categoryPageTitle(entry)} - Jor`,
     description: entry.type === 'city'
       ? `Browse verified ${label.toLowerCase()} rishta profiles in ${entry.value} and connect directly with families on Jor, Pakistan's trusted matrimonial platform.`
       : entry.type === 'caste'
