@@ -17,8 +17,8 @@ export const revalidate = false;
 const SITE = 'https://joronline.com';
 
 export const metadata: Metadata = {
-  title: 'Stories | Jor',
-  description: "Real families, real rishtas — a few of the stories that started on Jor, Pakistan's trusted matrimonial platform.",
+  title: 'Rishta Success Stories - Jor',
+  description: "Read real success stories from couples who found their perfect match on Jor. Your story could give the next family reading it a little more hope.",
   alternates: { canonical: `${SITE}/stories` },
   robots: { index: true, follow: true },
 };
