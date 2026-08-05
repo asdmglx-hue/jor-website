@@ -55,44 +55,61 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
 
 function renderContent(content: string): ReactNode {
   const blocks = content.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
-  return blocks.map((block, i) => {
+  const output: ReactNode[] = [];
+  let i = 0;
+
+  while (i < blocks.length) {
+    const block = blocks[i];
+
     if (block.startsWith('### ')) {
-      return <h3 key={i} style={{ fontSize: 19, fontWeight: 800, color: '#1A1830', margin: '28px 0 12px' }}>{renderInline(block.slice(4), `h3-${i}`)}</h3>;
+      output.push(<h3 key={i} style={{ fontSize: 19, fontWeight: 800, color: '#1A1830', margin: '28px 0 12px' }}>{renderInline(block.slice(4), `h3-${i}`)}</h3>);
+      i++; continue;
     }
     if (block.startsWith('## ')) {
-      return <h2 key={i} style={{ fontSize: 22, fontWeight: 800, color: '#1A1830', margin: '32px 0 14px' }}>{renderInline(block.slice(3), `h2-${i}`)}</h2>;
+      output.push(<h2 key={i} style={{ fontSize: 22, fontWeight: 800, color: '#1A1830', margin: '32px 0 14px' }}>{renderInline(block.slice(3), `h2-${i}`)}</h2>);
+      i++; continue;
     }
-    // Blockquote — renders as light purple box for Quran/Hadith references
+    // Blockquote — light purple box for Quran/Hadith
     if (block.startsWith('> ')) {
       const lines = block.split('\n').map(l => l.replace(/^>\s?/, '').trim()).filter(Boolean);
-      return (
-        <div key={i} style={{
-          background: '#F0EEFF',
-          border: '1.5px solid #C4B8F5',
-          borderLeft: '4px solid #7C5CFC',
-          borderRadius: 10,
-          padding: '14px 18px',
-          margin: '0 0 20px',
-        }}>
+      output.push(
+        <div key={i} style={{ background: '#F0EEFF', border: '1.5px solid #C4B8F5', borderLeft: '4px solid #7C5CFC', borderRadius: 10, padding: '14px 18px', margin: '0 0 20px' }}>
           {lines.map((line, li) => (
-            <p key={li} style={{
-              margin: li < lines.length - 1 ? '0 0 8px' : 0,
-              fontSize: 15,
-              lineHeight: 1.75,
-              color: '#2D1F6E',
-              fontStyle: line.startsWith('—') ? 'normal' : 'italic',
-              fontWeight: line.startsWith('—') ? 700 : 400,
-            }}>
+            <p key={li} style={{ margin: li < lines.length - 1 ? '0 0 8px' : 0, fontSize: 15, lineHeight: 1.75, color: '#2D1F6E', fontStyle: line.startsWith('—') ? 'normal' : 'italic', fontWeight: line.startsWith('—') ? 700 : 400 }}>
               {renderInline(line, `bq-${i}-${li}`)}
             </p>
           ))}
         </div>
       );
+      i++; continue;
     }
+    // FAQ box — lines starting with ? are questions, ^ are answers
+    if (block.startsWith('? ')) {
+      const question = block.slice(2).trim();
+      const answer = (i + 1 < blocks.length && blocks[i + 1].startsWith('^ '))
+        ? blocks[i + 1].slice(2).trim()
+        : '';
+      output.push(
+        <div key={i} style={{ background: '#FAFAFE', border: '1.5px solid #E8E6F5', borderRadius: 12, padding: '16px 20px', margin: '0 0 12px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: answer ? 10 : 0 }}>
+            <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: '#534AB7', color: '#fff', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>Q</span>
+            <p style={{ margin: 0, fontSize: 15.5, fontWeight: 700, color: '#1A1830', lineHeight: 1.6 }}>{renderInline(question, `faq-q-${i}`)}</p>
+          </div>
+          {answer && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: '#E8E6F5', color: '#534AB7', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>A</span>
+              <p style={{ margin: 0, fontSize: 15, color: '#4A4768', lineHeight: 1.7 }}>{renderInline(answer, `faq-a-${i}`)}</p>
+            </div>
+          )}
+        </div>
+      );
+      i += answer ? 2 : 1; continue;
+    }
+    // List
     const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
     const isList = lines.length > 0 && lines.every(l => l.startsWith('- ') || l.startsWith('* '));
     if (isList) {
-      return (
+      output.push(
         <ul key={i} style={{ margin: '0 0 20px', paddingLeft: 22 }}>
           {lines.map((l, li) => (
             <li key={li} style={{ fontSize: 16, lineHeight: 1.8, color: '#1A1830', marginBottom: 6 }}>
@@ -101,9 +118,12 @@ function renderContent(content: string): ReactNode {
           ))}
         </ul>
       );
+      i++; continue;
     }
-    return <p key={i} style={{ margin: '0 0 20px' }}>{renderInline(block, `p-${i}`)}</p>;
-  });
+    output.push(<p key={i} style={{ margin: '0 0 20px' }}>{renderInline(block, `p-${i}`)}</p>);
+    i++;
+  }
+  return output;
 }
 
 type Props = { params: Promise<{ slug: string }> };
