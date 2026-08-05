@@ -316,10 +316,15 @@ export default function MyProposalClient() {
     if (session.cnic && deviceId) {
       Promise.resolve(supabase.rpc('get_user_sessions', { p_cnic: session.cnic })).then(({ data }) => {
         const sessions = (data as { device_id: string }[] | null) || [];
-        const stillActive = sessions.some(s => s.device_id === deviceId);
-        if (!stillActive) {
-          clearSession();
-          router.replace('/login?kicked=1');
+        // Only treat as kicked if the account HAS active sessions but
+        // this device is not among them. If sessions list is empty it
+        // means they logged in before the session feature existed — not a kick.
+        if (sessions.length > 0) {
+          const stillActive = sessions.some(s => s.device_id === deviceId);
+          if (!stillActive) {
+            clearSession();
+            router.replace('/login?kicked=1');
+          }
         }
       }).catch(() => {});
     }
