@@ -26,7 +26,7 @@ const SITE = 'https://joronline.com';
 
 function renderInline(text: string, keyPrefix: string): ReactNode[] {
   const tokens: ReactNode[] = [];
-  const pattern = /\*\*(.+?)\*\*|\[([^\]]+)\]\(([^)]+)\)/g;
+  const pattern = /\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\(([^)]+)\)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let i = 0;
@@ -34,9 +34,11 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
     if (match.index > lastIndex) tokens.push(text.slice(lastIndex, match.index));
     if (match[1] !== undefined) {
       tokens.push(<strong key={`${keyPrefix}-b-${i++}`}>{match[1]}</strong>);
+    } else if (match[2] !== undefined) {
+      tokens.push(<em key={`${keyPrefix}-i-${i++}`}>{match[2]}</em>);
     } else {
-      const label = match[2];
-      const href = match[3];
+      const label = match[3];
+      const href = match[4];
       const external = !href.startsWith('/');
       tokens.push(
         <a key={`${keyPrefix}-l-${i++}`} href={href} style={{ color: '#534AB7', fontWeight: 700, textDecoration: 'underline' }}
