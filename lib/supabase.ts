@@ -239,6 +239,21 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
   if (filters.minHeight) query = query.gte('height_inches', filters.minHeight);
   if (filters.maxHeight) query = query.lte('height_inches', filters.maxHeight);
 
+  // Location scoping: Pakistan view shows only local profiles (no country
+  // set or country = Pakistan). Overseas view shows only overseas profiles.
+  // Specific country narrows further. Without this, overseas boosted
+  // profiles show in Pakistan's featured section and vice versa.
+  if (filters.overseas) {
+    if (filters.country) {
+      query = query.eq('country', filters.country);
+    } else {
+      query = query.not('country', 'is', null).neq('country', '').neq('country', 'Pakistan');
+    }
+  } else {
+    // Pakistan view — exclude overseas profiles
+    query = query.or('country.is.null,country.eq.,country.eq.Pakistan');
+  }
+
   query = query.order('posted_at', { ascending: false }).limit(max);
 
   const { data } = await query;
@@ -253,7 +268,7 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   // newest-first, same as "Recently Added". City/overseas-filtered views
   // keep boosting real is_boosted profiles to the top, unaffected — that
   // list is already small thanks to the per-city cap.
-  const isGeneralView = !filters.city && !filters.overseas;
+  const isGeneralView = !filters.city;
 
   // A profile that bought a Featured slot FOR this specific city should
   // show up here (boosted to the top via is_boosted) even if their own
