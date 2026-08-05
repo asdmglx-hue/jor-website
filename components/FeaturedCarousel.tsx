@@ -143,7 +143,7 @@ export default function FeaturedCarousel({ initial }: { initial: Proposal[] }) {
       </div>
       <div
         style={{
-          overflow: 'hidden', position: 'relative', paddingTop: 4,
+          overflow: 'hidden', position: 'relative', paddingTop: 4, paddingLeft: 4, paddingBottom: 4,
           cursor: needsScrolling ? (isDragging ? 'grabbing' : 'grab') : 'default',
           touchAction: 'pan-y',
         }}

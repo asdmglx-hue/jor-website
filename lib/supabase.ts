@@ -113,6 +113,7 @@ export type FilterState = {
   gender?: string;
   city?: string;
   overseas?: boolean;
+  pakistan?: boolean;
   country?: string;
   caste?: string;
   sect?: string;
@@ -239,20 +240,21 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
   if (filters.minHeight) query = query.gte('height_inches', filters.minHeight);
   if (filters.maxHeight) query = query.lte('height_inches', filters.maxHeight);
 
-  // Location scoping: Pakistan view shows only local profiles (no country
-  // set or country = Pakistan). Overseas view shows only overseas profiles.
-  // Specific country narrows further. Without this, overseas boosted
-  // profiles show in Pakistan's featured section and vice versa.
+  // Location scoping:
+  // - No location filter → show ALL boosted profiles (Pakistan + overseas)
+  // - Pakistan selected → local profiles only (no country or Pakistan)
+  // - Overseas selected → overseas profiles only
   if (filters.overseas) {
     if (filters.country) {
       query = query.eq('country', filters.country);
     } else {
       query = query.not('country', 'is', null).neq('country', '').neq('country', 'Pakistan');
     }
-  } else {
+  } else if (filters.pakistan || filters.city) {
     // Pakistan view — exclude overseas profiles
     query = query.or('country.is.null,country.eq.,country.eq.Pakistan');
   }
+  // No location filter → no country restriction, show all boosted
 
   query = query.order('posted_at', { ascending: false }).limit(max);
 

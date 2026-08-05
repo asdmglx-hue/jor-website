@@ -143,10 +143,12 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
     setSelectedCity('');
     setSelectedCountry('');
     if (mode === 'overseas') {
-      onChange({ ...filters, overseas: true, city: undefined, country: undefined });
+      onChange({ ...filters, overseas: true, pakistan: undefined, city: undefined, country: undefined });
       fetchOverseasCountries().then(setOverseasCountries);
+    } else if (mode === 'pakistan') {
+      onChange({ ...filters, overseas: undefined, pakistan: true, city: undefined, country: undefined });
     } else {
-      onChange({ ...filters, overseas: undefined, city: undefined, country: undefined });
+      onChange({ ...filters, overseas: undefined, pakistan: undefined, city: undefined, country: undefined });
     }
   };
 
