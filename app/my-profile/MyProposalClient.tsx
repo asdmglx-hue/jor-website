@@ -678,6 +678,14 @@ export default function MyProposalClient() {
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#534AB7' }}>View</span>
               </Link>
             ))}
+            {/* Pay Now — for pending profiles that haven't paid yet */}
+            {user.status === 'pending' && (
+              <Link href="/plans?plan=rishta-profile"
+                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', textDecoration: 'none' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>Pay Now</span>
+              </Link>
+            )}
             {/* Renew — only when the subscription has actually expired */}
             {isInactive && (
               <Link href="/plans?plan=rishta-profile"
