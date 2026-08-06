@@ -38,7 +38,7 @@ export default function LoginClient() {
   useEffect(() => {
     // Show message if user was kicked due to new device login
     if (typeof window !== 'undefined' && window.location.search.includes('kicked=1')) {
-      setError('You were logged out because your account was accessed from a new device. Only 2 devices can be logged in at a time.');
+      setError('You were logged out because your account was accessed from a new device. Only 1 device can be logged in at a time.');
     }
   }, []);
 
@@ -78,7 +78,7 @@ export default function LoginClient() {
         p_cnic: cleanCnic,
         p_device_id: deviceId,
         p_device_type: 'web',
-        p_max_devices: 2,
+        p_max_devices: 1,
       });
 
       saveSession(proposal);
