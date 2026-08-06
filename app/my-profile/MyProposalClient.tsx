@@ -326,7 +326,8 @@ export default function MyProposalClient() {
       }).catch(() => {});
     };
 
-    checkSession(); // run immediately on load
+    // Delay first check by 3 seconds to avoid race condition with session registration
+    const firstCheck = setTimeout(checkSession, 3000);
     const interval = setInterval(checkSession, 30000); // recheck every 30 seconds
     setUser(session);
     setSavedIds(getSavedIds());
@@ -388,7 +389,7 @@ export default function MyProposalClient() {
       refreshBoosts();
       refreshFeaturedDataRef.current = refreshBoosts;
     }
-    return () => clearInterval(interval);
+    return () => { clearTimeout(firstCheck); clearInterval(interval); };
   }, [router]);
 
   useEffect(() => {
