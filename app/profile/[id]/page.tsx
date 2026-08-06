@@ -59,7 +59,7 @@ type Props = { params: Promise<{ id: string }> };
 // Worker/Supabase load from crawler-driven regenerations across a large
 // and growing number of profile pages, without slowing down real content
 // updates at all.
-export const revalidate = 86400;
+export const revalidate = false;
 
 // React's cache() deduplicates calls with the same argument within one
 // render pass — so generateMetadata and the page component below share a

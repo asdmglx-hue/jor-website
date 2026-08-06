@@ -4,7 +4,7 @@ import { getQualifyingCategoryEntries, getQualifyingCountries, fetchAllProposalN
 // Refreshed at most once an hour — the sitemap doesn't need to be
 // instant, but under 'force-static' it would never update again after
 // the first build, silently going stale as new profiles get added.
-export const revalidate = 3600;
+export const revalidate = false;
 
 const BASE = 'https://joronline.com';
 const GENDER_SLUGS = ['bride', 'groom'];

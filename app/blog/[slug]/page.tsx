@@ -7,7 +7,7 @@ import { fetchBlogPostBySlug } from '@/lib/supabase';
 import AboutCta from '@/components/AboutCta';
 import BlogShareButton from '@/components/BlogShareButton';
 
-export const revalidate = 300;
+export const revalidate = false;
 
 const SITE = 'https://joronline.com';
 

@@ -18,7 +18,7 @@ export async function generateStaticParams() {
 // at runtime, for very little build-speed benefit given how few of these
 // pages there are compared to individual profiles). Just adding a
 // freshness timer on top, same as everywhere else.
-export const revalidate = 300;
+export const revalidate = false;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

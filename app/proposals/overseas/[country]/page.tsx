@@ -13,7 +13,7 @@ export async function generateStaticParams() {
 }
 
 // Same reasoning as the other category pages.
-export const revalidate = 300;
+export const revalidate = false;
 
 async function resolveCountrySlug(slug: string): Promise<string | null> {
   const countries = await getQualifyingCountries();

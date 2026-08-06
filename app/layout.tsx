@@ -58,7 +58,7 @@ export const viewport: Viewport = {
 // immediately after any footer setting changes). Fallback: 30-second timer
 // catches any missed calls. Gives instant updates in practice while
 // guaranteeing the footer never stays stale longer than 30 seconds.
-export const revalidate = 30;
+export const revalidate = false;
 
 async function getFooterSettings(): Promise<{ helpCenterName: string; affiliateEnabled: boolean; helpCenterVisible: boolean; waNumber: string }> {
   try {
