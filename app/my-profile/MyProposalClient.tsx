@@ -311,24 +311,23 @@ export default function MyProposalClient() {
     const session = getSession();
     if (!session) { router.replace('/login'); return; }
 
-    // Check if this browser session was kicked — runs on load and every 60s
+    // Check if this browser is still the active session — runs on load and every 30s
     const checkSession = () => {
       const deviceId = localStorage.getItem('jor_web_device_id');
       if (!session.cnic || !deviceId) return;
-      Promise.resolve(supabase.rpc('get_user_sessions', { p_cnic: session.cnic })).then(({ data }) => {
-        const sessions = (data as { device_id: string }[] | null) || [];
-        if (sessions.length > 0) {
-          const stillActive = sessions.some(s => s.device_id === deviceId);
-          if (!stillActive) {
-            clearSession();
-            router.replace('/login?kicked=1');
-          }
+      Promise.resolve(supabase.rpc('check_device_session', {
+        p_cnic: session.cnic,
+        p_device_id: deviceId,
+      })).then(({ data }) => {
+        if (data === false) {
+          clearSession();
+          router.replace('/login?kicked=1');
         }
       }).catch(() => {});
     };
 
     checkSession(); // run immediately on load
-    const interval = setInterval(checkSession, 60000); // recheck every 60 seconds
+    const interval = setInterval(checkSession, 30000); // recheck every 30 seconds
     setUser(session);
     setSavedIds(getSavedIds());
     if (session.id) {

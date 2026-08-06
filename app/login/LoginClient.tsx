@@ -72,13 +72,12 @@ export default function LoginClient() {
       const proposal = await loginWithCnic(cleanCnic, password);
       if (!proposal) { setError('Incorrect CNIC or password. Please try again.'); return; }
 
-      // Register this device session — if over 2 devices, oldest is auto-kicked server-side
+      // Register this device as the only active session — replaces any previous
       const deviceId = getOrCreateWebDeviceId();
       await supabase.rpc('register_device_session', {
         p_cnic: cleanCnic,
         p_device_id: deviceId,
         p_device_type: 'web',
-        p_max_devices: 1,
       });
 
       saveSession(proposal);
