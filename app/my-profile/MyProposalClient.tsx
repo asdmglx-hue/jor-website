@@ -311,14 +311,12 @@ export default function MyProposalClient() {
     const session = getSession();
     if (!session) { router.replace('/login'); return; }
 
-    // Check if this browser session was kicked by a newer login
-    const deviceId = localStorage.getItem('jor_web_device_id');
-    if (session.cnic && deviceId) {
+    // Check if this browser session was kicked — runs on load and every 60s
+    const checkSession = () => {
+      const deviceId = localStorage.getItem('jor_web_device_id');
+      if (!session.cnic || !deviceId) return;
       Promise.resolve(supabase.rpc('get_user_sessions', { p_cnic: session.cnic })).then(({ data }) => {
         const sessions = (data as { device_id: string }[] | null) || [];
-        // Only treat as kicked if the account HAS active sessions but
-        // this device is not among them. If sessions list is empty it
-        // means they logged in before the session feature existed — not a kick.
         if (sessions.length > 0) {
           const stillActive = sessions.some(s => s.device_id === deviceId);
           if (!stillActive) {
@@ -327,7 +325,11 @@ export default function MyProposalClient() {
           }
         }
       }).catch(() => {});
-    }
+    };
+
+    checkSession(); // run immediately on load
+    const interval = setInterval(checkSession, 60000); // recheck every 60 seconds
+    return () => clearInterval(interval); // cleanup on unmount
     setUser(session);
     setSavedIds(getSavedIds());
     if (session.id) {
