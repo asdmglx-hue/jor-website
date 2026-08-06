@@ -329,7 +329,6 @@ export default function MyProposalClient() {
 
     checkSession(); // run immediately on load
     const interval = setInterval(checkSession, 60000); // recheck every 60 seconds
-    return () => clearInterval(interval); // cleanup on unmount
     setUser(session);
     setSavedIds(getSavedIds());
     if (session.id) {
@@ -390,6 +389,7 @@ export default function MyProposalClient() {
       refreshBoosts();
       refreshFeaturedDataRef.current = refreshBoosts;
     }
+    return () => clearInterval(interval);
   }, [router]);
 
   useEffect(() => {
