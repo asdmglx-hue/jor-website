@@ -325,7 +325,7 @@ export default function MyProposalClient() {
       })).catch(() => ({ data: true }));
       if (data === false) {
         clearSession();
-        router.replace('/login?kicked=1');
+        window.location.href = '/login?kicked=1';
         return false;
       }
       return true;
