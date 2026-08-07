@@ -86,7 +86,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en">
       <body className={inter.className}>
         <NavbarWrapper />
-        <main className="site-main" style={{ minHeight: 'calc(100vh - 60px)' }}>
+        <main className="site-main" style={{ minHeight: 'calc(100vh - 60px)', overflowX: 'hidden' }}>
           {children}
         </main>
         <div style={{ position: 'relative', height: 0 }}>
