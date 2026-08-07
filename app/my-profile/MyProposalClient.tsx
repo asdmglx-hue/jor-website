@@ -329,7 +329,8 @@ export default function MyProposalClient() {
     };
 
     // No delay needed — token guarantees registration completed before check runs
-    checkSession();
+    // Small 1s delay to ensure localStorage write completes before first read
+    const firstCheck = setTimeout(checkSession, 1000);
     const interval = setInterval(checkSession, 30000); // recheck every 30 seconds
     setUser(session);
     setSavedIds(getSavedIds());
@@ -391,7 +392,7 @@ export default function MyProposalClient() {
       refreshBoosts();
       refreshFeaturedDataRef.current = refreshBoosts;
     }
-    return () => clearInterval(interval);
+    return () => { clearTimeout(firstCheck); clearInterval(interval); };
   }, [router]);
 
   useEffect(() => {
