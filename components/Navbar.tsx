@@ -98,7 +98,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
   };
 
   const navContent = (
-    <nav style={{ position: sticky ? 'sticky' : 'relative', top: 0, zIndex: 100, background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)' }}>
+    <nav style={{ position: sticky ? 'fixed' : 'relative', top: 0, left: 0, right: 0, zIndex: 100, background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
           <img src="/logo.png" alt="Jor" className="logo-full" style={{ height: 36, width: 'auto' }} />
