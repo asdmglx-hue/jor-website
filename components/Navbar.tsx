@@ -27,6 +27,26 @@ export default function Navbar() {
     if (s?.id) syncSavedFromServer(s.id);
     if (s?.cnic) syncNotInterestedFromServer(s.cnic);
     setMounted(true);
+
+    // Check session validity on every page navigation
+    // This ensures kicked users are logged out globally, not just on /my-profile
+    if (s?.cnic) {
+      const sessionToken = localStorage.getItem('jor_session_token');
+      const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
+      if (sessionToken && Date.now() - loginTime > 10000) {
+        Promise.resolve(supabase.rpc('check_device_session', {
+          p_cnic: s.cnic,
+          p_session_token: sessionToken,
+        })).then(({ data }) => {
+          if (data === false) {
+            localStorage.removeItem('er_user');
+            localStorage.removeItem('jor_session_token');
+            localStorage.removeItem('jor_login_time');
+            window.location.replace('/login?kicked=1');
+          }
+        }).catch(() => {});
+      }
+    }
   }, [pathname]);
 
   const openPasswordModal = () => {

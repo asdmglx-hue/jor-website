@@ -324,10 +324,14 @@ export default function MyProposalClient() {
         p_session_token: sessionToken,
       })).catch(() => ({ data: true }));
       if (data === false) {
-        clearSession();
+        // Clear all session data synchronously before redirecting
+        localStorage.removeItem('er_user');
         localStorage.removeItem('jor_session_token');
         localStorage.removeItem('jor_login_time');
-        setTimeout(() => { window.location.href = '/login?kicked=1'; }, 100);
+        localStorage.removeItem('er_saved');
+        // Small delay to ensure localStorage writes complete before reload
+        await new Promise(resolve => setTimeout(resolve, 150));
+        window.location.replace('/login?kicked=1');
         return false;
       }
       return true;
