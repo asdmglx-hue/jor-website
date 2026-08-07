@@ -311,35 +311,28 @@ export default function MyProposalClient() {
     const session = getSession();
     if (!session) { router.replace('/login'); return; }
 
-    // Realtime session enforcement — instant kick when another device logs in.
-    // Supabase pushes a change event the moment user_sessions row is updated.
-    // No polling, no delay, no race condition.
-    const sessionToken = localStorage.getItem('jor_session_token');
-    const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
+    // Session enforcement — check token on page load and on every profile refresh.
+    // No polling, no WebSocket — just validates on real user interactions.
+    // Skips check for 10 seconds after login to prevent self-kick.
+    const validateSession = async () => {
+      const sessionToken = localStorage.getItem('jor_session_token');
+      if (!session.cnic || !sessionToken) return true; // no token = old login, allow
+      const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
+      if (Date.now() - loginTime < 10000) return true; // grace period after login
+      const { data } = await Promise.resolve(supabase.rpc('check_device_session', {
+        p_cnic: session.cnic,
+        p_session_token: sessionToken,
+      })).catch(() => ({ data: true }));
+      if (data === false) {
+        clearSession();
+        router.replace('/login?kicked=1');
+        return false;
+      }
+      return true;
+    };
 
-    const channel = supabase
-      .channel('session:' + session.cnic)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'user_sessions',
-        filter: 'cnic=eq.' + session.cnic,
-      }, () => {
-        // A change happened — check if our token is still valid
-        // Skip check for 5 seconds after login to avoid self-kick
-        if (Date.now() - loginTime < 5000) return;
-        if (!sessionToken) return;
-        Promise.resolve(supabase.rpc('check_device_session', {
-          p_cnic: session.cnic,
-          p_session_token: sessionToken,
-        })).then(({ data }) => {
-          if (data === false) {
-            clearSession();
-            router.replace('/login?kicked=1');
-          }
-        }).catch(() => {});
-      })
-      .subscribe();
+    // Run check on page load
+    validateSession();
     setUser(session);
     setSavedIds(getSavedIds());
     if (session.id) {
@@ -376,7 +369,10 @@ export default function MyProposalClient() {
       // list around for the Manage modal (running + scheduled). Also
       // refetches the user row so the credit balance (purchased - used)
       // reflects a just-completed booking or cancellation.
-      const refreshBoosts = () => {
+      const refreshBoosts = async () => {
+        // Validate session on every refresh — catches kicks without polling
+        const valid = await validateSession();
+        if (!valid) return;
         const now = new Date();
         supabase.from('featured_boosts')
           .select('id, city, scheduled_date, is_used, created_at')
@@ -400,7 +396,7 @@ export default function MyProposalClient() {
       refreshBoosts();
       refreshFeaturedDataRef.current = refreshBoosts;
     }
-    return () => { supabase.removeChannel(channel); };
+    return () => {};
   }, [router]);
 
   useEffect(() => {
