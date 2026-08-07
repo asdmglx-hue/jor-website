@@ -329,10 +329,10 @@ export default function MyProposalClient() {
         // Skip check for 5 seconds after login to avoid self-kick
         if (Date.now() - loginTime < 5000) return;
         if (!sessionToken) return;
-        Promise.resolve(supabase.rpc('check_device_session', {
+        supabase.rpc('check_device_session', {
           p_cnic: session.cnic,
           p_session_token: sessionToken,
-        })).then(({ data }) => {
+        }).then(({ data }) => {
           if (data === false) {
             clearSession();
             router.replace('/login?kicked=1');
