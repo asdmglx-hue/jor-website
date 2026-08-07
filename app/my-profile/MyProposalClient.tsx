@@ -311,13 +311,15 @@ export default function MyProposalClient() {
     const session = getSession();
     if (!session) { router.replace('/login'); return; }
 
-    // Check if this browser is still the active session — runs on load and every 30s
+    // Token-based session check — no race condition possible.
+    // Token only exists in localStorage after successful DB registration.
+    // If no token found, don't kick (user logged in before this feature).
     const checkSession = () => {
-      const deviceId = localStorage.getItem('jor_web_device_id');
-      if (!session.cnic || !deviceId) return;
+      const sessionToken = localStorage.getItem('jor_session_token');
+      if (!session.cnic || !sessionToken) return;
       Promise.resolve(supabase.rpc('check_device_session', {
         p_cnic: session.cnic,
-        p_device_id: deviceId,
+        p_session_token: sessionToken,
       })).then(({ data }) => {
         if (data === false) {
           clearSession();
@@ -326,8 +328,8 @@ export default function MyProposalClient() {
       }).catch(() => {});
     };
 
-    // Delay first check by 3 seconds to avoid race condition with session registration
-    const firstCheck = setTimeout(checkSession, 3000);
+    // No delay needed — token guarantees registration completed before check runs
+    checkSession();
     const interval = setInterval(checkSession, 30000); // recheck every 30 seconds
     setUser(session);
     setSavedIds(getSavedIds());
@@ -389,7 +391,7 @@ export default function MyProposalClient() {
       refreshBoosts();
       refreshFeaturedDataRef.current = refreshBoosts;
     }
-    return () => { clearTimeout(firstCheck); clearInterval(interval); };
+    return () => clearInterval(interval);
   }, [router]);
 
   useEffect(() => {
@@ -412,6 +414,7 @@ export default function MyProposalClient() {
         supabase.rpc('remove_device_session', { p_cnic: session.cnic, p_device_id: deviceId }).then(() => {});
       }
     }
+    localStorage.removeItem('jor_session_token');
     clearSession();
     router.push('/');
   };

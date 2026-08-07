@@ -72,13 +72,19 @@ export default function LoginClient() {
       const proposal = await loginWithCnic(cleanCnic, password);
       if (!proposal) { setError('Incorrect CNIC or password. Please try again.'); return; }
 
-      // Register this device as the only active session — replaces any previous
+      // Register this device as the only active session.
+      // Store the returned token — all future checks use this token.
+      // Token-based: no race condition possible since token only exists
+      // after successful DB write.
       const deviceId = getOrCreateWebDeviceId();
-      await supabase.rpc('register_device_session', {
+      const { data: sessionToken } = await supabase.rpc('register_device_session', {
         p_cnic: cleanCnic,
         p_device_id: deviceId,
         p_device_type: 'web',
       });
+      if (sessionToken) {
+        localStorage.setItem('jor_session_token', sessionToken as string);
+      }
 
       saveSession(proposal);
       trackEvent('login_success');
