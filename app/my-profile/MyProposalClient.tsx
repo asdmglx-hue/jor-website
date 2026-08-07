@@ -328,10 +328,10 @@ export default function MyProposalClient() {
       }).catch(() => {});
     };
 
-    // No delay needed — token guarantees registration completed before check runs
-    // Small 1s delay to ensure localStorage write completes before first read
-    const firstCheck = setTimeout(checkSession, 1000);
-    const interval = setInterval(checkSession, 30000); // recheck every 30 seconds
+    // Token-based session check — runs every 30 seconds.
+    // NOT run immediately on page load to avoid race condition with login redirect.
+    const firstCheck = setTimeout(checkSession, 3000);
+    const interval = setInterval(checkSession, 30000);
     setUser(session);
     setSavedIds(getSavedIds());
     if (session.id) {
