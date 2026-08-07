@@ -325,7 +325,9 @@ export default function MyProposalClient() {
       })).catch(() => ({ data: true }));
       if (data === false) {
         clearSession();
-        window.location.href = '/login?kicked=1';
+        localStorage.removeItem('jor_session_token');
+        localStorage.removeItem('jor_login_time');
+        setTimeout(() => { window.location.href = '/login?kicked=1'; }, 100);
         return false;
       }
       return true;
