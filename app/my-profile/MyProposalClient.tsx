@@ -311,12 +311,13 @@ export default function MyProposalClient() {
     const session = getSession();
     if (!session) { router.replace('/login'); return; }
 
-    // Token-based session check — no race condition possible.
-    // Token only exists in localStorage after successful DB registration.
-    // If no token found, don't kick (user logged in before this feature).
+    // Token-based session check — skip if user just logged in (within 10 seconds)
+    // to avoid race condition between token registration and first check.
     const checkSession = () => {
       const sessionToken = localStorage.getItem('jor_session_token');
       if (!session.cnic || !sessionToken) return;
+      const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
+      if (Date.now() - loginTime < 10000) return; // skip check for 10s after login
       Promise.resolve(supabase.rpc('check_device_session', {
         p_cnic: session.cnic,
         p_session_token: sessionToken,

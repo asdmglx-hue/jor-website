@@ -84,6 +84,7 @@ export default function LoginClient() {
         localStorage.setItem('jor_session_token', sessionToken as string);
       }
 
+      localStorage.setItem('jor_login_time', Date.now().toString());
       saveSession(proposal);
       trackEvent('login_success');
       // Use window.location instead of router.push to force full page reload.
