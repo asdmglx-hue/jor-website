@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import NavbarWrapper from "@/components/NavbarWrapper";
 import ContactSupportButton from "@/components/ContactSupportButton";
 import { supabase } from "@/lib/supabase";
 
@@ -85,7 +85,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Navbar />
+        <NavbarWrapper />
         <main className="site-main" style={{ minHeight: 'calc(100vh - 60px)' }}>
           {children}
         </main>

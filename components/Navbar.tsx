@@ -7,7 +7,7 @@ import { updateProposal, supabase } from '@/lib/supabase';
 import PasswordInput from '@/components/PasswordInput';
 import { useRouter, usePathname } from 'next/navigation';
 
-export default function Navbar() {
+export default function Navbar({ sticky = false }: { sticky?: boolean }) {
   const [user, setUser] = useState<{ name: string; profile_photo_url?: string; gender?: string } | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | false>(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -98,7 +98,7 @@ export default function Navbar() {
   };
 
   const navContent = (
-    <nav style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)' }}>
+    <nav style={{ position: sticky ? 'sticky' : 'relative', top: 0, zIndex: 100, background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
           <img src="/logo.png" alt="Jor" className="logo-full" style={{ height: 36, width: 'auto' }} />
