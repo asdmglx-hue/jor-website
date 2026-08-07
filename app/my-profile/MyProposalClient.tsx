@@ -408,15 +408,16 @@ export default function MyProposalClient() {
   }, [tab, user]);
 
   const handleLogout = () => {
-    // Remove this browser's session from the server
     const session = getSession();
-    if (session?.cnic) {
-      const deviceId = localStorage.getItem('jor_web_device_id');
-      if (deviceId) {
-        supabase.rpc('remove_device_session', { p_cnic: session.cnic, p_device_id: deviceId }).then(() => {});
-      }
+    const sessionToken = localStorage.getItem('jor_session_token');
+    if (session?.cnic && sessionToken) {
+      supabase.rpc('remove_device_session', {
+        p_cnic: session.cnic,
+        p_session_token: sessionToken,
+      }).then(() => {});
     }
     localStorage.removeItem('jor_session_token');
+    localStorage.removeItem('jor_login_time');
     clearSession();
     router.push('/');
   };
