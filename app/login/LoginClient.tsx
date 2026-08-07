@@ -86,7 +86,9 @@ export default function LoginClient() {
 
       saveSession(proposal);
       trackEvent('login_success');
-      router.push('/my-profile');
+      // Use window.location instead of router.push to force full page reload.
+      // This clears any stale session check intervals from previous visits.
+      window.location.href = '/my-profile';
     } catch {
       setError('Something went wrong. Please check your connection and try again.');
     } finally {
