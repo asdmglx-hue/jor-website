@@ -74,6 +74,7 @@ export default function LoginClient() {
 
       // Clear any old token first, then register new session
       localStorage.removeItem('jor_session_token');
+      const deviceId = getOrCreateWebDeviceId();
       const { data: sessionToken } = await supabase.rpc('register_device_session', {
         p_cnic: cleanCnic,
         p_device_id: deviceId,
