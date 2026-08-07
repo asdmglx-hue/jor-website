@@ -7,6 +7,7 @@ import CitySlider from '@/components/CitySlider';
 import CountrySlider from '@/components/CountrySlider';
 import PostRishtaButton from '@/components/PostRishtaButton';
 import HeroStats from '@/components/HeroStats';
+import AutoScroll from '@/components/AutoScroll';
 import type { Proposal } from '@/lib/supabase';
 import type { Metadata } from 'next';
 
@@ -169,6 +170,9 @@ export default async function HomePage() {
           unlock richer result displays, not just a plain blue link. */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
+      {/* Auto-scroll to Browse by Location after 10s of inactivity */}
+      <AutoScroll />
+
       {/* Hero */}
       <section style={{
         background: 'linear-gradient(135deg, #534AB7 0%, #3D35A0 50%, #0F6E56 100%)',
@@ -215,7 +219,7 @@ export default async function HomePage() {
       </section>
 
       {/* Browse by city */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 20px 0' }}>
+      <section id="browse-by-location" style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 20px 0' }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1A1830', marginBottom: 16 }}>Browse by Location</h2>
         <CitySlider cities={cities} />
         <div style={{ marginTop: 12 }}>
