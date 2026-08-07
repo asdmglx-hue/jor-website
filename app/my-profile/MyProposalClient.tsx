@@ -311,28 +311,35 @@ export default function MyProposalClient() {
     const session = getSession();
     if (!session) { router.replace('/login'); return; }
 
-    // Token-based session check — skip if user just logged in (within 10 seconds)
-    // to avoid race condition between token registration and first check.
-    const checkSession = () => {
-      const sessionToken = localStorage.getItem('jor_session_token');
-      if (!session.cnic || !sessionToken) return;
-      const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
-      if (Date.now() - loginTime < 10000) return; // skip check for 10s after login
-      Promise.resolve(supabase.rpc('check_device_session', {
-        p_cnic: session.cnic,
-        p_session_token: sessionToken,
-      })).then(({ data }) => {
-        if (data === false) {
-          clearSession();
-          router.replace('/login?kicked=1');
-        }
-      }).catch(() => {});
-    };
+    // Realtime session enforcement — instant kick when another device logs in.
+    // Supabase pushes a change event the moment user_sessions row is updated.
+    // No polling, no delay, no race condition.
+    const sessionToken = localStorage.getItem('jor_session_token');
+    const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
 
-    // Token-based session check — runs every 30 seconds.
-    // NOT run immediately on page load to avoid race condition with login redirect.
-    const firstCheck = setTimeout(checkSession, 3000);
-    const interval = setInterval(checkSession, 30000);
+    const channel = supabase
+      .channel('session:' + session.cnic)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_sessions',
+        filter: 'cnic=eq.' + session.cnic,
+      }, () => {
+        // A change happened — check if our token is still valid
+        // Skip check for 5 seconds after login to avoid self-kick
+        if (Date.now() - loginTime < 5000) return;
+        if (!sessionToken) return;
+        supabase.rpc('check_device_session', {
+          p_cnic: session.cnic,
+          p_session_token: sessionToken,
+        }).then(({ data }) => {
+          if (data === false) {
+            clearSession();
+            router.replace('/login?kicked=1');
+          }
+        }).catch(() => {});
+      })
+      .subscribe();
     setUser(session);
     setSavedIds(getSavedIds());
     if (session.id) {
@@ -393,7 +400,7 @@ export default function MyProposalClient() {
       refreshBoosts();
       refreshFeaturedDataRef.current = refreshBoosts;
     }
-    return () => { clearTimeout(firstCheck); clearInterval(interval); };
+    return () => { supabase.removeChannel(channel); };
   }, [router]);
 
   useEffect(() => {
