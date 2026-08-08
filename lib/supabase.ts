@@ -184,6 +184,42 @@ function toList(single: string | undefined, arr: string[] | undefined): string[]
   return Array.from(out);
 }
 
+// Builds the search OR-group content matching name/city/profession/caste/
+// sect/marital status/home type/country/location, plus #code and age
+// numeric matching — same fields the app's search matches, kept in sync
+// deliberately so the two platforms return the same results for the same
+// search text. Returns null when there's nothing to search.
+function buildSearchOrGroup(search: string): string | null {
+  // Raw PostgREST .or() filter string breaks on commas/parentheses in the
+  // value (they're syntax characters in that mini-language), so strip them.
+  const safe = search.trim().replace(/[,()]/g, ' ').trim();
+  if (!safe) return null;
+  const parts = [
+    `name.ilike.%${safe}%`,
+    `city.ilike.%${safe}%`,
+    `location.ilike.%${safe}%`,
+    `country.ilike.%${safe}%`,
+    `profession.ilike.%${safe}%`,
+    `caste.ilike.%${safe}%`,
+    `sect.ilike.%${safe}%`,
+    `marital_status.ilike.%${safe}%`,
+    // home_type only ever holds "Own House" / "Rented House", so this also
+    // naturally catches someone just typing "own" or "rented".
+    `home_type.ilike.%${safe}%`,
+  ];
+  // "#3470" means specifically the proposal number, nothing else. A bare
+  // number like "25" is ambiguous between an age and a proposal number, so
+  // match both — either interpretation is a reasonable thing to have typed.
+  const isCodeSearch = safe.startsWith('#');
+  const numQuery = isCodeSearch ? safe.substring(1) : safe;
+  const numSearch = /^\d+$/.test(numQuery) ? parseInt(numQuery, 10) : null;
+  if (numSearch !== null) {
+    parts.push(`proposal_number.eq.${numSearch}`);
+    if (!isCodeSearch) parts.push(`age.eq.${numSearch}`);
+  }
+  return parts.join(',');
+}
+
 // "New / 1 Month / 2 Months / 3+ Months" time filter — same 5 buckets and
 // index order as the mobile app's chip list (minus 'Saved', which the
 // website handles separately via its own heart-icon toggle).
@@ -277,7 +313,10 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
   if (maritalStatusesList.length > 0) query = query.in('marital_status', maritalStatusesList);
   if (filters.minAge) query = query.gte('age', filters.minAge);
   if (filters.maxAge) query = query.lte('age', filters.maxAge);
-  if (filters.search) orGroups.push(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
+  if (filters.search) {
+    const searchGroup = buildSearchOrGroup(filters.search);
+    if (searchGroup) orGroups.push(searchGroup);
+  }
   const professionsList = toList(filters.profession, filters.professions);
   if (professionsList.length > 0) query = query.in('profession_category', professionsList);
   const homeTypesList = toList(filters.homeType, filters.homeTypes);
@@ -421,7 +460,10 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   if (maritalStatusesList.length > 0) query = query.in('marital_status', maritalStatusesList);
   if (filters.minAge) query = query.gte('age', filters.minAge);
   if (filters.maxAge) query = query.lte('age', filters.maxAge);
-  if (filters.search) orGroups.push(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
+  if (filters.search) {
+    const searchGroup = buildSearchOrGroup(filters.search);
+    if (searchGroup) orGroups.push(searchGroup);
+  }
   const professionsList = toList(filters.profession, filters.professions);
   if (professionsList.length > 0) query = query.in('profession_category', professionsList);
   const homeTypesList = toList(filters.homeType, filters.homeTypes);
