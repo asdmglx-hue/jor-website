@@ -26,20 +26,20 @@ const OCCUPATION_CATEGORIES_FALLBACK = [
   'Business & Management','Government & Forces','Arts & Media',
   'Skilled Trades','Services & Other','Other',
 ];
-const SECTS = ['Sunni','Shia','Barelvi','Deobandi','Ahl-e-Hadith','Other'];
+const SECTS = ['Sunni','Shia','Ahl-e-Hadith','Deobandi','Barelvi','Other'];
 const EDUCATIONS = ['Matric','FSc/FA','Diploma',"Bachelor's","Master's",'MPhil','PhD','Other'];
 const MARITAL_MALE   = ['Never married','Married','Divorced','Widowed'];
 const MARITAL_FEMALE = ['Never married','Divorced','Khula','Widowed'];
 const MARITAL_ALL    = ['Never married','Married','Divorced','Khula','Widowed'];
 
-// Age range for the filter dropdowns — matches the existing 18–80 bounds
-// that were previously enforced via input min/max attributes.
-const AGE_OPTIONS: number[] = Array.from({ length: 80 - 18 + 1 }, (_, i) => 18 + i);
+// Age range for the filter dropdowns — matches the app's 18–100 range.
+const AGE_OPTIONS: number[] = Array.from({ length: 100 - 18 + 1 }, (_, i) => 18 + i);
 
 // Height range for the filter dropdowns, in the same total-inches unit
-// height_inches is stored in — 4'0" (48") through 7'0" (84"), labeled the
-// same ft/in way the rest of the site displays height.
-const HEIGHT_OPTIONS: { inches: number; label: string }[] = Array.from({ length: 84 - 48 + 1 }, (_, i) => {
+// height_inches is stored in — 4'0" (48") through 8'0" (96"), labeled the
+// same ft/in way the rest of the site displays height. Matches the app's
+// 48–96 range.
+const HEIGHT_OPTIONS: { inches: number; label: string }[] = Array.from({ length: 96 - 48 + 1 }, (_, i) => {
   const inches = 48 + i;
   return { inches, label: `${Math.floor(inches / 12)}'${inches % 12}"` };
 });
