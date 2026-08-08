@@ -46,22 +46,91 @@ const HEIGHT_OPTIONS: { inches: number; label: string }[] = Array.from({ length:
 
 type Props = { filters: FilterState; onChange: (f: FilterState) => void; total: number; showSaved?: boolean; onSavedToggle?: () => void; lockedGender?: 'Male' | 'Female' | null; };
 
-function Select({ label, value, options, onChange }: { label: string; value?: string; options: string[]; onChange: (v: string) => void }) {
+// Multi-select dropdown — checkbox list in a popover, matching the visual
+// style of the single-select `Select` above. Supports both a flat option
+// list (`options`) and grouped options with a section header per group
+// (`groups`, e.g. castes-by-region or cities-by-province) — pass exactly
+// one of the two. This is what gives the website the same "pick more than
+// one" behavior the app has always had for city/caste/sect/occupation/
+// marital status/education/home type (those filters used to only allow
+// picking a single value here, unlike the app).
+function MultiSelect({ label, values, options, groups, onChange }: {
+  label: string;
+  values: string[];
+  options?: string[];
+  groups?: Record<string, string[]>;
+  onChange: (v: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener('click', close);
+    return () => window.removeEventListener('click', close);
+  }, [open]);
+
+  const toggle = (opt: string) => {
+    onChange(values.includes(opt) ? values.filter(v => v !== opt) : [...values, opt]);
+  };
+
+  const active = values.length > 0;
+  const displayLabel = values.length === 0 ? label : values.length === 1 ? values[0] : `${label} (${values.length})`;
+  const entries: [string, string[]][] = groups ? Object.entries(groups) : [['', options || []]];
+
   return (
-    <select
-      value={value || ''}
-      onChange={e => onChange(e.target.value)}
-      style={{
-        padding: '8px 10px', borderRadius: 10, border: '1.5px solid #E8E6F5',
-        background: value ? '#EEEDFE' : '#fff', color: value ? '#534AB7' : '#6B6893',
-        fontSize: 13, fontWeight: value ? 700 : 500, cursor: 'pointer', outline: 'none', flex: '1 1 auto', minWidth: 0,
-      }}
-    >
-      <option value="">{label}</option>
-      {options.map(o => <option key={o} value={o}>{o}</option>)}
-    </select>
+    <div ref={ref} style={{ position: 'relative', flex: '1 1 auto', minWidth: 0 }}>
+      <button type="button" onClick={e => { e.stopPropagation(); setOpen(o => !o); }} style={{
+        width: '100%', padding: '8px 10px', borderRadius: 10, border: '1.5px solid #E8E6F5',
+        background: active ? '#EEEDFE' : '#fff', color: active ? '#534AB7' : '#6B6893',
+        fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', outline: 'none',
+        textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6,
+      }}>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayLabel}</span>
+        <span style={{ fontSize: 10, flexShrink: 0, color: active ? '#534AB7' : '#9A97B8' }}>▾</span>
+      </button>
+      {open && (
+        <div onClick={e => e.stopPropagation()} style={{
+          position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 220,
+          background: '#fff', border: '1.5px solid #E8E6F5', borderRadius: 12,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', maxHeight: 280, overflowY: 'auto',
+          minWidth: 210, padding: '6px 0',
+        }}>
+          {active && (
+            <button type="button" onClick={() => onChange([])} style={{
+              width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none',
+              color: '#E11D48', fontSize: 12, fontWeight: 700, cursor: 'pointer', borderBottom: '1px solid #F0EFFA',
+            }}>
+              Clear ({values.length})
+            </button>
+          )}
+          {entries.map(([group, opts]) => (
+            <div key={group || 'flat'}>
+              {group && (
+                <div style={{ padding: '6px 12px 2px', fontSize: 10, fontWeight: 800, color: '#9A97B8', textTransform: 'uppercase' }}>
+                  {group}
+                </div>
+              )}
+              {opts.map(opt => (
+                <label key={opt} style={{
+                  display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', cursor: 'pointer', fontSize: 13,
+                  color: values.includes(opt) ? '#534AB7' : '#1A1830', fontWeight: values.includes(opt) ? 700 : 500,
+                }}>
+                  <input type="checkbox" checked={values.includes(opt)} onChange={() => toggle(opt)}
+                    style={{ accentColor: '#534AB7', width: 14, height: 14, cursor: 'pointer' }} />
+                  {opt}
+                </label>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
+
 
 // Small click-to-open info icon — same pattern as the one used on the
 // registration form and My Account edit screen (InfoPopover), just scaled
@@ -115,8 +184,8 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
   }, []);
 
   // 'overseas' | 'pakistan' | ''
-  const [locationMode, setLocationMode] = useState<string>(() => filters.overseas ? 'overseas' : filters.city ? 'pakistan' : '');
-  const [selectedCity, setSelectedCity] = useState<string>(filters.city || '');
+  const [locationMode, setLocationMode] = useState<string>(() => filters.overseas ? 'overseas' : (filters.city || (filters.cities && filters.cities.length > 0)) ? 'pakistan' : '');
+  const [selectedCities, setSelectedCities] = useState<string[]>(() => filters.cities || (filters.city ? [filters.city] : []));
   const [overseasCountries, setOverseasCountries] = useState<string[]>([]);
   const [selectedCountry, setSelectedCountry] = useState<string>(filters.country || '');
 
@@ -130,25 +199,44 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
 
   // Don't count the gender filter toward the active-filter badge when it's
   // locked — the user didn't choose it, so it shouldn't look like a filter
-  // they can/need to clear. Matches the mobile app's _effectiveCount.
-  const activeCount = Object.entries(filters).filter(([k, v]) =>
-    v !== undefined && v !== '' && !(k === 'gender' && lockedGender)
-  ).length;
+  // they can/need to clear. Matches the mobile app's _effectiveCount. Empty
+  // arrays (a multi-select with nothing picked) don't count as active —
+  // only non-empty ones do, same as the app's activeCount getter.
+  const activeCount = Object.entries(filters).filter(([k, v]) => {
+    if (v === undefined || v === '') return false;
+    if (Array.isArray(v) && v.length === 0) return false;
+    if (k === 'gender' && lockedGender) return false;
+    return true;
+  }).length;
 
   const set = (key: keyof FilterState, val: string) =>
     onChange({ ...filters, [key]: val || undefined });
 
+  // Shared handler for every multi-select filter (caste, sect, marital
+  // status, education, profession, home type) — writes the new array
+  // straight into filters under `key`, using undefined instead of an
+  // empty array when nothing's selected so activeCount/URL params stay
+  // clean (matches how the single-select `set()` above uses undefined
+  // instead of an empty string).
+  const setMulti = (key: keyof FilterState, values: string[]) =>
+    onChange({ ...filters, [key]: values.length > 0 ? values : undefined });
+
+  const handleCitiesChange = (cities: string[]) => {
+    setSelectedCities(cities);
+    onChange({ ...filters, city: undefined, cities: cities.length > 0 ? cities : undefined });
+  };
+
   const handleLocationMode = (mode: string) => {
     setLocationMode(mode);
-    setSelectedCity('');
+    setSelectedCities([]);
     setSelectedCountry('');
     if (mode === 'overseas') {
-      onChange({ ...filters, overseas: true, pakistan: undefined, city: undefined, country: undefined });
+      onChange({ ...filters, overseas: true, pakistan: undefined, city: undefined, cities: undefined, country: undefined });
       fetchOverseasCountries().then(setOverseasCountries);
     } else if (mode === 'pakistan') {
-      onChange({ ...filters, overseas: undefined, pakistan: true, city: undefined, country: undefined });
+      onChange({ ...filters, overseas: undefined, pakistan: true, city: undefined, cities: undefined, country: undefined });
     } else {
-      onChange({ ...filters, overseas: undefined, pakistan: undefined, city: undefined, country: undefined });
+      onChange({ ...filters, overseas: undefined, pakistan: undefined, city: undefined, cities: undefined, country: undefined });
     }
   };
 
@@ -157,14 +245,9 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
     onChange({ ...filters, overseas: true, country: c || undefined });
   };
 
-  const handleCityChange = (city: string) => {
-    setSelectedCity(city);
-    onChange({ ...filters, city: city || undefined });
-  };
-
   const handleClear = () => {
     setLocationMode('');
-    setSelectedCity('');
+    setSelectedCities([]);
     setSelectedCountry('');
     setOverseasCountries([]);
     // A locked gender isn't a real filter choice to clear — keep it.
@@ -235,14 +318,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
         <option value="pakistan">Pakistan</option>
       </select>
       {locationMode === 'pakistan' && (
-        <select value={selectedCity} onChange={e => handleCityChange(e.target.value)} style={dropStyle(!!selectedCity)}>
-          <option value="">All Cities</option>
-          {Object.entries(cityGroups).map(([province, cities]) => (
-            <optgroup key={province} label={province}>
-              {cities.map(c => <option key={c} value={c}>{c}</option>)}
-            </optgroup>
-          ))}
-        </select>
+        <MultiSelect label="All Cities" values={selectedCities} groups={cityGroups} onChange={handleCitiesChange} />
       )}
       {locationMode === 'overseas' && (
         <select value={selectedCountry} onChange={e => handleCountryChange(e.target.value)} style={dropStyle(!!selectedCountry)}>
@@ -250,14 +326,9 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
           {overseasCountries.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       )}
-      <select value={filters.caste || ''} onChange={e => set('caste', e.target.value)} style={dropStyle(!!filters.caste)}>
-        <option value="">Caste</option>
-        {Object.entries(casteGroups).flatMap(([group, castes]) =>
-          castes.map(c => <option key={`${group}-${c}`} value={c}>{c}</option>)
-        )}
-      </select>
-      <Select label="Sect" value={filters.sect} options={SECTS} onChange={v => set('sect', v)} />
-      <Select label="Marital Status" value={filters.maritalStatus} options={filters.gender === 'Male' ? MARITAL_MALE : filters.gender === 'Female' ? MARITAL_FEMALE : MARITAL_ALL} onChange={v => set('maritalStatus', v)} />
+      <MultiSelect label="Caste" values={filters.castes || []} groups={casteGroups} onChange={v => setMulti('castes', v)} />
+      <MultiSelect label="Sect" values={filters.sects || []} options={SECTS} onChange={v => setMulti('sects', v)} />
+      <MultiSelect label="Marital Status" values={filters.maritalStatuses || []} options={filters.gender === 'Male' ? MARITAL_MALE : filters.gender === 'Female' ? MARITAL_FEMALE : MARITAL_ALL} onChange={v => setMulti('maritalStatuses', v)} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flex: '1 1 160px' }}>
         <select value={filters.minAge || ''} onChange={e => onChange({ ...filters, minAge: e.target.value ? +e.target.value : undefined })}
           style={{ flex: 1, minWidth: 0, padding: '8px 4px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.minAge ? '#EEEDFE' : '#fff', color: filters.minAge ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.minAge ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>
@@ -276,13 +347,9 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
           Type (and everything after it) would otherwise get pulled up
           into row 1 instead of staying on row 2. */}
       <div style={{ flexBasis: '100%', width: 0, height: 0 }} />
-      <select value={filters.homeType || ''} onChange={e => set('homeType', e.target.value)} style={dropStyle(!!filters.homeType)}>
-        <option value="">Home Type</option>
-        <option value="Own House">Own House</option>
-        <option value="Rented House">Rented House</option>
-      </select>
-      <Select label="Occupation" value={filters.profession} options={occupationCategories} onChange={v => set('profession', v)} />
-      <Select label="Education" value={filters.education} options={EDUCATIONS} onChange={v => set('education', v)} />
+      <MultiSelect label="Home Type" values={filters.homeTypes || []} options={['Own House', 'Rented House']} onChange={v => setMulti('homeTypes', v)} />
+      <MultiSelect label="Occupation" values={filters.professions || []} options={occupationCategories} onChange={v => setMulti('professions', v)} />
+      <MultiSelect label="Education" values={filters.educations || []} options={EDUCATIONS} onChange={v => setMulti('educations', v)} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '2 1 220px' }}>
         <select value={filters.minHeight || ''} onChange={e => onChange({ ...filters, minHeight: e.target.value ? +e.target.value : undefined })}
           style={{ flex: 1, minWidth: 0, padding: '8px 10px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: filters.minHeight ? '#EEEDFE' : '#fff', color: filters.minHeight ? '#534AB7' : '#6B6893', fontSize: 13, fontWeight: filters.minHeight ? 700 : 500, outline: 'none', textAlign: 'center', cursor: 'pointer' }}>

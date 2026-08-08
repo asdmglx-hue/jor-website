@@ -111,18 +111,27 @@ export type Proposal = {
 
 export type FilterState = {
   gender?: string;
-  city?: string;
+  city?: string;    // kept for URL/back-compat with single-city links; the
+                     // UI now writes to `cities` below for actual filtering
+  cities?: string[]; // multi-select — matches the app's city filter, which
+                      // has always allowed picking more than one city
   overseas?: boolean;
   pakistan?: boolean;
   country?: string;
-  caste?: string;
-  sect?: string;
+  caste?: string;      // back-compat, superseded by `castes` below
+  castes?: string[];   // multi-select, matches the app's caste filter
+  sect?: string;       // back-compat, superseded by `sects` below
+  sects?: string[];    // multi-select, matches the app's sect filter
   minAge?: number;
   maxAge?: number;
-  education?: string;
-  profession?: string;       // stores a profession_category value (e.g. "Healthcare")
-  maritalStatus?: string;
-  homeType?: string;
+  education?: string;      // back-compat, superseded by `educations` below
+  educations?: string[];   // multi-select, matches the app's education filter
+  profession?: string;     // back-compat, superseded by `professions` below
+  professions?: string[];  // multi-select, stores profession_category values
+  maritalStatus?: string;      // back-compat, superseded by `maritalStatuses`
+  maritalStatuses?: string[];  // multi-select, matches the app's filter
+  homeType?: string;      // back-compat, superseded by `homeTypes` below
+  homeTypes?: string[];   // multi-select, matches the app's home type filter
   minHeight?: number;
   maxHeight?: number;
   search?: string;
@@ -161,6 +170,17 @@ export const CARD_COLS ='id,proposal_number,name,age,gender,city,country,profess
 // keep showing in the feed just because that background job hasn't run.
 export function notExpiredFilter(): string {
   return `subscription_expiry.is.null,subscription_expiry.gt.${new Date().toISOString()}`;
+}
+
+// Merges a legacy single-value filter field with its new multi-select
+// array field into one deduplicated list — supports both old bookmarked
+// URLs/links that still pass a single value, and the current UI which
+// writes to the array field. Returns [] when neither is set.
+function toList(single: string | undefined, arr: string[] | undefined): string[] {
+  const out = new Set<string>();
+  if (single) out.add(single);
+  for (const v of arr || []) if (v) out.add(v);
+  return Array.from(out);
 }
 
 // "New / 1 Month / 2 Months / 3+ Months" time filter — same 5 buckets and
@@ -214,7 +234,7 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
 
   // Use per-city limit when a specific city or country is selected
   let max = maxGeneral;
-  if (filters.city || filters.country) {
+  if (filters.city || (filters.cities && filters.cities.length > 0) || filters.country) {
     const { data: perCityRow } = await supabase
       .from('app_settings').select('value').eq('key', 'max_featured_per_city').maybeSingle();
     max = Number(perCityRow?.value) || 5;
@@ -246,15 +266,21 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
     .eq('is_boosted', true);
 
   if (filters.gender) query = query.eq('gender', filters.gender);
-  if (filters.caste) query = query.eq('caste', filters.caste);
-  if (filters.sect) query = query.eq('sect', filters.sect);
-  if (filters.education) query = query.eq('education', filters.education);
-  if (filters.maritalStatus) query = query.eq('marital_status', filters.maritalStatus);
+  const castesList = toList(filters.caste, filters.castes);
+  if (castesList.length > 0) query = query.in('caste', castesList);
+  const sectsList = toList(filters.sect, filters.sects);
+  if (sectsList.length > 0) query = query.in('sect', sectsList);
+  const educationsList = toList(filters.education, filters.educations);
+  if (educationsList.length > 0) query = query.in('education', educationsList);
+  const maritalStatusesList = toList(filters.maritalStatus, filters.maritalStatuses);
+  if (maritalStatusesList.length > 0) query = query.in('marital_status', maritalStatusesList);
   if (filters.minAge) query = query.gte('age', filters.minAge);
   if (filters.maxAge) query = query.lte('age', filters.maxAge);
   if (filters.search) orGroups.push(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
-  if (filters.profession) query = query.eq('profession_category', filters.profession);
-  if (filters.homeType) query = query.eq('home_type', filters.homeType);
+  const professionsList = toList(filters.profession, filters.professions);
+  if (professionsList.length > 0) query = query.in('profession_category', professionsList);
+  const homeTypesList = toList(filters.homeType, filters.homeTypes);
+  if (homeTypesList.length > 0) query = query.in('home_type', homeTypesList);
   if (filters.minHeight) query = query.gte('height_inches', filters.minHeight);
   if (filters.maxHeight) query = query.lte('height_inches', filters.maxHeight);
 
@@ -268,7 +294,7 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
     } else {
       query = query.not('country', 'is', null).neq('country', '').neq('country', 'Pakistan');
     }
-  } else if (filters.pakistan || filters.city) {
+  } else if (filters.pakistan || filters.city || (filters.cities && filters.cities.length > 0)) {
     // Pakistan view — exclude overseas profiles
     orGroups.push('country.is.null,country.eq.,country.eq.Pakistan');
   }
@@ -292,22 +318,23 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   // newest-first, same as "Recently Added". City/overseas-filtered views
   // keep boosting real is_boosted profiles to the top, unaffected — that
   // list is already small thanks to the per-city cap.
-  const isGeneralView = !filters.city;
+  const citiesList = toList(filters.city, filters.cities);
+  const isGeneralView = citiesList.length === 0;
 
   // A profile that bought a Featured slot FOR this specific city should
   // show up here (boosted to the top via is_boosted) even if their own
   // registered city is somewhere else — buying "Featured in Gujrat" should
   // actually mean something when someone browses Gujrat, not just boost
   // them in the unrelated general feed. Fetch which profiles currently
-  // have an active (not yet expired) boost for exactly this city first.
+  // have an active (not yet expired) boost for any of the selected cities.
   let boostedForCityIds: string[] = [];
-  if (filters.city && !filters.overseas) {
+  if (citiesList.length > 0 && !filters.overseas) {
     const now = new Date();
     const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const { data: activeBoosts } = await supabase
       .from('featured_boosts')
       .select('user_id')
-      .eq('city', filters.city)
+      .in('city', citiesList)
       .eq('is_used', false)
       .lte('scheduled_date', now.toISOString())
       .gt('scheduled_date', dayAgo.toISOString());
@@ -365,22 +392,33 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
         query = query.eq('country', filters.country);
       }
     }
-  } else if (filters.city) {
+  } else if (citiesList.length > 0) {
     if (boostedForCityIds.length > 0) {
-      orGroups.push(`city.eq.${filters.city},id.in.(${boostedForCityIds.join(',')})`);
+      // Raw PostgREST .in.() syntax needs each value double-quoted when it
+      // contains a space or comma (e.g. "Rahim Yar Khan") — the query
+      // builder's own .in() method does this automatically, but this is a
+      // hand-built filter string so it needs the same escaping by hand.
+      const quotedCities = citiesList.map(c => `"${c.replace(/"/g, '\\"')}"`).join(',');
+      orGroups.push(`city.in.(${quotedCities}),id.in.(${boostedForCityIds.join(',')})`);
     } else {
-      query = query.eq('city', filters.city);
+      query = query.in('city', citiesList);
     }
   }
-  if (filters.caste) query = query.eq('caste', filters.caste);
-  if (filters.sect) query = query.eq('sect', filters.sect);
-  if (filters.education) query = query.eq('education', filters.education);
-  if (filters.maritalStatus) query = query.eq('marital_status', filters.maritalStatus);
+  const castesList = toList(filters.caste, filters.castes);
+  if (castesList.length > 0) query = query.in('caste', castesList);
+  const sectsList = toList(filters.sect, filters.sects);
+  if (sectsList.length > 0) query = query.in('sect', sectsList);
+  const educationsList = toList(filters.education, filters.educations);
+  if (educationsList.length > 0) query = query.in('education', educationsList);
+  const maritalStatusesList = toList(filters.maritalStatus, filters.maritalStatuses);
+  if (maritalStatusesList.length > 0) query = query.in('marital_status', maritalStatusesList);
   if (filters.minAge) query = query.gte('age', filters.minAge);
   if (filters.maxAge) query = query.lte('age', filters.maxAge);
   if (filters.search) orGroups.push(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
-  if (filters.profession) query = query.eq('profession_category', filters.profession);
-  if (filters.homeType) query = query.eq('home_type', filters.homeType);
+  const professionsList = toList(filters.profession, filters.professions);
+  if (professionsList.length > 0) query = query.in('profession_category', professionsList);
+  const homeTypesList = toList(filters.homeType, filters.homeTypes);
+  if (homeTypesList.length > 0) query = query.in('home_type', homeTypesList);
   if (filters.minHeight) query = query.gte('height_inches', filters.minHeight);
   if (filters.maxHeight) query = query.lte('height_inches', filters.maxHeight);
   if (filters.postedAfter) query = query.gte('posted_at', filters.postedAfter);
