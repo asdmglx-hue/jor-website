@@ -135,7 +135,7 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
     fetchFeaturedForCarousel(filters).then(setFeaturedCarousel);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(filters)]);
-  const isGeneralView = !filters.city && !(filters.cities && filters.cities.length > 0);
+  const isGeneralView = !filters.city && !(filters.cities && filters.cities.length > 0) && !filters.overseas;
 
   // ── Time filter (All / New / 1 Month / 2 Months / 3+ Months) ─────────────
   const [timeChip, setTimeChip] = useState(0);

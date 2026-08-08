@@ -321,7 +321,7 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   // keep boosting real is_boosted profiles to the top, unaffected — that
   // list is already small thanks to the per-city cap.
   const citiesList = toList(filters.city, filters.cities);
-  const isGeneralView = citiesList.length === 0;
+  const isGeneralView = citiesList.length === 0 && !filters.overseas;
 
   // A profile that bought a Featured slot FOR this specific city should
   // show up here (boosted to the top via is_boosted) even if their own
