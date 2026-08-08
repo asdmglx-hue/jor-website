@@ -187,7 +187,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
   const [locationMode, setLocationMode] = useState<string>(() => filters.overseas ? 'overseas' : (filters.city || (filters.cities && filters.cities.length > 0)) ? 'pakistan' : '');
   const [selectedCities, setSelectedCities] = useState<string[]>(() => filters.cities || (filters.city ? [filters.city] : []));
   const [overseasCountries, setOverseasCountries] = useState<string[]>([]);
-  const [selectedCountry, setSelectedCountry] = useState<string>(filters.country || '');
+  const [selectedCountries, setSelectedCountries] = useState<string[]>(() => filters.countries || (filters.country ? [filters.country] : []));
 
   // If arriving with overseas filter (e.g. from country slider), fetch countries immediately
   useEffect(() => {
@@ -229,26 +229,26 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
   const handleLocationMode = (mode: string) => {
     setLocationMode(mode);
     setSelectedCities([]);
-    setSelectedCountry('');
+    setSelectedCountries([]);
     if (mode === 'overseas') {
-      onChange({ ...filters, overseas: true, pakistan: undefined, city: undefined, cities: undefined, country: undefined });
+      onChange({ ...filters, overseas: true, pakistan: undefined, city: undefined, cities: undefined, country: undefined, countries: undefined });
       fetchOverseasCountries().then(setOverseasCountries);
     } else if (mode === 'pakistan') {
-      onChange({ ...filters, overseas: undefined, pakistan: true, city: undefined, cities: undefined, country: undefined });
+      onChange({ ...filters, overseas: undefined, pakistan: true, city: undefined, cities: undefined, country: undefined, countries: undefined });
     } else {
-      onChange({ ...filters, overseas: undefined, pakistan: undefined, city: undefined, cities: undefined, country: undefined });
+      onChange({ ...filters, overseas: undefined, pakistan: undefined, city: undefined, cities: undefined, country: undefined, countries: undefined });
     }
   };
 
-  const handleCountryChange = (c: string) => {
-    setSelectedCountry(c);
-    onChange({ ...filters, overseas: true, country: c || undefined });
+  const handleCountriesChange = (countries: string[]) => {
+    setSelectedCountries(countries);
+    onChange({ ...filters, overseas: true, country: undefined, countries: countries.length > 0 ? countries : undefined });
   };
 
   const handleClear = () => {
     setLocationMode('');
     setSelectedCities([]);
-    setSelectedCountry('');
+    setSelectedCountries([]);
     setOverseasCountries([]);
     // A locked gender isn't a real filter choice to clear — keep it.
     onChange(lockedGender ? { gender: lockedGender } : {});
@@ -321,10 +321,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
         <MultiSelect label="All Cities" values={selectedCities} groups={cityGroups} onChange={handleCitiesChange} />
       )}
       {locationMode === 'overseas' && (
-        <select value={selectedCountry} onChange={e => handleCountryChange(e.target.value)} style={dropStyle(!!selectedCountry)}>
-          <option value="">All Countries</option>
-          {overseasCountries.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+        <MultiSelect label="All Countries" values={selectedCountries} options={overseasCountries} onChange={handleCountriesChange} />
       )}
       <MultiSelect label="Caste" values={filters.castes || []} groups={casteGroups} onChange={v => setMulti('castes', v)} />
       <MultiSelect label="Sect" values={filters.sects || []} options={SECTS} onChange={v => setMulti('sects', v)} />

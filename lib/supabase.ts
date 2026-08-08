@@ -117,7 +117,8 @@ export type FilterState = {
                       // has always allowed picking more than one city
   overseas?: boolean;
   pakistan?: boolean;
-  country?: string;
+  country?: string;      // back-compat, superseded by `countries` below
+  countries?: string[];  // multi-select, matches the app's overseas country filter
   caste?: string;      // back-compat, superseded by `castes` below
   castes?: string[];   // multi-select, matches the app's caste filter
   sect?: string;       // back-compat, superseded by `sects` below
@@ -234,7 +235,7 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
 
   // Use per-city limit when a specific city or country is selected
   let max = maxGeneral;
-  if (filters.city || (filters.cities && filters.cities.length > 0) || filters.country) {
+  if (filters.city || (filters.cities && filters.cities.length > 0) || filters.country || (filters.countries && filters.countries.length > 0)) {
     const { data: perCityRow } = await supabase
       .from('app_settings').select('value').eq('key', 'max_featured_per_city').maybeSingle();
     max = Number(perCityRow?.value) || 5;
@@ -289,8 +290,9 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
   // - Pakistan selected → local profiles only (no country or Pakistan)
   // - Overseas selected → overseas profiles only
   if (filters.overseas) {
-    if (filters.country) {
-      query = query.eq('country', filters.country);
+    const countriesList = toList(filters.country, filters.countries);
+    if (countriesList.length > 0) {
+      query = query.in('country', countriesList);
     } else {
       query = query.not('country', 'is', null).neq('country', '').neq('country', 'Pakistan');
     }
@@ -345,15 +347,16 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   // country too (see components/FeaturedBookModal.tsx's Pakistan/Overseas
   // location step), and featured_boosts.city stores that country name
   // identically to how it stores a Pakistani city, so this is the exact
-  // same lookup, just keyed on filters.country instead.
+  // same lookup, just keyed on the selected countries instead.
+  const countriesList = toList(filters.country, filters.countries);
   let boostedForCountryIds: string[] = [];
-  if (filters.overseas && filters.country) {
+  if (filters.overseas && countriesList.length > 0) {
     const now = new Date();
     const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const { data: activeBoosts } = await supabase
       .from('featured_boosts')
       .select('user_id')
-      .eq('city', filters.country)
+      .in('city', countriesList)
       .eq('is_used', false)
       .lte('scheduled_date', now.toISOString())
       .gt('scheduled_date', dayAgo.toISOString());
@@ -385,11 +388,15 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   if (filters.gender) query = query.eq('gender', filters.gender);
   if (filters.overseas) {
     query = query.not('country', 'is', null).neq('country', '').neq('country', 'Pakistan');
-    if (filters.country) {
+    if (countriesList.length > 0) {
       if (boostedForCountryIds.length > 0) {
-        orGroups.push(`country.eq.${filters.country},id.in.(${boostedForCountryIds.join(',')})`);
+        // Same manual quoting as the city case above — raw PostgREST
+        // .in.() syntax needs each value double-quoted when it contains a
+        // space (e.g. "United Arab Emirates").
+        const quotedCountries = countriesList.map(c => `"${c.replace(/"/g, '\\"')}"`).join(',');
+        orGroups.push(`country.in.(${quotedCountries}),id.in.(${boostedForCountryIds.join(',')})`);
       } else {
-        query = query.eq('country', filters.country);
+        query = query.in('country', countriesList);
       }
     }
   } else if (citiesList.length > 0) {
