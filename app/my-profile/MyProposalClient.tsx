@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSession, clearSession, getSavedIds } from '@/lib/auth';
-import { fetchProposalById, heightDisplay, Proposal, isSubscriptionActive, supabase, PROFILE_DETAIL_COLS, phoneDisplay, fetchCastes, fetchOccupations } from '@/lib/supabase';
+import { fetchProposalById, heightDisplay, Proposal, isSubscriptionActive, supabase, PROFILE_DETAIL_COLS, phoneDisplay, cnicDisplay, fetchCastes, fetchOccupations } from '@/lib/supabase';
 import { containsPhoneNumber, PUBLIC_PHONE_CHECK_FIELDS, PHONE_CHECK_ERROR } from '@/lib/phoneDetector';
 import { buildProposalShareText } from '@/lib/shareText';
 import { addWatermark } from '@/lib/watermarkImage';
@@ -659,7 +659,7 @@ export default function MyProposalClient() {
             )}
             {isAdminAccount && user.cnic && (
             <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 2 }}>
-              CNIC: {user.cnic}
+              CNIC: {cnicDisplay(user.cnic)}
             </div>
             )}
             {!isAdminAccount && (
@@ -1055,7 +1055,9 @@ export default function MyProposalClient() {
               const val = user[fieldKey as keyof typeof user];
               const isEditing = inlineKey === fieldKey;
               const rawDisplayVal = val != null && val !== '' && !(type === 'number' && Number(val) === 0) ? String(val) : null;
-              const displayVal = rawDisplayVal && type === 'tel' ? phoneDisplay(rawDisplayVal) : rawDisplayVal;
+              const displayVal = rawDisplayVal && type === 'tel' ? phoneDisplay(rawDisplayVal)
+                : rawDisplayVal && fieldKey === 'cnic' ? cnicDisplay(rawDisplayVal)
+                : rawDisplayVal;
               return (
                 <div style={{ marginBottom: 14 }}>
                   {lbl(label, ALWAYS_LOCKED.includes(fieldKey) ? lockIcon : (info ? <InfoPopover text={info} /> : undefined))}

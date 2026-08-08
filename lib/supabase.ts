@@ -1003,6 +1003,18 @@ export function phoneDisplay(phone: string): string {
   return `+92 ${localDigits.slice(0, 3)} ${localDigits.slice(3)}`;
 }
 
+// The cnic column is always stored as clean digits, no hyphens (enforced
+// by a database trigger — see normalize_cnic_before_write) so every RPC
+// that looks someone up by CNIC always compares apples to apples. This is
+// purely a display-time formatter — "1111111111111" -> "11111-1111111-1"
+// — for anywhere a person actually reads their own CNIC. Never write this
+// formatted value back to the database; always pass the raw digits.
+export function cnicDisplay(cnic: string): string {
+  const digits = cnic.replace(/\D/g, '');
+  if (digits.length !== 13) return cnic; // unexpected length — show as-is rather than mangle it
+  return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+}
+
 // Cached once per page load so the frequent, synchronous
 // isSubscriptionActive() checks below don't need to hit the database every
 // time. Kicked off immediately when this module loads; by the time most
