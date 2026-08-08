@@ -367,7 +367,7 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
   const searchBox = (
     <div style={{ position: 'relative' }}>
       <svg style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="Search by name, city, profession..." value={filters.search || ''} onChange={e => set('search', e.target.value)}
+      <input type="text" placeholder="Search by Name, Age, Location, Profession and more...." value={filters.search || ''} onChange={e => set('search', e.target.value)}
         style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 12, border: '1.5px solid #E8E6F5', fontSize: 14, outline: 'none', background: '#FAF9FF', color: '#1A1830' }} />
     </div>
   );
