@@ -34,8 +34,19 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
       const sessionToken = localStorage.getItem('jor_session_token');
       const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
       if (sessionToken && Date.now() - loginTime > 10000) {
+        // IMPORTANT: register_device_session (called at login) always uses
+        // the dash-stripped CNIC, but a handful of proposals have their
+        // cnic column stored WITH dashes (data entry inconsistency, not
+        // something this code can rely on being clean) — session.cnic here
+        // reflects however it's actually stored in the DB for this
+        // person, dashes and all. Comparing that raw value against a
+        // session registered under the stripped form never matches,
+        // which silently and permanently kicks that person on every
+        // single visit, regardless of device. Stripping here guarantees
+        // this check always compares apples to apples with how the
+        // session was actually registered.
         Promise.resolve(supabase.rpc('check_device_session', {
-          p_cnic: s.cnic,
+          p_cnic: s.cnic.replace(/-/g, ''),
           p_session_token: sessionToken,
         })).then(({ data }) => {
           if (data === false) {

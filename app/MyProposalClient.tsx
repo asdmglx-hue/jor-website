@@ -319,8 +319,16 @@ export default function MyProposalClient() {
       if (!session.cnic || !sessionToken) return true; // no token = old login, allow
       const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
       if (Date.now() - loginTime < 10000) return true; // grace period after login
+      // IMPORTANT: register_device_session (called at login) always uses
+      // the dash-stripped CNIC, but a handful of proposals have their
+      // cnic column stored WITH dashes (data entry inconsistency) —
+      // session.cnic reflects however it's actually stored for this
+      // person. Comparing that raw value against a session registered
+      // under the stripped form never matches, silently and permanently
+      // kicking that person on every visit regardless of device.
+      // Stripping here guarantees this always compares apples to apples.
       const { data } = await Promise.resolve(supabase.rpc('check_device_session', {
-        p_cnic: session.cnic,
+        p_cnic: session.cnic.replace(/-/g, ''),
         p_session_token: sessionToken,
       })).catch(() => ({ data: true }));
       if (data === false) {
@@ -420,8 +428,11 @@ export default function MyProposalClient() {
     const session = getSession();
     const sessionToken = localStorage.getItem('jor_session_token');
     if (session?.cnic && sessionToken) {
+      // Same dash-stripping as the check above — without it, logout
+      // silently fails to actually remove the DB session for anyone
+      // whose cnic column happens to have dashes.
       supabase.rpc('remove_device_session', {
-        p_cnic: session.cnic,
+        p_cnic: session.cnic.replace(/-/g, ''),
         p_session_token: sessionToken,
       }).then(() => {});
     }
