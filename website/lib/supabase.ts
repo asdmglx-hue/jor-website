@@ -113,7 +113,6 @@ export type FilterState = {
   gender?: string;
   city?: string;
   overseas?: boolean;
-  pakistan?: boolean;
   country?: string;
   caste?: string;
   sect?: string;
@@ -210,15 +209,7 @@ export async function fetchFeaturedForCarousel(filters: FilterState = {}): Promi
 async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise<Proposal[]> {
   const { data: settingRow } = await supabase
     .from('app_settings').select('value').eq('key', 'max_featured_general').maybeSingle();
-  const maxGeneral = Number(settingRow?.value) || 20;
-
-  // Use per-city limit when a specific city or country is selected
-  let max = maxGeneral;
-  if (filters.city || filters.country) {
-    const { data: perCityRow } = await supabase
-      .from('app_settings').select('value').eq('key', 'max_featured_per_city').maybeSingle();
-    max = Number(perCityRow?.value) || 5;
-  }
+  const max = Number(settingRow?.value) || 20;
 
   // Shows boosted profiles that ALSO match whatever non-location filter(s)
   // are currently active (caste, sect, marital status, etc. — combined
@@ -228,21 +219,11 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
   // possibly-irrelevant list. City/overseas/country are deliberately never
   // part of this matching — those have their own separate, location-scoped
   // Featured section instead (see fetchProposalsForCategory).
-  // IMPORTANT: postgrest's .or() sets a single "or" query parameter —
-  // calling .or() more than once on the same query silently OVERWRITES
-  // the previous call rather than combining them (the notExpiredFilter()
-  // base check below is a real example: it used to get silently dropped
-  // whenever search or the "local" location filter also ran, since each
-  // called .or() again afterward). getFeatured() elsewhere in this file
-  // already worked around this correctly using PostgREST's nested
-  // and()/or() operators — same fix applied here: collect every OR-group
-  // this query needs, then combine them into exactly ONE .or() call.
-  const orGroups: string[] = [notExpiredFilter()];
-
   let query = supabase
     .from('proposals')
     .select(CARD_COLS)
     .eq('status', 'active')
+    .or(notExpiredFilter())
     .eq('is_boosted', true);
 
   if (filters.gender) query = query.eq('gender', filters.gender);
@@ -252,31 +233,11 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
   if (filters.maritalStatus) query = query.eq('marital_status', filters.maritalStatus);
   if (filters.minAge) query = query.gte('age', filters.minAge);
   if (filters.maxAge) query = query.lte('age', filters.maxAge);
-  if (filters.search) orGroups.push(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
+  if (filters.search) query = query.or(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
   if (filters.profession) query = query.eq('profession_category', filters.profession);
   if (filters.homeType) query = query.eq('home_type', filters.homeType);
   if (filters.minHeight) query = query.gte('height_inches', filters.minHeight);
   if (filters.maxHeight) query = query.lte('height_inches', filters.maxHeight);
-
-  // Location scoping:
-  // - No location filter → show ALL boosted profiles (Pakistan + overseas)
-  // - Pakistan selected → local profiles only (no country or Pakistan)
-  // - Overseas selected → overseas profiles only
-  if (filters.overseas) {
-    if (filters.country) {
-      query = query.eq('country', filters.country);
-    } else {
-      query = query.not('country', 'is', null).neq('country', '').neq('country', 'Pakistan');
-    }
-  } else if (filters.pakistan || filters.city) {
-    // Pakistan view — exclude overseas profiles
-    orGroups.push('country.is.null,country.eq.,country.eq.Pakistan');
-  }
-  // No location filter → no country restriction, show all boosted
-
-  query = orGroups.length === 1
-    ? query.or(orGroups[0])
-    : query.or(`and(${orGroups.map(g => `or(${g})`).join(',')})`);
 
   query = query.order('posted_at', { ascending: false }).limit(max);
 
@@ -292,7 +253,7 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   // newest-first, same as "Recently Added". City/overseas-filtered views
   // keep boosting real is_boosted profiles to the top, unaffected — that
   // list is already small thanks to the per-city cap.
-  const isGeneralView = !filters.city;
+  const isGeneralView = !filters.city && !filters.overseas;
 
   // A profile that bought a Featured slot FOR this specific city should
   // show up here (boosted to the top via is_boosted) even if their own
@@ -333,16 +294,11 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
     boostedForCountryIds = (activeBoosts || []).map(b => b.user_id as string);
   }
 
-  // Same .or()-overwrite issue as fetchFeaturedForCarouselInner above —
-  // notExpiredFilter() plus up to two more conditional OR-groups (the
-  // boosted-city/country id match, and search) all need to combine into
-  // ONE .or() call via nested and()/or(), not three separate .or() calls.
-  const orGroups: string[] = [notExpiredFilter()];
-
   let query = supabase
     .from('proposals')
     .select(CARD_COLS, { count: 'exact' })
-    .eq('status', 'active');
+    .eq('status', 'active')
+    .or(notExpiredFilter());
   if (isGeneralView) {
     // Already shown in the Featured carousel above — avoid the confusing
     // duplicate of seeing the same person twice on the same page.
@@ -359,18 +315,14 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   if (filters.overseas) {
     query = query.not('country', 'is', null).neq('country', '').neq('country', 'Pakistan');
     if (filters.country) {
-      if (boostedForCountryIds.length > 0) {
-        orGroups.push(`country.eq.${filters.country},id.in.(${boostedForCountryIds.join(',')})`);
-      } else {
-        query = query.eq('country', filters.country);
-      }
+      query = boostedForCountryIds.length > 0
+        ? query.or(`country.eq.${filters.country},id.in.(${boostedForCountryIds.join(',')})`)
+        : query.eq('country', filters.country);
     }
   } else if (filters.city) {
-    if (boostedForCityIds.length > 0) {
-      orGroups.push(`city.eq.${filters.city},id.in.(${boostedForCityIds.join(',')})`);
-    } else {
-      query = query.eq('city', filters.city);
-    }
+    query = boostedForCityIds.length > 0
+      ? query.or(`city.eq.${filters.city},id.in.(${boostedForCityIds.join(',')})`)
+      : query.eq('city', filters.city);
   }
   if (filters.caste) query = query.eq('caste', filters.caste);
   if (filters.sect) query = query.eq('sect', filters.sect);
@@ -378,17 +330,13 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   if (filters.maritalStatus) query = query.eq('marital_status', filters.maritalStatus);
   if (filters.minAge) query = query.gte('age', filters.minAge);
   if (filters.maxAge) query = query.lte('age', filters.maxAge);
-  if (filters.search) orGroups.push(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
+  if (filters.search) query = query.or(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`);
   if (filters.profession) query = query.eq('profession_category', filters.profession);
   if (filters.homeType) query = query.eq('home_type', filters.homeType);
   if (filters.minHeight) query = query.gte('height_inches', filters.minHeight);
   if (filters.maxHeight) query = query.lte('height_inches', filters.maxHeight);
   if (filters.postedAfter) query = query.gte('posted_at', filters.postedAfter);
   if (filters.postedBefore) query = query.lte('posted_at', filters.postedBefore);
-
-  query = orGroups.length === 1
-    ? query.or(orGroups[0])
-    : query.or(`and(${orGroups.map(g => `or(${g})`).join(',')})`);
 
   const { data, count, error } = await query;
   if (error) throw error;
@@ -757,11 +705,6 @@ async function fetchProposalsForCategoryInner(
   // location step).
   let featured: Proposal[] = [];
   if (dbColumn === 'city' || dbColumn === 'country') {
-    // Read max_featured_per_city from admin settings
-    const { data: settingRow } = await supabase
-      .from('app_settings').select('value').eq('key', 'max_featured_per_city').maybeSingle();
-    const maxPerCity = Number(settingRow?.value) || 5;
-
     const now = new Date();
     const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const { data: activeBoosts } = await supabase
@@ -779,8 +722,7 @@ async function fetchProposalsForCategoryInner(
         .select(CARD_COLS)
         .eq('status', 'active')
         .or(notExpiredFilter())
-        .in('id', boostedIds)
-        .limit(maxPerCity);
+        .in('id', boostedIds);
       if (extra?.gender) featuredQuery = featuredQuery.eq('gender', extra.gender);
       const { data: featuredData } = await featuredQuery;
       featured = (featuredData as Proposal[]) || [];
