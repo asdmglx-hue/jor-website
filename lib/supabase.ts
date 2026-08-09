@@ -352,15 +352,14 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
 }
 
 export async function fetchProposals(filters: FilterState = {}, page = 0, pageSize = 16): Promise<{ proposals: Proposal[]; total: number }> {
-  // The "general proposal screen" is specifically the unfiltered/all-Pakistan
-  // view — no specific city and not the overseas/country view. Featured
-  // showcasing for that view now lives entirely in the sliding carousel
-  // (see FeaturedCarousel component) — this main list just orders by
-  // newest-first, same as "Recently Added". City/overseas-filtered views
-  // keep boosting real is_boosted profiles to the top, unaffected — that
-  // list is already small thanks to the per-city cap.
+  // "General" here means no SPECIFIC location was picked — matches
+  // ProposalsClient.tsx's isGeneralView exactly (see that comment for the
+  // full reasoning): a bare Overseas toggle with no particular country
+  // is still general enough for boosted profiles to show separately via
+  // the Featured carousel instead of inline here; it only stops being
+  // general once an actual city or a specific country narrows it.
   const citiesList = toList(filters.city, filters.cities);
-  const isGeneralView = citiesList.length === 0 && !filters.overseas;
+  const isGeneralView = citiesList.length === 0 && !(filters.overseas && (filters.country || (filters.countries && filters.countries.length > 0)));
 
   // A profile that bought a Featured slot FOR this specific city should
   // show up here (boosted to the top via is_boosted) even if their own

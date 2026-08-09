@@ -135,7 +135,14 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
     fetchFeaturedForCarousel(filters).then(setFeaturedCarousel);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(filters)]);
-  const isGeneralView = !filters.city && !(filters.cities && filters.cities.length > 0) && !filters.overseas;
+  // "General" here means no SPECIFIC location was picked — a bare
+  // Overseas toggle with no particular country chosen is still general
+  // enough to get the Featured carousel (showing overseas-boosted
+  // profiles instead of Pakistan ones); it only stops being general once
+  // an actual city or a specific country narrows it, since those each
+  // have their own dedicated, location-scoped Featured section instead
+  // (see components/CategoryPageClient.tsx).
+  const isGeneralView = !filters.city && !(filters.cities && filters.cities.length > 0) && !(filters.overseas && (filters.country || (filters.countries && filters.countries.length > 0)));
 
   // ── Time filter (All / New / 1 Month / 2 Months / 3+ Months) ─────────────
   const [timeChip, setTimeChip] = useState(0);
