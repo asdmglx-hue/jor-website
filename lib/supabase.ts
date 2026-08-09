@@ -994,8 +994,16 @@ export function heightDisplay(inches: number): string {
 // (trunk 0 dropped) grouped 3+7, regardless of how it was actually stored.
 export function phoneDisplay(phone: string): string {
   const trimmed = phone.trim();
-  const isPakistani = trimmed.startsWith('+92') || !trimmed.startsWith('+');
-  if (!isPakistani) return trimmed; // other countries — leave exactly as stored
+  const digitsOnly = trimmed.replace(/\D/g, '');
+  // A number with no '+' was previously always assumed Pakistani. If it
+  // also doesn't start with a recognizable Pakistani prefix (0 or 92),
+  // it's ambiguous — could be a genuine international number stored
+  // without its '+'. Rather than guess and risk mangling it the same
+  // way the app's old bug did, show it as-is. No live profile currently
+  // hits this case, but it's a cheap, defensive fix for if one ever does.
+  const looksPakistani = trimmed.startsWith('+92') || digitsOnly.startsWith('92') || digitsOnly.startsWith('0');
+  const isPakistani = trimmed.startsWith('+92') || (!trimmed.startsWith('+') && looksPakistani);
+  if (!isPakistani) return trimmed; // other countries, or ambiguous — leave exactly as stored
 
   const localDigits = trimmed.replace(/^\+?92/, '').replace(/\D/g, '').replace(/^0+/, '');
   if (!localDigits) return trimmed;
