@@ -560,9 +560,6 @@ export default function MyProposalClient() {
           ? inlineProfessionCategory
           : getProfessionCategory(finalVal);
     }
-    const oldValues: Record<string, unknown> = {};
-    if (key in user) oldValues[key] = (user as Record<string, unknown>)[key];
-
     setInlineSaving(true);
     try {
       // Apply immediately to proposals table — goes through a
@@ -572,19 +569,26 @@ export default function MyProposalClient() {
       // full explanation). This matters here specifically because a
       // Pending or Paused user editing their own profile is a completely
       // normal, common case, not an edge case.
+      //
+      // NOTE: update_own_proposal_secure now holds back a specific set
+      // of typed/free-text fields for admin review instead of applying
+      // everything immediately (matching the app's own review rules) —
+      // it inserts the profile_edit_requests row itself when that
+      // applies, so this client no longer does that separately (doing
+      // both would double-record every change, including auto-applied
+      // ones that were never meant to be tracked for review at all).
       const { data: updateResult } = await updateOwnProposalAction({ p_id: user.id, p_updates: updates, proposalNumber: user.proposal_number });
       const ok = !!updateResult;
       if (ok) {
-        const updated = { ...user, ...updates };
+        // Trust what the RPC actually returns, not what was submitted —
+        // for a field that landed in review instead of applying, the
+        // returned row correctly still shows the OLD live value, and
+        // blindly merging `updates` here would have shown the person
+        // their new text as if it were already live when it was
+        // actually just pending.
+        const updated = { ...user, ...(updateResult as Record<string, unknown>) };
         setUser(updated as typeof user);
         import('@/lib/auth').then(m => m.saveSession(updated as typeof user));
-        // Log to profile_edit_requests for admin visibility (status: applied)
-        await supabase.from('profile_edit_requests').insert({
-          proposal_id: user.id,
-          changes: updates,
-          old_values: oldValues,
-          status: 'applied',
-        });
         setInlineKey(null);
         setInlineCustomVal('');
         setInlineProfessionCategory('');
