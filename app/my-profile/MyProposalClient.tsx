@@ -288,6 +288,10 @@ export default function MyProposalClient() {
   const [inlineCustomVal, setInlineCustomVal] = useState<string>('');
   const [inlineProfessionCategory, setInlineProfessionCategory] = useState<string>('');
   const [inlineSaving, setInlineSaving] = useState(false);
+  // Fields the person has already submitted that are awaiting admin
+  // review — key = column name, value = the submitted (not-yet-live)
+  // text. See loadPendingChanges() below for how this gets populated.
+  const [pendingChanges, setPendingChanges] = useState<Record<string, unknown>>({});
   const inlineOtherFields = ['caste', 'profession', 'father_occupation', 'mother_occupation'];
   // House size
   const [hsNum, setHsNum] = useState('');
@@ -379,6 +383,42 @@ export default function MyProposalClient() {
           import('@/lib/auth').then(m => m.saveSession(fresh));
         }
       });
+      // profile_edit_requests only has an admin-read RLS policy — a
+      // regular user's own client can't query it directly (same issue
+      // the app hit). Reusing the same RPC built for the app: verifies
+      // ownership server-side, then returns the events so the same
+      // chronological-replay resolution logic can run here too.
+      console.log('[PENDING_DEBUG] Checking session.cnic:', session.cnic, 'session.id:', session.id);
+      if (session.cnic) {
+        console.log('[PENDING_DEBUG] Calling fetch_own_pending_edits RPC now...');
+        supabase.rpc('fetch_own_pending_edits', {
+          p_cnic: session.cnic.replace(/-/g, ''),
+          p_proposal_id: session.id,
+        }).then(({ data: events, error }) => {
+          console.log('[PENDING_DEBUG] RPC returned. events:', events, 'error:', error);
+          if (!events) return;
+          const pending: Record<string, unknown> = {};
+          for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string }[]) {
+            if (ev.status === 'applied') {
+              for (const k of Object.keys(ev.changes)) {
+                if (ev.changes[k] === ev.old_values[k]) {
+                  delete pending[k]; // explicit approval confirmation
+                } else {
+                  pending[k] = ev.changes[k]; // genuine submission
+                }
+              }
+            } else if (ev.status === 'reverted') {
+              for (const k of Object.keys(ev.changes)) {
+                delete pending[k]; // rejected
+              }
+            }
+          }
+          console.log('[PENDING_DEBUG] Final pending object:', pending);
+          setPendingChanges(pending);
+        });
+      } else {
+        console.log('[PENDING_DEBUG] session.cnic was falsy, skipping RPC call entirely.');
+      }
       // Check for active featured boost today, and keep the full boost
       // list around for the Manage modal (running + scheduled). Also
       // refetches the user row so the credit balance (purchased - used)
@@ -594,6 +634,35 @@ export default function MyProposalClient() {
         setInlineProfessionCategory('');
         setSaveMsg('Changes saved successfully.'); setSaveMsgType('success');
         setTimeout(() => setSaveMsg(''), 3000);
+        // Re-fetch pending state right away — if this specific save just
+        // landed in review, the field should immediately show its
+        // submitted text + a pending indicator, not wait for the next
+        // full page load to reflect that.
+        if (user.cnic) {
+          supabase.rpc('fetch_own_pending_edits', {
+            p_cnic: user.cnic.replace(/-/g, ''),
+            p_proposal_id: user.id,
+          }).then(({ data: events }) => {
+            if (!events) return;
+            const pending: Record<string, unknown> = {};
+            for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string }[]) {
+              if (ev.status === 'applied') {
+                for (const k of Object.keys(ev.changes)) {
+                  if (ev.changes[k] === ev.old_values[k]) {
+                    delete pending[k];
+                  } else {
+                    pending[k] = ev.changes[k];
+                  }
+                }
+              } else if (ev.status === 'reverted') {
+                for (const k of Object.keys(ev.changes)) {
+                  delete pending[k];
+                }
+              }
+            }
+            setPendingChanges(pending);
+          });
+        }
       }
     } catch {
       setSaveMsg('Failed to save. Please try again.'); setSaveMsgType('error');
@@ -1055,8 +1124,22 @@ export default function MyProposalClient() {
               );
             };
 
+            const clockIcon = (
+              <svg style={{ marginLeft: 5, flexShrink: 0, verticalAlign: -2 }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+              </svg>
+            );
+
             const Field = ({ label, fieldKey, type = 'text', options, grouped, info, maxLength }: { label: string; fieldKey: string; type?: string; options?: string[]; grouped?: Record<string, string[]>; info?: string; maxLength?: number }) => {
-              const val = user[fieldKey as keyof typeof user];
+              const hasPending = Object.prototype.hasOwnProperty.call(pendingChanges, fieldKey);
+              // Shows the submitted (not-yet-live) text instead of the
+              // live value while a change is pending — reverts to
+              // showing the live value again automatically once
+              // pendingChanges no longer has this key (either approved,
+              // in which case the live value now matches anyway, or
+              // rejected, in which case the live value is simply the
+              // old one, unchanged).
+              const val = hasPending ? pendingChanges[fieldKey] : user[fieldKey as keyof typeof user];
               const isEditing = inlineKey === fieldKey;
               const rawDisplayVal = val != null && val !== '' && !(type === 'number' && Number(val) === 0) ? String(val) : null;
               const displayVal = rawDisplayVal && type === 'tel' ? phoneDisplay(rawDisplayVal)
@@ -1064,7 +1147,7 @@ export default function MyProposalClient() {
                 : rawDisplayVal;
               return (
                 <div style={{ marginBottom: 14 }}>
-                  {lbl(label, ALWAYS_LOCKED.includes(fieldKey) ? lockIcon : (info ? <InfoPopover text={info} /> : undefined))}
+                  {lbl(label, hasPending ? clockIcon : (ALWAYS_LOCKED.includes(fieldKey) ? lockIcon : (info ? <InfoPopover text={info} /> : undefined)))}
                   {isEditing ? (
                     <>
                       {options
@@ -1220,11 +1303,12 @@ export default function MyProposalClient() {
             };
 
             const AboutField = ({ fieldKey, label }: { fieldKey: 'about' | 'looking_for'; label: string }) => {
-              const val = user[fieldKey];
+              const hasPending = Object.prototype.hasOwnProperty.call(pendingChanges, fieldKey);
+              const val = hasPending ? (pendingChanges[fieldKey] as string) : user[fieldKey];
               const isEditing = inlineKey === fieldKey;
               return (
                 <div style={{ marginBottom: 16, minWidth: 0 }}>
-                  {lbl(label)}
+                  {lbl(label, hasPending ? clockIcon : undefined)}
                   {isEditing ? (
                     <>
                       <textarea value={inlineVal} onChange={e => setInlineVal(e.target.value.slice(0,200))} rows={3} maxLength={200}
@@ -1360,10 +1444,11 @@ export default function MyProposalClient() {
                   <BoolField label="Disability / Chronic Illness" fieldKey="has_disability" />
                   {user.has_disability && (() => {
                     const isEditing = inlineKey === 'disability_details';
-                    const val = user.disability_details;
+                    const hasPending = Object.prototype.hasOwnProperty.call(pendingChanges, 'disability_details');
+                    const val = hasPending ? pendingChanges.disability_details as string : user.disability_details;
                     return (
                       <div style={{ marginBottom: 14, gridColumn: '1 / -1' }}>
-                        {lbl('Disability Details')}
+                        {lbl('Disability Details', hasPending ? clockIcon : undefined)}
                         {isEditing ? (
                           <>
                             <textarea value={inlineVal} onChange={e => setInlineVal(e.target.value.slice(0,30))} rows={2} maxLength={30}
@@ -1390,10 +1475,11 @@ export default function MyProposalClient() {
                   {/* House Size with Marla/Kanal */}
                   {(() => {
                     const isEditing = inlineKey === 'house_size';
-                    const val = user.house_size;
+                    const hasPending = Object.prototype.hasOwnProperty.call(pendingChanges, 'house_size');
+                    const val = hasPending ? pendingChanges.house_size as string : user.house_size;
                     return (
                       <div style={{ marginBottom: 14 }}>
-                        {lbl('House Size')}
+                        {lbl('House Size', hasPending ? clockIcon : undefined)}
                         {isEditing ? (
                           <>
                             <div style={{ display: 'flex', gap: 8 }}>
