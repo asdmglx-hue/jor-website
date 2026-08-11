@@ -1373,7 +1373,7 @@ export default function MyProposalClient() {
                     {user.marital_status === 'Married' && <Field label="Looking For" fieldKey="marriage_number" options={['Second marriage','Third marriage','Fourth marriage']} />}
                   </>}
                   <Field label="Open to Polygamy?" fieldKey="open_to_polygamy" options={['Yes','No']}
-                    info="Polygamy means marrying more than one woman (for men) or marrying a man who already has a wife (for women)." />
+                    info="Select “Yes” if you are a woman willing to marry a married man, or a married man looking to marry another woman." />
                   <Field label="Caste" fieldKey="caste" options={casteList} grouped={casteGroups} />
                   <Field label="Sect" fieldKey="sect" options={['Sunni','Shia','Barelvi','Deobandi','Ahl-e-Hadith','Other']} />
                   <Field label="Religion Practice Level" fieldKey="practice_level" options={['High','Moderate','Low']} />

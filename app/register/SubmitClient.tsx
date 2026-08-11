@@ -1138,7 +1138,7 @@ export default function SubmitClient() {
               </SubSection>
             )}
 
-            <Field label="Open to Polygamy?" labelExtra={<InfoPopover text="Polygamy means marrying more than one woman (for men) or marrying a man who already has a wife (for women)." />}>
+            <Field label="Open to Polygamy?" labelExtra={<InfoPopover text="Select “Yes” if you are a woman willing to marry a married man, or a married man looking to marry another woman." />}>
               <Sel value={form.open_to_polygamy} onChange={v => set('open_to_polygamy', v)} options={POLYGAMY_OPTIONS} placeholder="Select" />
             </Field>
 
