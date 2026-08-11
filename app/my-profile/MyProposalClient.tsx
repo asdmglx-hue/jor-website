@@ -1061,6 +1061,15 @@ export default function MyProposalClient() {
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
             );
+            // Always-visible variant (no opacity/hover dependency) — used
+            // by About/Looking For specifically, where the pencil should
+            // read as a persistent, always-visible affordance rather than
+            // the hover-to-reveal treatment every other field uses.
+            const pencilAlways = (
+              <svg style={{ flexShrink: 0 }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            );
 
             const DegreeCertField = ({ label, urlKey }: { label: string; urlKey: string }) => {
               const url = user[urlKey as keyof typeof user] as string | null | undefined;
@@ -1120,7 +1129,7 @@ export default function MyProposalClient() {
 
             const clockIcon = (
               <span style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 6 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
                 </svg>
                 {/* textTransform/letterSpacing/fontWeight explicitly reset
@@ -1323,11 +1332,9 @@ export default function MyProposalClient() {
                       <p style={{ fontSize: 14, color: '#1A1830', lineHeight: 1.6, margin: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{val}</p>
                     ) : (
                     <div onClick={() => { setInlineKey(fieldKey); setInlineVal(val); }}
-                      style={{ cursor: 'pointer' }}
-                      onMouseEnter={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '1'; }}
-                      onMouseLeave={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '0'; }}>
-                      <p style={{ fontSize: 14, color: '#1A1830', lineHeight: 1.6, margin: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{val}</p>
-                      {pencil}
+                      style={{ cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                      <p style={{ fontSize: 14, color: '#1A1830', lineHeight: 1.6, margin: 0, wordBreak: 'break-word', overflowWrap: 'anywhere', flex: 1 }}>{val}</p>
+                      {pencilAlways}
                     </div>
                     )
                   ) : emptyPill(fieldKey)}
