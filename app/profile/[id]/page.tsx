@@ -215,6 +215,11 @@ export default async function ProposalDetailPage({ params }: Props) {
           )}
 
           {/* Personal Details */}
+          {(heightFt || p.weight_kg || p.complexion || p.marital_status ||
+            (p.marital_status !== 'Single' && p.marital_status !== 'Never married' && (p.boys || p.girls)) ||
+            p.open_to_polygamy || p.practice_level ||
+            (p.gender === 'Female' && p.hijab != null) || (p.gender === 'Male' && p.beard != null) ||
+            (p.languages && p.languages.length > 0)) && (
           <Section title="Personal Details">
             <InfoRow icon="" label="Height" value={heightFt} />
             <InfoRow icon="" label="Weight" value={p.weight_kg ? `${p.weight_kg} kg` : null} />
@@ -228,8 +233,11 @@ export default async function ProposalDetailPage({ params }: Props) {
             {p.gender === 'Male' && <InfoRow icon="" label="Beard" value={p.beard} />}
             <InfoRow icon="" label="Languages" value={p.languages?.join(', ')} />
           </Section>
+          )}
 
           {/* Education & Career */}
+          {(p.education || p.degree_title || p.institute || p.degree_title_2 || p.institute_2 ||
+            p.degree_title_3 || p.institute_3 || p.profession || p.employment_type || p.monthly_income) && (
           <Section title="Education & Career">
             <InfoRow icon="" label="Education" value={p.education} />
             <InfoRow icon="" label="Degree" value={p.degree_title} certUrl={p.degree_certificate_url} />
@@ -242,8 +250,10 @@ export default async function ProposalDetailPage({ params }: Props) {
             <InfoRow icon="" label="Employment" value={p.employment_type} />
             <InfoRow icon="" label="Monthly Income" value={p.monthly_income} />
           </Section>
+          )}
 
           {/* Family */}
+          {(p.family_type || p.father_alive != null || p.mother_alive != null || p.brothers || p.sisters) && (
           <Section title="Family Background">
             {p.family_type && <InfoRow icon="" label="Family Type" value={p.family_type} />}
             <InfoRow icon="" label="Father" value={p.father_alive === true ? 'Alive' : p.father_alive === false ? 'Deceased' : null} />
@@ -251,8 +261,10 @@ export default async function ProposalDetailPage({ params }: Props) {
             <InfoRow icon="‍" label="Brothers" value={p.brothers ? p.brothers : null} />
             <InfoRow icon="‍" label="Sisters" value={p.sisters ? p.sisters : null} />
           </Section>
+          )}
 
           {/* Property */}
+          {(p.home_type || p.has_car || p.has_generator != null || p.has_solar != null || p.has_servant != null) && (
           <Section title="Property & Assets">
             <InfoRow icon="" label="Home Type" value={p.home_type} />
             <InfoRow icon="" label="Car" value={p.has_car === 'yes' ? (p.car_name || 'Yes') : p.has_car === 'no' ? 'No' : p.has_car} />
@@ -260,6 +272,7 @@ export default async function ProposalDetailPage({ params }: Props) {
             <InfoRow icon="" label="Solar" value={p.has_solar} />
             <InfoRow icon="" label="Servant" value={p.has_servant} />
           </Section>
+          )}
         </div>
 
         {/* Sidebar: Contact */}
