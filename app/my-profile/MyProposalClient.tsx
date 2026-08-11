@@ -388,14 +388,11 @@ export default function MyProposalClient() {
       // the app hit). Reusing the same RPC built for the app: verifies
       // ownership server-side, then returns the events so the same
       // chronological-replay resolution logic can run here too.
-      console.log('[PENDING_DEBUG] Checking session.cnic:', session.cnic, 'session.id:', session.id);
       if (session.cnic) {
-        console.log('[PENDING_DEBUG] Calling fetch_own_pending_edits RPC now...');
         supabase.rpc('fetch_own_pending_edits', {
           p_cnic: session.cnic.replace(/-/g, ''),
           p_proposal_id: session.id,
-        }).then(({ data: events, error }) => {
-          console.log('[PENDING_DEBUG] RPC returned. events:', events, 'error:', error);
+        }).then(({ data: events }) => {
           if (!events) return;
           const pending: Record<string, unknown> = {};
           for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string }[]) {
@@ -413,11 +410,8 @@ export default function MyProposalClient() {
               }
             }
           }
-          console.log('[PENDING_DEBUG] Final pending object:', pending);
           setPendingChanges(pending);
         });
-      } else {
-        console.log('[PENDING_DEBUG] session.cnic was falsy, skipping RPC call entirely.');
       }
       // Check for active featured boost today, and keep the full boost
       // list around for the Manage modal (running + scheduled). Also
@@ -1060,7 +1054,7 @@ export default function MyProposalClient() {
               </svg>
             );
             const lbl = (label: string, extra?: React.ReactNode) => (
-              <label style={{ fontSize: 11, fontWeight: 700, color: '#68629C', display: 'block', marginBottom: 4, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>{label}{extra}</label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#68629C', display: 'flex', alignItems: 'center', marginBottom: 4, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>{label}{extra}</label>
             );
             const pencil = (
               <svg className="edit-icon" style={{ opacity: 0, transition: 'opacity 0.15s', flexShrink: 0 }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1125,9 +1119,16 @@ export default function MyProposalClient() {
             };
 
             const clockIcon = (
-              <svg style={{ marginLeft: 5, flexShrink: 0, verticalAlign: -2 }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
-              </svg>
+              <span style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 6 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+                </svg>
+                {/* textTransform/letterSpacing/fontWeight explicitly reset
+                    here — this sits inside the label's own uppercase, bold,
+                    letter-spaced styling, none of which should apply to
+                    this secondary text. */}
+                <span style={{ marginLeft: 4, fontSize: 10.5, fontStyle: 'italic', fontWeight: 400, color: '#A8A3C9', textTransform: 'none', letterSpacing: 0 }}>Pending Approval</span>
+              </span>
             );
 
             const Field = ({ label, fieldKey, type = 'text', options, grouped, info, maxLength }: { label: string; fieldKey: string; type?: string; options?: string[]; grouped?: Record<string, string[]>; info?: string; maxLength?: number }) => {
