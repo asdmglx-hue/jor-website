@@ -220,8 +220,8 @@ export default async function ProposalDetailPage({ params }: Props) {
             <InfoRow icon="" label="Weight" value={p.weight_kg ? `${p.weight_kg} kg` : null} />
             <InfoRow icon="" label="Complexion" value={p.complexion} />
             <InfoRow icon="" label="Marital Status" value={p.marital_status} />
-            {p.marital_status !== 'Single' && p.marital_status !== 'Never married' && <InfoRow icon="" label="Children (Boys)" value={p.boys} />}
-            {p.marital_status !== 'Single' && p.marital_status !== 'Never married' && <InfoRow icon="" label="Children (Girls)" value={p.girls} />}
+            {p.marital_status !== 'Single' && p.marital_status !== 'Never married' && <InfoRow icon="" label="Children (Boys)" value={p.boys ? p.boys : null} />}
+            {p.marital_status !== 'Single' && p.marital_status !== 'Never married' && <InfoRow icon="" label="Children (Girls)" value={p.girls ? p.girls : null} />}
             {p.open_to_polygamy && <InfoRow icon="" label="Open to Polygamy" value={p.open_to_polygamy} />}
             <InfoRow icon="" label="Religion Practice Level" value={p.practice_level} />
             {p.gender === 'Female' && <InfoRow icon="" label="Hijab" value={p.hijab} />}
@@ -248,8 +248,8 @@ export default async function ProposalDetailPage({ params }: Props) {
             {p.family_type && <InfoRow icon="" label="Family Type" value={p.family_type} />}
             <InfoRow icon="" label="Father" value={p.father_alive === true ? 'Alive' : p.father_alive === false ? 'Deceased' : null} />
             <InfoRow icon="" label="Mother" value={p.mother_alive === true ? 'Alive' : p.mother_alive === false ? 'Deceased' : null} />
-            <InfoRow icon="‍" label="Brothers" value={p.brothers} />
-            <InfoRow icon="‍" label="Sisters" value={p.sisters} />
+            <InfoRow icon="‍" label="Brothers" value={p.brothers ? p.brothers : null} />
+            <InfoRow icon="‍" label="Sisters" value={p.sisters ? p.sisters : null} />
           </Section>
 
           {/* Property */}
