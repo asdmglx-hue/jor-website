@@ -507,6 +507,7 @@ const EMPTY: FormData = {
 const DRAFT_KEY = 'jor_submit_draft';
 const STEP_KEY  = 'jor_submit_step';
 const COUPON_KEY = 'jor_submit_coupon';
+const AFFILIATE_APPLIED_KEY = 'jor_submit_affiliate_applied';
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function SubmitClient() {
@@ -578,8 +579,8 @@ export default function SubmitClient() {
   const [affiliateIsError, setAffiliateIsError] = useState(false);
   const [validatingAffiliate, setValidatingAffiliate] = useState(false);
 
-  const applyAffiliateCode = async () => {
-    const code = form.affiliate.trim();
+  const applyAffiliateCode = async (codeOverride?: string) => {
+    const code = (codeOverride ?? form.affiliate).trim();
     if (!code) return;
     setValidatingAffiliate(true);
     setAffiliateMessage(null);
@@ -681,6 +682,13 @@ export default function SubmitClient() {
           if (applied) applyCoupon(code);
         }
       }
+      // Referral code text lives in form.affiliate (already persisted),
+      // but whether it was successfully *applied* doesn't — same gap as
+      // the coupon above. Re-validate live if it had been applied before
+      // the refresh, so a since-removed affiliate can't silently linger.
+      if (savedForm.affiliate && localStorage.getItem(AFFILIATE_APPLIED_KEY) === '1') {
+        applyAffiliateCode(savedForm.affiliate);
+      }
     } catch {}
     setMounted(true);
   }, []);
@@ -689,6 +697,9 @@ export default function SubmitClient() {
   useEffect(() => {
     if (mounted) localStorage.setItem(COUPON_KEY, JSON.stringify({ code: couponCode, applied: !!appliedCouponCode }));
   }, [couponCode, appliedCouponCode, mounted]);
+  useEffect(() => {
+    if (mounted) localStorage.setItem(AFFILIATE_APPLIED_KEY, appliedAffiliateCode ? '1' : '0');
+  }, [appliedAffiliateCode, mounted]);
 
   // handleSubmit is only called from step 4
 
@@ -1028,6 +1039,7 @@ export default function SubmitClient() {
       localStorage.removeItem(DRAFT_KEY);
       localStorage.removeItem(STEP_KEY);
       localStorage.removeItem(COUPON_KEY);
+      localStorage.removeItem(AFFILIATE_APPLIED_KEY);
       setSubmitted(true);
       trackEvent('register_complete');
     } else setError(apiErr || 'Something went wrong. Please try again.');
@@ -1837,7 +1849,7 @@ export default function SubmitClient() {
                   />
                   <button
                     type="button"
-                    onClick={applyAffiliateCode}
+                    onClick={() => applyAffiliateCode()}
                     disabled={validatingAffiliate || !form.affiliate.trim()}
                     style={{
                       padding: '0 18px', borderRadius: 8, border: 'none', flexShrink: 0,
