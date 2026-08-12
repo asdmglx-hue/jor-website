@@ -571,7 +571,7 @@ export default function SubmitClient() {
     try {
       const { data: res, error: couponErr } = await supabase
         .from('coupon_codes')
-        .select('coupon_type, discount_percent, free_days, active, expires_at')
+        .select('coupon_type, discount_percent, free_days, trial_days, active, expires_at')
         .ilike('code', code)
         .maybeSingle();
 
@@ -588,10 +588,14 @@ export default function SubmitClient() {
       setCouponIsError(false);
       setAppliedCouponCode(code.toUpperCase());
       const type = res.coupon_type || 'percentage';
-      if (type === 'free_days' && res.free_days) {
+      if (type === 'free_trial' && res.trial_days) {
+        setCouponMessage(`${res.trial_days}-day free trial will apply once you subscribe!`);
+      } else if (type === 'free_days' && res.free_days) {
         setCouponMessage(`+${res.free_days} bonus days will be added once you subscribe!`);
       } else if (res.discount_percent) {
         setCouponMessage(`${res.discount_percent}% discount will apply once you subscribe!`);
+      } else {
+        setCouponMessage('Coupon applied — it will be validated again when you subscribe.');
       }
     } catch (_) {
       setValidatingCoupon(false);
