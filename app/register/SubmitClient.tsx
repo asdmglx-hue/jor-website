@@ -141,6 +141,48 @@ function SubSection({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Shared upload box for the Verification step — used for the applicant's
+// CNIC front/back, the parent/guardian's CNIC front/back, and the
+// applicant's education document. None of these are required anymore
+// (the whole Verification step is skippable), so this never passes
+// `required` to Field.
+function CnicUploadBox({ label, file, preview, compressing, errorField, fieldKey, onFileSelected }: {
+  label: string; file: File | null; preview: string; compressing: boolean;
+  errorField: string; fieldKey: string;
+  onFileSelected: (raw: File) => Promise<void>;
+}) {
+  return (
+    <Field label={label}>
+      <label style={{ display: 'block', cursor: 'pointer' }}>
+        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
+          const raw = e.target.files?.[0];
+          if (!raw) return;
+          await onFileSelected(raw);
+        }} />
+        <div style={{ border: `2px dashed ${file ? '#534AB7' : errorField === fieldKey ? '#DC2626' : '#E8E6F5'}`, borderRadius: 12, background: file ? '#EEEDFE' : errorField === fieldKey ? '#FEF2F2' : '#FAFAFA', overflow: 'hidden', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          {preview
+            ? <img src={preview} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <div style={{ textAlign: 'center', color: '#68629C' }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 8px' }}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="7" cy="13" r="1"/></svg>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>Tap to upload {label}</div>
+                <div style={{ fontSize: 11, marginTop: 2 }}>JPG, PNG supported</div>
+              </div>
+          }
+          {file && (
+            <div style={{ position: 'absolute', top: 8, right: 8, background: '#534AB7', borderRadius: 20, padding: '2px 8px', fontSize: 11, color: '#fff', fontWeight: 700 }}>✓ Selected</div>
+          )}
+          {compressing && (
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(83,74,183,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexDirection: 'column' }}>
+              <div className="spin" style={{ width: 22, height: 22, border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%' }} />
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Processing photo…</div>
+            </div>
+          )}
+        </div>
+      </label>
+    </Field>
+  );
+}
+
 function DegreePair({ degreeKey, instituteKey, form, set, inp, certFile, onCertChange, setViewImg }: {
   degreeKey: keyof FormData; instituteKey: keyof FormData;
   form: FormData; set: (k: keyof FormData, v: string) => void; inp: React.CSSProperties;
@@ -480,14 +522,23 @@ export default function SubmitClient() {
   const [viewImg, setViewImg] = useState('');
   const [cnicFront, setCnicFront] = useState<File | null>(null);
   const [cnicBack, setCnicBack] = useState<File | null>(null);
+  const [guardianCnicFront, setGuardianCnicFront] = useState<File | null>(null);
+  const [guardianCnicBack, setGuardianCnicBack] = useState<File | null>(null);
+  const [educationDocument, setEducationDocument] = useState<File | null>(null);
   const [degreeCert, setDegreeCert] = useState<File | null>(null);
   const [degreeCert2, setDegreeCert2] = useState<File | null>(null);
   const [degreeCert3, setDegreeCert3] = useState<File | null>(null);
   const [compressingCnicFront, setCompressingCnicFront] = useState(false);
   const [compressingCnicBack, setCompressingCnicBack] = useState(false);
+  const [compressingGuardianCnicFront, setCompressingGuardianCnicFront] = useState(false);
+  const [compressingGuardianCnicBack, setCompressingGuardianCnicBack] = useState(false);
+  const [compressingEducationDocument, setCompressingEducationDocument] = useState(false);
   const [compressingProfilePhoto, setCompressingProfilePhoto] = useState(false);
   const [cnicFrontPreview, setCnicFrontPreview] = useState('');
   const [cnicBackPreview, setCnicBackPreview] = useState('');
+  const [guardianCnicFrontPreview, setGuardianCnicFrontPreview] = useState('');
+  const [guardianCnicBackPreview, setGuardianCnicBackPreview] = useState('');
+  const [educationDocumentPreview, setEducationDocumentPreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -642,10 +693,10 @@ export default function SubmitClient() {
       if (!form.home_type) return fail('House type is required', 'home_type');
       if (!form.marital_status) return fail('Marital status is required', 'marital_status');
     }
-    if (step === 4) {
-      if (!cnicFront) return fail('CNIC front photo is required', 'cnicFront');
-      if (!cnicBack) return fail('CNIC back photo is required', 'cnicBack');
-    }
+    // Step 4 (Verification) is intentionally not validated here — every
+    // document in it (applicant CNIC, guardian CNIC, education document)
+    // is optional, so the account can be submitted and activated without
+    // them and the documents added later.
     return { msg: '', field: '' };
   };
 
@@ -751,6 +802,56 @@ export default function SubmitClient() {
       }
     }
 
+    // Guardian CNIC photos — optional pair, same secure server-side R2
+    // upload endpoint pattern as the applicant's own CNIC photos, just a
+    // separate route so the object paths stay unambiguous.
+    let guardianCnicFrontUrl: string | undefined;
+    let guardianCnicBackUrl: string | undefined;
+    if (guardianCnicFront && guardianCnicBack) {
+      const uploadForm = new FormData();
+      uploadForm.append('cnic', digits);
+      uploadForm.append('front', guardianCnicFront);
+      uploadForm.append('back', guardianCnicBack);
+      try {
+        const res = await fetch('/api/upload-guardian-cnic', { method: 'POST', body: uploadForm });
+        const uploaded = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setError(uploaded.error || 'Failed to upload guardian CNIC photos. Please try again.');
+          setSubmitting(false);
+          return;
+        }
+        guardianCnicFrontUrl = uploaded.front;
+        guardianCnicBackUrl = uploaded.back;
+      } catch {
+        setError('Failed to upload guardian CNIC photos. Please check your connection and try again.');
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    // Most recent education document — optional single file, same
+    // pattern as the degree certificate uploads below.
+    let educationDocumentUrl: string | undefined;
+    if (educationDocument) {
+      const uploadForm = new FormData();
+      uploadForm.append('cnic', digits);
+      uploadForm.append('file', educationDocument);
+      try {
+        const res = await fetch('/api/upload-education-document', { method: 'POST', body: uploadForm });
+        const uploaded = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setError(uploaded.error || 'Failed to upload education document. Please try again.');
+          setSubmitting(false);
+          return;
+        }
+        educationDocumentUrl = uploaded.url;
+      } catch {
+        setError('Failed to upload education document. Please check your connection and try again.');
+        setSubmitting(false);
+        return;
+      }
+    }
+
     // Degree certificates — all optional, each uploaded individually
     // through the same secure server-side R2 endpoint as CNIC photos.
     const uploadCert = async (file: File | null, slot: string): Promise<string | undefined> => {
@@ -839,6 +940,9 @@ export default function SubmitClient() {
       profile_photo_url: profilePhotoUrl,
       cnic_front_url: cnicFrontUrl,
       cnic_back_url: cnicBackUrl,
+      guardian_cnic_front_url: guardianCnicFrontUrl,
+      guardian_cnic_back_url: guardianCnicBackUrl,
+      education_document_url: educationDocumentUrl,
       affiliate_code: form.affiliate.trim() ? form.affiliate.trim().toUpperCase() : undefined,
       applied_coupon_code: appliedCouponCode || undefined,
     });
@@ -1323,77 +1427,62 @@ export default function SubmitClient() {
               </div>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Verification</div>
-                <div style={{ fontSize: 12, color: '#68629C' }}>Your CNIC remains private and fully secured</div>
+                <div style={{ fontSize: 12, color: '#68629C' }}>Your documents remain private and fully secured</div>
               </div>
             </div>
 
             <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-              Upload clear photos of both sides of your CNIC. These remain private and are only used for verification.
+              Identity verification documents are required to activate your account, but you can skip this step and submit them later.
             </div>
 
-            <Field label="CNIC Front Photo" required>
-              <label style={{ display: 'block', cursor: 'pointer' }}>
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
-                  const raw = e.target.files?.[0];
-                  if (!raw) return;
+            <SecHeader title="FOR MARRIAGE-SEEKING PERSON" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <CnicUploadBox label="CNIC Front" fieldKey="cnicFront" errorField={errorField}
+                file={cnicFront} preview={cnicFrontPreview} compressing={compressingCnicFront}
+                onFileSelected={async raw => {
                   setCompressingCnicFront(true);
                   const f = await compressImage(raw);
                   setCnicFront(f); setCnicFrontPreview(URL.createObjectURL(f));
                   setCompressingCnicFront(false);
                 }} />
-                <div style={{ border: `2px dashed ${cnicFront ? '#534AB7' : errorField === 'cnicFront' ? '#DC2626' : '#E8E6F5'}`, borderRadius: 12, background: cnicFront ? '#EEEDFE' : errorField === 'cnicFront' ? '#FEF2F2' : '#FAFAFA', overflow: 'hidden', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                  {cnicFrontPreview
-                    ? <img src={cnicFrontPreview} alt="CNIC Front" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <div style={{ textAlign: 'center', color: '#68629C' }}>
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 8px' }}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="7" cy="13" r="1"/></svg>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>Tap to upload CNIC Front</div>
-                        <div style={{ fontSize: 11, marginTop: 2 }}>JPG, PNG supported</div>
-                      </div>
-                  }
-                  {cnicFront && (
-                    <div style={{ position: 'absolute', top: 8, right: 8, background: '#534AB7', borderRadius: 20, padding: '2px 8px', fontSize: 11, color: '#fff', fontWeight: 700 }}>✓ Selected</div>
-                  )}
-                  {compressingCnicFront && (
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(83,74,183,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexDirection: 'column' }}>
-                      <div className="spin" style={{ width: 22, height: 22, border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%' }} />
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Processing photo…</div>
-                    </div>
-                  )}
-                </div>
-              </label>
-            </Field>
-
-            <Field label="CNIC Back Photo" required>
-              <label style={{ display: 'block', cursor: 'pointer' }}>
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
-                  const raw = e.target.files?.[0];
-                  if (!raw) return;
+              <CnicUploadBox label="CNIC Back" fieldKey="cnicBack" errorField={errorField}
+                file={cnicBack} preview={cnicBackPreview} compressing={compressingCnicBack}
+                onFileSelected={async raw => {
                   setCompressingCnicBack(true);
                   const f = await compressImage(raw);
                   setCnicBack(f); setCnicBackPreview(URL.createObjectURL(f));
                   setCompressingCnicBack(false);
                 }} />
-                <div style={{ border: `2px dashed ${cnicBack ? '#534AB7' : errorField === 'cnicBack' ? '#DC2626' : '#E8E6F5'}`, borderRadius: 12, background: cnicBack ? '#EEEDFE' : errorField === 'cnicBack' ? '#FEF2F2' : '#FAFAFA', overflow: 'hidden', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                  {cnicBackPreview
-                    ? <img src={cnicBackPreview} alt="CNIC Back" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <div style={{ textAlign: 'center', color: '#68629C' }}>
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 8px' }}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="7" cy="13" r="1"/></svg>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>Tap to upload CNIC Back</div>
-                        <div style={{ fontSize: 11, marginTop: 2 }}>JPG, PNG supported</div>
-                      </div>
-                  }
-                  {cnicBack && (
-                    <div style={{ position: 'absolute', top: 8, right: 8, background: '#534AB7', borderRadius: 20, padding: '2px 8px', fontSize: 11, color: '#fff', fontWeight: 700 }}>✓ Selected</div>
-                  )}
-                  {compressingCnicBack && (
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(83,74,183,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexDirection: 'column' }}>
-                      <div className="spin" style={{ width: 22, height: 22, border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%' }} />
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Processing photo…</div>
-                    </div>
-                  )}
-                </div>
-              </label>
-            </Field>
+            </div>
+
+            <CnicUploadBox label="Most Recent Education Document" fieldKey="educationDocument" errorField={errorField}
+              file={educationDocument} preview={educationDocumentPreview} compressing={compressingEducationDocument}
+              onFileSelected={async raw => {
+                setCompressingEducationDocument(true);
+                const f = await compressImage(raw);
+                setEducationDocument(f); setEducationDocumentPreview(URL.createObjectURL(f));
+                setCompressingEducationDocument(false);
+              }} />
+
+            <SecHeader title="PARENT / GUARDIAN" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <CnicUploadBox label="CNIC Front" fieldKey="guardianCnicFront" errorField={errorField}
+                file={guardianCnicFront} preview={guardianCnicFrontPreview} compressing={compressingGuardianCnicFront}
+                onFileSelected={async raw => {
+                  setCompressingGuardianCnicFront(true);
+                  const f = await compressImage(raw);
+                  setGuardianCnicFront(f); setGuardianCnicFrontPreview(URL.createObjectURL(f));
+                  setCompressingGuardianCnicFront(false);
+                }} />
+              <CnicUploadBox label="CNIC Back" fieldKey="guardianCnicBack" errorField={errorField}
+                file={guardianCnicBack} preview={guardianCnicBackPreview} compressing={compressingGuardianCnicBack}
+                onFileSelected={async raw => {
+                  setCompressingGuardianCnicBack(true);
+                  const f = await compressImage(raw);
+                  setGuardianCnicBack(f); setGuardianCnicBackPreview(URL.createObjectURL(f));
+                  setCompressingGuardianCnicBack(false);
+                }} />
+            </div>
 
           </div>
         )}
@@ -1561,7 +1650,13 @@ export default function SubmitClient() {
               )}
 
               <SecHeader title="VERIFICATION" />
-              {[{ label: 'CNIC Front', preview: cnicFrontPreview }, { label: 'CNIC Back', preview: cnicBackPreview }].map(({ label, preview }) => (
+              {[
+                { label: 'CNIC Front', preview: cnicFrontPreview },
+                { label: 'CNIC Back', preview: cnicBackPreview },
+                { label: 'Education Document', preview: educationDocumentPreview },
+                { label: 'Guardian CNIC Front', preview: guardianCnicFrontPreview },
+                { label: 'Guardian CNIC Back', preview: guardianCnicBackPreview },
+              ].map(({ label, preview }) => (
                 <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 10, marginBottom: 10, borderBottom: '1px solid #F0EFF8' }}>
                   <span style={{ fontSize: 12, color: '#9CA3AF' }}>{label}</span>
                   {preview
