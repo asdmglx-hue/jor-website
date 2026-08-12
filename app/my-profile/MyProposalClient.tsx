@@ -13,6 +13,7 @@ import OccupationSelect from '@/components/OccupationSelect';
 import PasswordInput from '@/components/PasswordInput';
 import FeaturedBookModal from '@/components/FeaturedBookModal';
 import FeaturedManageModal from '@/components/FeaturedManageModal';
+import VerifyNowModal from '@/components/VerifyNowModal';
 // Moved server-side so a real profile change can instantly refresh cached
 // listing/profile pages instead of waiting on the 5-minute timer — see
 // lib/actions/revalidate-write.ts for the full explanation.
@@ -243,6 +244,7 @@ export default function MyProposalClient() {
   const [boostChecked, setBoostChecked] = useState(false);
   const [bookModalOpen, setBookModalOpen] = useState(false);
   const [manageModalOpen, setManageModalOpen] = useState(false);
+  const [verifyModalOpen, setVerifyModalOpen] = useState(false);
   const [bookingResult, setBookingResult] = useState<{ lines: string[]; allToday: boolean } | null>(null);
   const refreshFeaturedDataRef = useRef<() => void>(() => {});
   const [isAdminAccount, setIsAdminAccount] = useState(false);
@@ -810,6 +812,19 @@ export default function MyProposalClient() {
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>Pay Now</span>
               </Link>
             )}
+            {/* Verify Now — for pending profiles with zero verification
+                documents submitted yet (none of the 5 fields set). Once
+                anything's uploaded this disappears — see the condition
+                below, which checks all 5 URL fields directly rather than
+                a separate flag, so it can never drift out of sync with
+                what's actually on the row. */}
+            {user.status === 'pending' && !user.cnic_front_url && !user.cnic_back_url && !user.education_document_url && !user.guardian_cnic_front_url && !user.guardian_cnic_back_url && (
+              <button onClick={() => setVerifyModalOpen(true)}
+                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>Verify Now</span>
+              </button>
+            )}
             {/* Renew — only when the subscription has actually expired */}
             {isInactive && (
               <Link href="/plans?plan=rishta-profile"
@@ -967,6 +982,19 @@ export default function MyProposalClient() {
         boosts={featuredBoosts}
         onChanged={() => refreshFeaturedDataRef.current()}
       />
+      {verifyModalOpen && (
+        <VerifyNowModal
+          user={user}
+          onClose={() => setVerifyModalOpen(false)}
+          onSaved={updates => {
+            setUser(prev => {
+              const next = { ...prev, ...updates } as typeof user;
+              import('@/lib/auth').then(m => m.saveSession(next));
+              return next;
+            });
+          }}
+        />
+      )}
       {bookingResult && (
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1250, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
@@ -1367,8 +1395,8 @@ export default function MyProposalClient() {
                   {['Married','Divorced','Khula','Widowed'].includes(user.marital_status || '') && <>
                     {!(user.has_kids === true || user.has_kids as unknown === 'true') && <BoolField label="Has Kids" fieldKey="has_kids" />}
                     {(user.has_kids === true || user.has_kids as unknown === 'true') && <>
-                      <Field label="Sons" fieldKey="boys" type="number" maxLength={2} />
-                      <Field label="Daughters" fieldKey="girls" type="number" maxLength={2} />
+                      <Field label="Sons" fieldKey="boys" type="number" />
+                      <Field label="Daughters" fieldKey="girls" type="number" />
                     </>}
                     {user.marital_status === 'Married' && <Field label="Looking For" fieldKey="marriage_number" options={['Second marriage','Third marriage','Fourth marriage']} />}
                   </>}
@@ -1391,8 +1419,8 @@ export default function MyProposalClient() {
                   <Field label="Mother Occupation" fieldKey="mother_occupation" options={professionList} grouped={professionGroups} />
                   <BoolField label="Has Siblings" fieldKey="has_siblings" />
                   {(user.has_siblings === true || user.has_siblings as unknown === 'true') && <>
-                    <Field label="Brothers" fieldKey="brothers" type="number" maxLength={2} />
-                    <Field label="Sisters" fieldKey="sisters" type="number" maxLength={2} />
+                    <Field label="Brothers" fieldKey="brothers" type="number" />
+                    <Field label="Sisters" fieldKey="sisters" type="number" />
                   </>}
                 </>))}
 
