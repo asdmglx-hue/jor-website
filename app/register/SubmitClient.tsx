@@ -506,6 +506,7 @@ const EMPTY: FormData = {
 
 const DRAFT_KEY = 'jor_submit_draft';
 const STEP_KEY  = 'jor_submit_step';
+const COUPON_KEY = 'jor_submit_coupon';
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function SubmitClient() {
@@ -608,8 +609,8 @@ export default function SubmitClient() {
     }
   };
 
-  const applyCoupon = async () => {
-    const code = couponCode.trim();
+  const applyCoupon = async (codeOverride?: string) => {
+    const code = (codeOverride ?? couponCode).trim();
     if (!code) return;
     setValidatingCoupon(true);
     setCouponMessage(null);
@@ -663,11 +664,31 @@ export default function SubmitClient() {
       setMaxStep(savedStep);
       setForm(savedForm);
       if (savedForm.phone2) setShowPhone2(true);
+
+      // Coupon code isn't part of `form` (it's validated live against
+      // coupon_codes, not just typed text), so it needs its own draft
+      // key — otherwise a refresh loses it while the referral code
+      // (which lives in form.affiliate) survives. If a coupon had been
+      // successfully applied before the refresh, re-validate it live
+      // rather than trusting the stale "applied" flag, since it may
+      // have been deactivated or expired since — same reasoning as the
+      // admin app re-checking it again at approval time.
+      const savedCoupon = localStorage.getItem(COUPON_KEY);
+      if (savedCoupon) {
+        const { code, applied } = JSON.parse(savedCoupon) as { code: string; applied: boolean };
+        if (code) {
+          setCouponCode(code);
+          if (applied) applyCoupon(code);
+        }
+      }
     } catch {}
     setMounted(true);
   }, []);
   useEffect(() => { if (mounted) localStorage.setItem(DRAFT_KEY, JSON.stringify(form)); }, [form, mounted]);
   useEffect(() => { if (mounted) localStorage.setItem(STEP_KEY, String(step)); }, [step, mounted]);
+  useEffect(() => {
+    if (mounted) localStorage.setItem(COUPON_KEY, JSON.stringify({ code: couponCode, applied: !!appliedCouponCode }));
+  }, [couponCode, appliedCouponCode, mounted]);
 
   // handleSubmit is only called from step 4
 
@@ -1006,6 +1027,7 @@ export default function SubmitClient() {
     if (success) {
       localStorage.removeItem(DRAFT_KEY);
       localStorage.removeItem(STEP_KEY);
+      localStorage.removeItem(COUPON_KEY);
       setSubmitted(true);
       trackEvent('register_complete');
     } else setError(apiErr || 'Something went wrong. Please try again.');
@@ -1769,7 +1791,7 @@ export default function SubmitClient() {
                   />
                   <button
                     type="button"
-                    onClick={applyCoupon}
+                    onClick={() => applyCoupon()}
                     disabled={validatingCoupon || !couponCode.trim()}
                     style={{
                       padding: '0 18px', borderRadius: 8, border: 'none', flexShrink: 0,
