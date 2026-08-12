@@ -146,10 +146,11 @@ function SubSection({ children }: { children: React.ReactNode }) {
 // applicant's education document. None of these are required anymore
 // (the whole Verification step is skippable), so this never passes
 // `required` to Field.
-function CnicUploadBox({ label, file, preview, compressing, errorField, fieldKey, onFileSelected }: {
+function CnicUploadBox({ label, file, preview, compressing, errorField, fieldKey, onFileSelected, onRemove }: {
   label: string; file: File | null; preview: string; compressing: boolean;
   errorField: string; fieldKey: string;
   onFileSelected: (raw: File) => Promise<void>;
+  onRemove: () => void;
 }) {
   return (
     <Field label={label}>
@@ -169,7 +170,11 @@ function CnicUploadBox({ label, file, preview, compressing, errorField, fieldKey
               </div>
           }
           {file && (
-            <div style={{ position: 'absolute', top: 8, right: 8, background: '#534AB7', borderRadius: 20, padding: '2px 8px', fontSize: 11, color: '#fff', fontWeight: 700 }}>✓ Selected</div>
+            <button type="button" onClick={e => { e.preventDefault(); e.stopPropagation(); onRemove(); }}
+              aria-label={`Remove ${label}`}
+              style={{ position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: '50%', border: 'none', background: 'rgba(26,24,48,0.65)', color: '#fff', fontSize: 14, fontWeight: 700, lineHeight: '24px', textAlign: 'center', padding: 0, cursor: 'pointer' }}>
+              ✕
+            </button>
           )}
           {compressing && (
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(83,74,183,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexDirection: 'column' }}>
@@ -725,9 +730,9 @@ export default function SubmitClient() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const skip = () => {
+  const skip = (target: 4 | 5 = 4) => {
     setError(''); setErrorField('');
-    setStep(4);
+    setStep(target);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -1277,7 +1282,7 @@ export default function SubmitClient() {
                   <div style={{ fontSize: 12, color: '#68629C' }}>All fields below are optional</div>
                 </div>
               </div>
-              <button onClick={skip} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => skip(4)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                 Skip →
               </button>
             </div>
@@ -1421,14 +1426,19 @@ export default function SubmitClient() {
         {/* ── Step 4: Verification ──────────────────────────────────────────── */}
         {step === 4 && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Verification</div>
+                  <div style={{ fontSize: 12, color: '#68629C' }}>Your documents remain private and fully secured</div>
+                </div>
               </div>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Verification</div>
-                <div style={{ fontSize: 12, color: '#68629C' }}>Your documents remain private and fully secured</div>
-              </div>
+              <button onClick={() => skip(5)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                Skip →
+              </button>
             </div>
 
             <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
@@ -1444,7 +1454,8 @@ export default function SubmitClient() {
                   const f = await compressImage(raw);
                   setCnicFront(f); setCnicFrontPreview(URL.createObjectURL(f));
                   setCompressingCnicFront(false);
-                }} />
+                }}
+                onRemove={() => { setCnicFront(null); setCnicFrontPreview(''); }} />
               <CnicUploadBox label="CNIC Back" fieldKey="cnicBack" errorField={errorField}
                 file={cnicBack} preview={cnicBackPreview} compressing={compressingCnicBack}
                 onFileSelected={async raw => {
@@ -1452,7 +1463,8 @@ export default function SubmitClient() {
                   const f = await compressImage(raw);
                   setCnicBack(f); setCnicBackPreview(URL.createObjectURL(f));
                   setCompressingCnicBack(false);
-                }} />
+                }}
+                onRemove={() => { setCnicBack(null); setCnicBackPreview(''); }} />
             </div>
 
             <CnicUploadBox label="Most Recent Education Document" fieldKey="educationDocument" errorField={errorField}
@@ -1462,7 +1474,8 @@ export default function SubmitClient() {
                 const f = await compressImage(raw);
                 setEducationDocument(f); setEducationDocumentPreview(URL.createObjectURL(f));
                 setCompressingEducationDocument(false);
-              }} />
+              }}
+              onRemove={() => { setEducationDocument(null); setEducationDocumentPreview(''); }} />
 
             <SecHeader title="PARENT / GUARDIAN" />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -1473,7 +1486,8 @@ export default function SubmitClient() {
                   const f = await compressImage(raw);
                   setGuardianCnicFront(f); setGuardianCnicFrontPreview(URL.createObjectURL(f));
                   setCompressingGuardianCnicFront(false);
-                }} />
+                }}
+                onRemove={() => { setGuardianCnicFront(null); setGuardianCnicFrontPreview(''); }} />
               <CnicUploadBox label="CNIC Back" fieldKey="guardianCnicBack" errorField={errorField}
                 file={guardianCnicBack} preview={guardianCnicBackPreview} compressing={compressingGuardianCnicBack}
                 onFileSelected={async raw => {
@@ -1481,7 +1495,8 @@ export default function SubmitClient() {
                   const f = await compressImage(raw);
                   setGuardianCnicBack(f); setGuardianCnicBackPreview(URL.createObjectURL(f));
                   setCompressingGuardianCnicBack(false);
-                }} />
+                }}
+                onRemove={() => { setGuardianCnicBack(null); setGuardianCnicBackPreview(''); }} />
             </div>
 
           </div>
