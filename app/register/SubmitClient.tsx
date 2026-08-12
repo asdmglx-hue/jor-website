@@ -1664,22 +1664,23 @@ export default function SubmitClient() {
                 </>
               )}
 
-              <SecHeader title="VERIFICATION" />
-              {[
-                { label: 'CNIC Front', preview: cnicFrontPreview },
-                { label: 'CNIC Back', preview: cnicBackPreview },
-                { label: 'Education Document', preview: educationDocumentPreview },
-                { label: 'Guardian CNIC Front', preview: guardianCnicFrontPreview },
-                { label: 'Guardian CNIC Back', preview: guardianCnicBackPreview },
-              ].map(({ label, preview }) => (
-                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 10, marginBottom: 10, borderBottom: '1px solid #F0EFF8' }}>
-                  <span style={{ fontSize: 12, color: '#9CA3AF' }}>{label}</span>
-                  {preview
-                    ? <span onClick={() => setViewImg(preview)} style={{ fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'underline', cursor: 'pointer' }}>View</span>
-                    : <span style={{ fontSize: 12, color: '#68629C' }}>Not uploaded</span>
-                  }
-                </div>
-              ))}
+              {(cnicFrontPreview || cnicBackPreview || educationDocumentPreview || guardianCnicFrontPreview || guardianCnicBackPreview) && (
+                <>
+                  <SecHeader title="VERIFICATION" />
+                  {[
+                    { label: 'CNIC Front', preview: cnicFrontPreview },
+                    { label: 'CNIC Back', preview: cnicBackPreview },
+                    { label: 'Education Document', preview: educationDocumentPreview },
+                    { label: 'Guardian CNIC Front', preview: guardianCnicFrontPreview },
+                    { label: 'Guardian CNIC Back', preview: guardianCnicBackPreview },
+                  ].filter(({ preview }) => preview).map(({ label, preview }) => (
+                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 10, marginBottom: 10, borderBottom: '1px solid #F0EFF8' }}>
+                      <span style={{ fontSize: 12, color: '#9CA3AF' }}>{label}</span>
+                      <span onClick={() => setViewImg(preview)} style={{ fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'underline', cursor: 'pointer' }}>View</span>
+                    </div>
+                  ))}
+                </>
+              )}
 
               {/* Coupon Code — mirrors the mobile app's boxed card exactly
                   (same kAmber/kAmberLight colors from theme.dart). Entered
