@@ -521,6 +521,7 @@ export default function SubmitClient() {
   }, []);
   const [maxStep, setMaxStep] = useState<number>(1);
   const [form, setForm] = useState<FormData>(EMPTY);
+  const [showPhone2, setShowPhone2] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState('');
   const [cropSrc, setCropSrc] = useState('');
@@ -660,6 +661,7 @@ export default function SubmitClient() {
       setStep(savedStep as 1 | 2 | 3 | 4 | 5);
       setMaxStep(savedStep);
       setForm(savedForm);
+      if (savedForm.phone2) setShowPhone2(true);
     } catch {}
     setMounted(true);
   }, []);
@@ -1189,12 +1191,19 @@ export default function SubmitClient() {
               </Field>
             </div>
 
-            <Field label="Phone Number" required>
+            <Field label="Phone Number" required labelExtra={<span style={{ fontSize: 11.5, fontWeight: 500, color: '#9990B8' }}> (This number will be used for future verification)</span>}>
               <PhoneInput value={form.phone} onChange={v => set('phone', v)} dialCode={form.phone_dial_code} onDialChange={v => set('phone_dial_code', v)} required hasError={errorField === 'phone'} inputStyle={inp} />
             </Field>
-            <Field label="Second Phone Number">
-              <PhoneInput value={form.phone2} onChange={v => set('phone2', v)} dialCode={form.phone2_dial_code} onDialChange={v => set('phone2_dial_code', v)} inputStyle={inp} />
-            </Field>
+            {showPhone2 ? (
+              <Field label="Second Phone Number">
+                <PhoneInput value={form.phone2} onChange={v => set('phone2', v)} dialCode={form.phone2_dial_code} onDialChange={v => set('phone2_dial_code', v)} inputStyle={inp} />
+              </Field>
+            ) : (
+              <button type="button" onClick={() => setShowPhone2(true)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 14, background: 'none', border: 'none', padding: 0, color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                <span style={{ fontSize: 16, lineHeight: 1 }}>＋</span> Add another phone number
+              </button>
+            )}
 
             <Field label="Height" required>
               <div style={{ display: 'flex', gap: 8 }}>
