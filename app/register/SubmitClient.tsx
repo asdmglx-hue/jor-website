@@ -581,9 +581,10 @@ export default function SubmitClient() {
     setValidatingAffiliate(true);
     setAffiliateMessage(null);
     try {
-      const { data: res, error: affErr } = await supabase
+      const { data: rpcData, error: affErr } = await supabase
         .rpc('validate_affiliate_code', { p_code: code })
         .maybeSingle();
+      const res = rpcData as { code: string; name: string | null } | null;
 
       if (affErr || !res) {
         setValidatingAffiliate(false);
@@ -595,7 +596,7 @@ export default function SubmitClient() {
 
       setValidatingAffiliate(false);
       setAffiliateIsError(false);
-      setAppliedAffiliateCode((res.code as string).toUpperCase());
+      setAppliedAffiliateCode(res.code.toUpperCase());
       setAffiliateMessage(res.name ? `Referral code applied — supporting ${res.name}!` : 'Referral code applied successfully!');
     } catch (_) {
       setValidatingAffiliate(false);
