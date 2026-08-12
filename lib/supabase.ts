@@ -97,6 +97,9 @@ export type Proposal = {
   cnic?: string;
   cnic_front_url?: string;
   cnic_back_url?: string;
+  guardian_cnic_front_url?: string;
+  guardian_cnic_back_url?: string;
+  education_document_url?: string;
   affiliate_code?: string;
   applied_coupon_code?: string;
   coupon_discount_percent?: number;
