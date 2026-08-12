@@ -5,7 +5,6 @@ import { saveSession } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PasswordInput from '@/components/PasswordInput';
-import { compressImage } from '@/lib/compressImage';
 import { trackEvent } from '@/lib/analytics';
 
 // Generates a persistent device ID for this browser.
@@ -28,11 +27,6 @@ export default function LoginClient() {
   const [error, setError] = useState('');
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [showForgotModal, setShowForgotModal] = useState(false);
-  const [forgotCnic, setForgotCnic] = useState('');
-  const [forgotError, setForgotError] = useState('');
-  const [forgotCnicPhoto, setForgotCnicPhoto] = useState<File | null>(null);
-  const [forgotUploading, setForgotUploading] = useState(false);
-  const [compressingForgotPhoto, setCompressingForgotPhoto] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -97,39 +91,16 @@ export default function LoginClient() {
     }
   };
 
-  const handleForgotSubmit = async () => {
-    const digits = forgotCnic.replace(/-/g, '');
-    if (digits.length !== 13) { setForgotError('Enter a complete 13-digit CNIC number.'); return; }
-    if (!forgotCnicPhoto) { setForgotError('Please upload a color photo of your CNIC front side.'); return; }
-    setForgotError('');
-    setForgotUploading(true);
-
-    let photoUrl = '';
-    try {
-      const uploadForm = new FormData();
-      uploadForm.append('cnic', digits);
-      uploadForm.append('front', forgotCnicPhoto);
-      const res = await fetch('/api/upload-forgot-password-cnic', { method: 'POST', body: uploadForm });
-      const uploaded = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setForgotUploading(false);
-        setForgotError(uploaded.error || 'Failed to upload CNIC photo. Please try again.');
-        return;
-      }
-      photoUrl = uploaded.url;
-    } catch {
-      setForgotUploading(false);
-      setForgotError('Failed to upload CNIC photo. Please check your connection and try again.');
-      return;
-    }
-
-    setForgotUploading(false);
+  // Simplified to match the app: no CNIC/photo upload here anymore —
+  // just point the person to WhatsApp with a generic pre-filled message.
+  // Messaging from their own registered number is itself the identity
+  // signal (the admin sees the sender), rather than a typed CNIC number
+  // that could be spoofed by anyone.
+  const handleForgotWhatsApp = () => {
     const adminWa = settings['whatsapp_number'] || ADMIN_WHATSAPP;
-    const text = `Hi, I forgot my password.\n\nMy CNIC: ${forgotCnic}\n\nCNIC front photo (for verification): ${photoUrl}\n\nPlease help me reset my password.`;
+    const text = `Hi, I forgot my password for my JOR account. Please help me reset it.`;
     window.open(`https://wa.me/${adminWa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
     setShowForgotModal(false);
-    setForgotCnic('');
-    setForgotCnicPhoto(null);
   };
 
   return (
@@ -164,7 +135,7 @@ export default function LoginClient() {
               style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1.5px solid #E8E6F5', fontSize: 15, outline: 'none', color: '#1A1830' }}
             />
             <div style={{ textAlign: 'right', marginTop: 8 }}>
-              <button onClick={() => { setForgotCnic(''); setForgotError(''); setShowForgotModal(true); }} style={{ background: 'none', border: 'none', padding: 0, color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => setShowForgotModal(true)} style={{ background: 'none', border: 'none', padding: 0, color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                 Forgot Password?
               </button>
             </div>
@@ -197,52 +168,17 @@ export default function LoginClient() {
         <div onClick={() => setShowForgotModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 380, padding: 24 }}>
             <div style={{ fontSize: 17, fontWeight: 800, color: '#534AB7', marginBottom: 4 }}>Forgot Password</div>
-            <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 16, lineHeight: 1.5 }}>
-              We&apos;ll reach out on WhatsApp to verify your identity and reset your password.
+            <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 20, lineHeight: 1.5 }}>
+              Message us from your registered WhatsApp number and we&apos;ll help reset your password.
             </div>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>CNIC Number</label>
-            <input
-              type="text" placeholder="12345-1234567-1"
-              value={forgotCnic} onChange={e => { setForgotCnic(formatCnic(e.target.value)); setForgotError(''); }}
-              maxLength={15}
-              autoFocus
-              style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${forgotError ? '#DC2626' : '#E8E6F5'}`, fontSize: 15, outline: 'none', color: '#1A1830', letterSpacing: 1, boxSizing: 'border-box', marginBottom: 14 }}
-            />
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>CNIC Front Photo (color)</label>
-            <label style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '14px', borderRadius: 12, border: `1.5px dashed ${forgotError && !forgotCnicPhoto ? '#DC2626' : '#C4C2D8'}`,
-              background: '#FAF9FF', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-              color: compressingForgotPhoto ? '#534AB7' : forgotCnicPhoto ? '#16A34A' : '#534AB7', marginBottom: 6,
+            <button onClick={handleForgotWhatsApp} style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: '13px', borderRadius: 12, border: 'none', background: '#25D366',
+              color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer',
             }}>
-              {compressingForgotPhoto ? (
-                <div className="spin" style={{ width: 16, height: 16, border: '2px solid rgba(83,74,183,0.3)', borderTopColor: '#534AB7', borderRadius: '50%' }} />
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              )}
-              {compressingForgotPhoto ? 'Processing photo…' : forgotCnicPhoto ? forgotCnicPhoto.name : 'Upload CNIC front photo'}
-              <input
-                type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }}
-                onChange={async e => {
-                  const raw = e.target.files?.[0];
-                  setForgotError('');
-                  if (!raw) { setForgotCnicPhoto(null); return; }
-                  setCompressingForgotPhoto(true);
-                  const f = await compressImage(raw);
-                  setForgotCnicPhoto(f);
-                  setCompressingForgotPhoto(false);
-                }}
-              />
-            </label>
-            {forgotError && <div style={{ fontSize: 12, color: '#DC2626', marginBottom: 10 }}>{forgotError}</div>}
-            <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-              <button onClick={() => setShowForgotModal(false)} style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
-                Cancel
-              </button>
-              <button onClick={handleForgotSubmit} disabled={forgotUploading || compressingForgotPhoto} style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: (forgotUploading || compressingForgotPhoto) ? '#68629C' : '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, cursor: (forgotUploading || compressingForgotPhoto) ? 'default' : 'pointer' }}>
-                {forgotUploading ? 'Uploading…' : compressingForgotPhoto ? 'Processing…' : 'Submit'}
-              </button>
-            </div>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.48 1.32 4.99L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2Zm0 18.06h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.11.82.83-3.03-.2-.31a8.14 8.14 0 0 1-1.25-4.3c0-4.5 3.66-8.16 8.17-8.16 2.18 0 4.23.85 5.77 2.4a8.1 8.1 0 0 1 2.39 5.77c0 4.5-3.66 8.14-8.11 8.14Zm4.47-6.11c-.24-.12-1.45-.72-1.68-.8-.22-.08-.39-.12-.55.12-.16.24-.63.8-.78.96-.14.16-.29.18-.53.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.37.1-.49.11-.11.24-.29.36-.43.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.81-.2-.48-.4-.41-.55-.42-.14-.01-.3-.01-.46-.01-.16 0-.42.06-.64.3-.22.24-.85.83-.85 2.02 0 1.19.87 2.34.99 2.5.12.16 1.71 2.61 4.14 3.66.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.45-.59 1.65-1.16.2-.57.2-1.06.14-1.16-.06-.1-.22-.16-.46-.28Z"/></svg>
+              Message on WhatsApp
+            </button>
           </div>
         </div>
       )}

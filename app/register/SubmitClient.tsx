@@ -141,53 +141,6 @@ function SubSection({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Shared upload box for the Verification step — used for the applicant's
-// CNIC front/back, the parent/guardian's CNIC front/back, and the
-// applicant's education document. None of these are required anymore
-// (the whole Verification step is skippable), so this never passes
-// `required` to Field.
-function CnicUploadBox({ label, file, preview, compressing, errorField, fieldKey, onFileSelected, onRemove }: {
-  label: string; file: File | null; preview: string; compressing: boolean;
-  errorField: string; fieldKey: string;
-  onFileSelected: (raw: File) => Promise<void>;
-  onRemove: () => void;
-}) {
-  return (
-    <Field label={label}>
-      <label style={{ display: 'block', cursor: 'pointer' }}>
-        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
-          const raw = e.target.files?.[0];
-          if (!raw) return;
-          await onFileSelected(raw);
-        }} />
-        <div style={{ border: `2px dashed ${file ? '#534AB7' : errorField === fieldKey ? '#DC2626' : '#E8E6F5'}`, borderRadius: 12, background: file ? '#EEEDFE' : errorField === fieldKey ? '#FEF2F2' : '#FAFAFA', overflow: 'hidden', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-          {preview
-            ? <img src={preview} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <div style={{ textAlign: 'center', color: '#68629C' }}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 8px' }}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="7" cy="13" r="1"/></svg>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>Tap to upload {label}</div>
-                <div style={{ fontSize: 11, marginTop: 2 }}>JPG, PNG supported</div>
-              </div>
-          }
-          {file && (
-            <button type="button" onClick={e => { e.preventDefault(); e.stopPropagation(); onRemove(); }}
-              aria-label={`Remove ${label}`}
-              style={{ position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: '50%', border: 'none', background: 'rgba(26,24,48,0.65)', color: '#fff', fontSize: 14, fontWeight: 700, lineHeight: '24px', textAlign: 'center', padding: 0, cursor: 'pointer' }}>
-              ✕
-            </button>
-          )}
-          {compressing && (
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(83,74,183,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexDirection: 'column' }}>
-              <div className="spin" style={{ width: 22, height: 22, border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%' }} />
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Processing photo…</div>
-            </div>
-          )}
-        </div>
-      </label>
-    </Field>
-  );
-}
-
 function DegreePair({ degreeKey, instituteKey, form, set, inp, certFile, onCertChange, setViewImg }: {
   degreeKey: keyof FormData; instituteKey: keyof FormData;
   form: FormData; set: (k: keyof FormData, v: string) => void; inp: React.CSSProperties;
@@ -521,30 +474,20 @@ export default function SubmitClient() {
   }, []);
   const [maxStep, setMaxStep] = useState<number>(1);
   const [form, setForm] = useState<FormData>(EMPTY);
-  const [showPhone2, setShowPhone2] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState('');
   const [cropSrc, setCropSrc] = useState('');
   const [viewImg, setViewImg] = useState('');
   const [cnicFront, setCnicFront] = useState<File | null>(null);
   const [cnicBack, setCnicBack] = useState<File | null>(null);
-  const [guardianCnicFront, setGuardianCnicFront] = useState<File | null>(null);
-  const [guardianCnicBack, setGuardianCnicBack] = useState<File | null>(null);
-  const [educationDocument, setEducationDocument] = useState<File | null>(null);
   const [degreeCert, setDegreeCert] = useState<File | null>(null);
   const [degreeCert2, setDegreeCert2] = useState<File | null>(null);
   const [degreeCert3, setDegreeCert3] = useState<File | null>(null);
   const [compressingCnicFront, setCompressingCnicFront] = useState(false);
   const [compressingCnicBack, setCompressingCnicBack] = useState(false);
-  const [compressingGuardianCnicFront, setCompressingGuardianCnicFront] = useState(false);
-  const [compressingGuardianCnicBack, setCompressingGuardianCnicBack] = useState(false);
-  const [compressingEducationDocument, setCompressingEducationDocument] = useState(false);
   const [compressingProfilePhoto, setCompressingProfilePhoto] = useState(false);
   const [cnicFrontPreview, setCnicFrontPreview] = useState('');
   const [cnicBackPreview, setCnicBackPreview] = useState('');
-  const [guardianCnicFrontPreview, setGuardianCnicFrontPreview] = useState('');
-  const [guardianCnicBackPreview, setGuardianCnicBackPreview] = useState('');
-  const [educationDocumentPreview, setEducationDocumentPreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -564,49 +507,6 @@ export default function SubmitClient() {
   const [couponIsError, setCouponIsError] = useState(false);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
-  // Referral code — validated against the `affiliates` table via a
-  // SECURITY DEFINER RPC (validate_affiliate_code), since that table has
-  // no public SELECT policy (it holds phone numbers, password hashes,
-  // commission totals — none of which should be readable by an anon
-  // client). Same apply/validate pattern as the coupon above: the raw
-  // text is only sent on submit once it's been confirmed to match a real,
-  // non-deleted affiliate.
-  const [appliedAffiliateCode, setAppliedAffiliateCode] = useState<string | null>(null);
-  const [affiliateMessage, setAffiliateMessage] = useState<string | null>(null);
-  const [affiliateIsError, setAffiliateIsError] = useState(false);
-  const [validatingAffiliate, setValidatingAffiliate] = useState(false);
-
-  const applyAffiliateCode = async () => {
-    const code = form.affiliate.trim();
-    if (!code) return;
-    setValidatingAffiliate(true);
-    setAffiliateMessage(null);
-    try {
-      const { data: rpcData, error: affErr } = await supabase
-        .rpc('validate_affiliate_code', { p_code: code })
-        .maybeSingle();
-      const res = rpcData as { code: string; name: string | null } | null;
-
-      if (affErr || !res) {
-        setValidatingAffiliate(false);
-        setAffiliateIsError(true);
-        setAffiliateMessage('Invalid referral code');
-        setAppliedAffiliateCode(null);
-        return;
-      }
-
-      setValidatingAffiliate(false);
-      setAffiliateIsError(false);
-      setAppliedAffiliateCode(res.code.toUpperCase());
-      setAffiliateMessage('Referral code applied');
-    } catch (_) {
-      setValidatingAffiliate(false);
-      setAffiliateIsError(true);
-      setAffiliateMessage('Could not verify referral code — check your connection');
-      setAppliedAffiliateCode(null);
-    }
-  };
-
   const applyCoupon = async () => {
     const code = couponCode.trim();
     if (!code) return;
@@ -615,7 +515,7 @@ export default function SubmitClient() {
     try {
       const { data: res, error: couponErr } = await supabase
         .from('coupon_codes')
-        .select('coupon_type, discount_percent, free_days, trial_days, active, expires_at')
+        .select('coupon_type, discount_percent, free_days, active, expires_at')
         .ilike('code', code)
         .maybeSingle();
 
@@ -632,14 +532,10 @@ export default function SubmitClient() {
       setCouponIsError(false);
       setAppliedCouponCode(code.toUpperCase());
       const type = res.coupon_type || 'percentage';
-      if (type === 'free_trial' && res.trial_days) {
-        setCouponMessage(`${res.trial_days}-day free trial applied successfully!`);
-      } else if (type === 'free_days' && res.free_days) {
+      if (type === 'free_days' && res.free_days) {
         setCouponMessage(`+${res.free_days} bonus days will be added once you subscribe!`);
       } else if (res.discount_percent) {
         setCouponMessage(`${res.discount_percent}% discount will apply once you subscribe!`);
-      } else {
-        setCouponMessage('Coupon applied — it will be validated again when you subscribe.');
       }
     } catch (_) {
       setValidatingCoupon(false);
@@ -661,7 +557,6 @@ export default function SubmitClient() {
       setStep(savedStep as 1 | 2 | 3 | 4 | 5);
       setMaxStep(savedStep);
       setForm(savedForm);
-      if (savedForm.phone2) setShowPhone2(true);
     } catch {}
     setMounted(true);
   }, []);
@@ -747,10 +642,10 @@ export default function SubmitClient() {
       if (!form.home_type) return fail('House type is required', 'home_type');
       if (!form.marital_status) return fail('Marital status is required', 'marital_status');
     }
-    // Step 4 (Verification) is intentionally not validated here — every
-    // document in it (applicant CNIC, guardian CNIC, education document)
-    // is optional, so the account can be submitted and activated without
-    // them and the documents added later.
+    if (step === 4) {
+      if (!cnicFront) return fail('CNIC front photo is required', 'cnicFront');
+      if (!cnicBack) return fail('CNIC back photo is required', 'cnicBack');
+    }
     return { msg: '', field: '' };
   };
 
@@ -779,9 +674,9 @@ export default function SubmitClient() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const skip = (target: 4 | 5 = 4) => {
+  const skip = () => {
     setError(''); setErrorField('');
-    setStep(target);
+    setStep(4);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -851,56 +746,6 @@ export default function SubmitClient() {
         cnicBackUrl = uploaded.back;
       } catch {
         setError('Failed to upload CNIC photos. Please check your connection and try again.');
-        setSubmitting(false);
-        return;
-      }
-    }
-
-    // Guardian CNIC photos — optional pair, same secure server-side R2
-    // upload endpoint pattern as the applicant's own CNIC photos, just a
-    // separate route so the object paths stay unambiguous.
-    let guardianCnicFrontUrl: string | undefined;
-    let guardianCnicBackUrl: string | undefined;
-    if (guardianCnicFront && guardianCnicBack) {
-      const uploadForm = new FormData();
-      uploadForm.append('cnic', digits);
-      uploadForm.append('front', guardianCnicFront);
-      uploadForm.append('back', guardianCnicBack);
-      try {
-        const res = await fetch('/api/upload-guardian-cnic', { method: 'POST', body: uploadForm });
-        const uploaded = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          setError(uploaded.error || 'Failed to upload guardian CNIC photos. Please try again.');
-          setSubmitting(false);
-          return;
-        }
-        guardianCnicFrontUrl = uploaded.front;
-        guardianCnicBackUrl = uploaded.back;
-      } catch {
-        setError('Failed to upload guardian CNIC photos. Please check your connection and try again.');
-        setSubmitting(false);
-        return;
-      }
-    }
-
-    // Most recent education document — optional single file, same
-    // pattern as the degree certificate uploads below.
-    let educationDocumentUrl: string | undefined;
-    if (educationDocument) {
-      const uploadForm = new FormData();
-      uploadForm.append('cnic', digits);
-      uploadForm.append('file', educationDocument);
-      try {
-        const res = await fetch('/api/upload-education-document', { method: 'POST', body: uploadForm });
-        const uploaded = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          setError(uploaded.error || 'Failed to upload education document. Please try again.');
-          setSubmitting(false);
-          return;
-        }
-        educationDocumentUrl = uploaded.url;
-      } catch {
-        setError('Failed to upload education document. Please check your connection and try again.');
         setSubmitting(false);
         return;
       }
@@ -994,10 +839,7 @@ export default function SubmitClient() {
       profile_photo_url: profilePhotoUrl,
       cnic_front_url: cnicFrontUrl,
       cnic_back_url: cnicBackUrl,
-      guardian_cnic_front_url: guardianCnicFrontUrl,
-      guardian_cnic_back_url: guardianCnicBackUrl,
-      education_document_url: educationDocumentUrl,
-      affiliate_code: appliedAffiliateCode || undefined,
+      affiliate_code: form.affiliate.trim() ? form.affiliate.trim().toUpperCase() : undefined,
       applied_coupon_code: appliedCouponCode || undefined,
     });
 
@@ -1191,19 +1033,12 @@ export default function SubmitClient() {
               </Field>
             </div>
 
-            <Field label="Phone Number" required labelExtra={<span style={{ fontSize: 11.5, fontWeight: 500, color: '#9990B8' }}> (This number will be used for future verification)</span>}>
+            <Field label="Phone Number" required>
               <PhoneInput value={form.phone} onChange={v => set('phone', v)} dialCode={form.phone_dial_code} onDialChange={v => set('phone_dial_code', v)} required hasError={errorField === 'phone'} inputStyle={inp} />
             </Field>
-            {showPhone2 ? (
-              <Field label="Second Phone Number">
-                <PhoneInput value={form.phone2} onChange={v => set('phone2', v)} dialCode={form.phone2_dial_code} onDialChange={v => set('phone2_dial_code', v)} inputStyle={inp} />
-              </Field>
-            ) : (
-              <button type="button" onClick={() => setShowPhone2(true)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 14, background: 'none', border: 'none', padding: 0, color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-                <span style={{ fontSize: 16, lineHeight: 1 }}>＋</span> Add another phone number
-              </button>
-            )}
+            <Field label="Second Phone Number">
+              <PhoneInput value={form.phone2} onChange={v => set('phone2', v)} dialCode={form.phone2_dial_code} onDialChange={v => set('phone2_dial_code', v)} inputStyle={inp} />
+            </Field>
 
             <Field label="Height" required>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -1293,10 +1128,10 @@ export default function SubmitClient() {
                 {form.has_kids === 'Yes' && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 10 }}>
                     <Field label="Sons">
-                      <input type="number" min={0} max={10} value={form.boys} onChange={e => set('boys', e.target.value)} style={inp} placeholder="0" />
+                      <input type="number" min={0} max={20} value={form.boys} onChange={e => set('boys', e.target.value)} style={inp} placeholder="0" />
                     </Field>
                     <Field label="Daughters">
-                      <input type="number" min={0} max={10} value={form.girls} onChange={e => set('girls', e.target.value)} style={inp} placeholder="0" />
+                      <input type="number" min={0} max={20} value={form.girls} onChange={e => set('girls', e.target.value)} style={inp} placeholder="0" />
                     </Field>
                   </div>
                 )}
@@ -1338,7 +1173,7 @@ export default function SubmitClient() {
                   <div style={{ fontSize: 12, color: '#68629C' }}>All fields below are optional</div>
                 </div>
               </div>
-              <button onClick={() => skip(4)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={skip} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                 Skip →
               </button>
             </div>
@@ -1383,10 +1218,10 @@ export default function SubmitClient() {
               <SubSection>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <Field label="Brothers">
-                    <input type="number" min={0} value={form.brothers} onChange={e => set('brothers', e.target.value)} style={inp} placeholder="0" />
+                    <input type="number" min={0} max={20} value={form.brothers} onChange={e => set('brothers', e.target.value)} style={inp} placeholder="0" />
                   </Field>
                   <Field label="Sisters">
-                    <input type="number" min={0} value={form.sisters} onChange={e => set('sisters', e.target.value)} style={inp} placeholder="0" />
+                    <input type="number" min={0} max={20} value={form.sisters} onChange={e => set('sisters', e.target.value)} style={inp} placeholder="0" />
                   </Field>
                 </div>
               </SubSection>
@@ -1482,78 +1317,83 @@ export default function SubmitClient() {
         {/* ── Step 4: Verification ──────────────────────────────────────────── */}
         {step === 4 && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </div>
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Verification</div>
-                  <div style={{ fontSize: 12, color: '#68629C' }}>Your documents remain private and fully secured</div>
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
-              <button onClick={() => skip(5)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-                Skip →
-              </button>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Verification</div>
+                <div style={{ fontSize: 12, color: '#68629C' }}>Your CNIC remains private and fully secured</div>
+              </div>
             </div>
 
             <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-              Identity verification documents are required to activate your account, but you can skip this step and submit them later.
+              Upload clear photos of both sides of your CNIC. These remain private and are only used for verification.
             </div>
 
-            <SecHeader title="FOR MARRIAGE-SEEKING PERSON" />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <CnicUploadBox label="CNIC Front" fieldKey="cnicFront" errorField={errorField}
-                file={cnicFront} preview={cnicFrontPreview} compressing={compressingCnicFront}
-                onFileSelected={async raw => {
+            <Field label="CNIC Front Photo" required>
+              <label style={{ display: 'block', cursor: 'pointer' }}>
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
+                  const raw = e.target.files?.[0];
+                  if (!raw) return;
                   setCompressingCnicFront(true);
                   const f = await compressImage(raw);
                   setCnicFront(f); setCnicFrontPreview(URL.createObjectURL(f));
                   setCompressingCnicFront(false);
-                }}
-                onRemove={() => { setCnicFront(null); setCnicFrontPreview(''); }} />
-              <CnicUploadBox label="CNIC Back" fieldKey="cnicBack" errorField={errorField}
-                file={cnicBack} preview={cnicBackPreview} compressing={compressingCnicBack}
-                onFileSelected={async raw => {
+                }} />
+                <div style={{ border: `2px dashed ${cnicFront ? '#534AB7' : errorField === 'cnicFront' ? '#DC2626' : '#E8E6F5'}`, borderRadius: 12, background: cnicFront ? '#EEEDFE' : errorField === 'cnicFront' ? '#FEF2F2' : '#FAFAFA', overflow: 'hidden', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                  {cnicFrontPreview
+                    ? <img src={cnicFrontPreview} alt="CNIC Front" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <div style={{ textAlign: 'center', color: '#68629C' }}>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 8px' }}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="7" cy="13" r="1"/></svg>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>Tap to upload CNIC Front</div>
+                        <div style={{ fontSize: 11, marginTop: 2 }}>JPG, PNG supported</div>
+                      </div>
+                  }
+                  {cnicFront && (
+                    <div style={{ position: 'absolute', top: 8, right: 8, background: '#534AB7', borderRadius: 20, padding: '2px 8px', fontSize: 11, color: '#fff', fontWeight: 700 }}>✓ Selected</div>
+                  )}
+                  {compressingCnicFront && (
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(83,74,183,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexDirection: 'column' }}>
+                      <div className="spin" style={{ width: 22, height: 22, border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%' }} />
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Processing photo…</div>
+                    </div>
+                  )}
+                </div>
+              </label>
+            </Field>
+
+            <Field label="CNIC Back Photo" required>
+              <label style={{ display: 'block', cursor: 'pointer' }}>
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
+                  const raw = e.target.files?.[0];
+                  if (!raw) return;
                   setCompressingCnicBack(true);
                   const f = await compressImage(raw);
                   setCnicBack(f); setCnicBackPreview(URL.createObjectURL(f));
                   setCompressingCnicBack(false);
-                }}
-                onRemove={() => { setCnicBack(null); setCnicBackPreview(''); }} />
-            </div>
-
-            <CnicUploadBox label="Most Recent Education Document" fieldKey="educationDocument" errorField={errorField}
-              file={educationDocument} preview={educationDocumentPreview} compressing={compressingEducationDocument}
-              onFileSelected={async raw => {
-                setCompressingEducationDocument(true);
-                const f = await compressImage(raw);
-                setEducationDocument(f); setEducationDocumentPreview(URL.createObjectURL(f));
-                setCompressingEducationDocument(false);
-              }}
-              onRemove={() => { setEducationDocument(null); setEducationDocumentPreview(''); }} />
-
-            <SecHeader title="PARENT / GUARDIAN" />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <CnicUploadBox label="CNIC Front" fieldKey="guardianCnicFront" errorField={errorField}
-                file={guardianCnicFront} preview={guardianCnicFrontPreview} compressing={compressingGuardianCnicFront}
-                onFileSelected={async raw => {
-                  setCompressingGuardianCnicFront(true);
-                  const f = await compressImage(raw);
-                  setGuardianCnicFront(f); setGuardianCnicFrontPreview(URL.createObjectURL(f));
-                  setCompressingGuardianCnicFront(false);
-                }}
-                onRemove={() => { setGuardianCnicFront(null); setGuardianCnicFrontPreview(''); }} />
-              <CnicUploadBox label="CNIC Back" fieldKey="guardianCnicBack" errorField={errorField}
-                file={guardianCnicBack} preview={guardianCnicBackPreview} compressing={compressingGuardianCnicBack}
-                onFileSelected={async raw => {
-                  setCompressingGuardianCnicBack(true);
-                  const f = await compressImage(raw);
-                  setGuardianCnicBack(f); setGuardianCnicBackPreview(URL.createObjectURL(f));
-                  setCompressingGuardianCnicBack(false);
-                }}
-                onRemove={() => { setGuardianCnicBack(null); setGuardianCnicBackPreview(''); }} />
-            </div>
+                }} />
+                <div style={{ border: `2px dashed ${cnicBack ? '#534AB7' : errorField === 'cnicBack' ? '#DC2626' : '#E8E6F5'}`, borderRadius: 12, background: cnicBack ? '#EEEDFE' : errorField === 'cnicBack' ? '#FEF2F2' : '#FAFAFA', overflow: 'hidden', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                  {cnicBackPreview
+                    ? <img src={cnicBackPreview} alt="CNIC Back" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <div style={{ textAlign: 'center', color: '#68629C' }}>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 8px' }}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="7" cy="13" r="1"/></svg>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>Tap to upload CNIC Back</div>
+                        <div style={{ fontSize: 11, marginTop: 2 }}>JPG, PNG supported</div>
+                      </div>
+                  }
+                  {cnicBack && (
+                    <div style={{ position: 'absolute', top: 8, right: 8, background: '#534AB7', borderRadius: 20, padding: '2px 8px', fontSize: 11, color: '#fff', fontWeight: 700 }}>✓ Selected</div>
+                  )}
+                  {compressingCnicBack && (
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(83,74,183,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexDirection: 'column' }}>
+                      <div className="spin" style={{ width: 22, height: 22, border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%' }} />
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Processing photo…</div>
+                    </div>
+                  )}
+                </div>
+              </label>
+            </Field>
 
           </div>
         )}
@@ -1720,23 +1560,16 @@ export default function SubmitClient() {
                 </>
               )}
 
-              {(cnicFrontPreview || cnicBackPreview || educationDocumentPreview || guardianCnicFrontPreview || guardianCnicBackPreview) && (
-                <>
-                  <SecHeader title="VERIFICATION" />
-                  {[
-                    { label: 'CNIC Front', preview: cnicFrontPreview },
-                    { label: 'CNIC Back', preview: cnicBackPreview },
-                    { label: 'Education Document', preview: educationDocumentPreview },
-                    { label: 'Guardian CNIC Front', preview: guardianCnicFrontPreview },
-                    { label: 'Guardian CNIC Back', preview: guardianCnicBackPreview },
-                  ].filter(({ preview }) => preview).map(({ label, preview }) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 10, marginBottom: 10, borderBottom: '1px solid #F0EFF8' }}>
-                      <span style={{ fontSize: 12, color: '#9CA3AF' }}>{label}</span>
-                      <span onClick={() => setViewImg(preview)} style={{ fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'underline', cursor: 'pointer' }}>View</span>
-                    </div>
-                  ))}
-                </>
-              )}
+              <SecHeader title="VERIFICATION" />
+              {[{ label: 'CNIC Front', preview: cnicFrontPreview }, { label: 'CNIC Back', preview: cnicBackPreview }].map(({ label, preview }) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 10, marginBottom: 10, borderBottom: '1px solid #F0EFF8' }}>
+                  <span style={{ fontSize: 12, color: '#9CA3AF' }}>{label}</span>
+                  {preview
+                    ? <span onClick={() => setViewImg(preview)} style={{ fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'underline', cursor: 'pointer' }}>View</span>
+                    : <span style={{ fontSize: 12, color: '#68629C' }}>Not uploaded</span>
+                  }
+                </div>
+              ))}
 
               {/* Coupon Code — mirrors the mobile app's boxed card exactly
                   (same kAmber/kAmberLight colors from theme.dart). Entered
@@ -1795,35 +1628,12 @@ export default function SubmitClient() {
                 <div style={{ fontSize: 11, color: '#6B6893', marginTop: 4, lineHeight: 1.5 }}>
                   If someone referred you to Jor, enter their code to support them.
                 </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                  <input
-                    value={form.affiliate}
-                    onChange={e => {
-                      set('affiliate', e.target.value.toUpperCase());
-                      setAppliedAffiliateCode(null);
-                      setAffiliateMessage(null);
-                    }}
-                    placeholder="e.g. A3K9BZ"
-                    style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 700, color: '#534AB7', letterSpacing: 2, outline: 'none', background: '#fff', boxSizing: 'border-box' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={applyAffiliateCode}
-                    disabled={validatingAffiliate || !form.affiliate.trim()}
-                    style={{
-                      padding: '0 18px', borderRadius: 8, border: 'none', flexShrink: 0,
-                      background: validatingAffiliate || !form.affiliate.trim() ? '#D4D1F7' : '#534AB7',
-                      color: validatingAffiliate || !form.affiliate.trim() ? '#8F8AC7' : '#fff',
-                      fontWeight: 700, fontSize: 13, cursor: validatingAffiliate || !form.affiliate.trim() ? 'default' : 'pointer',
-                    }}>
-                    {validatingAffiliate ? '...' : 'Apply'}
-                  </button>
-                </div>
-                {affiliateMessage && (
-                  <div style={{ fontSize: 12, marginTop: 8, fontWeight: 600, color: affiliateIsError ? '#DC2626' : '#16A34A' }}>
-                    {affiliateMessage}
-                  </div>
-                )}
+                <input
+                  value={form.affiliate}
+                  onChange={e => set('affiliate', e.target.value.toUpperCase())}
+                  placeholder="e.g. A3K9BZ"
+                  style={{ width: '100%', marginTop: 10, padding: '10px 12px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 700, color: '#534AB7', letterSpacing: 2, outline: 'none', background: '#fff', boxSizing: 'border-box' }}
+                />
               </div>
 
               <div style={{ marginTop: 16, background: '#EEEDFE', border: '1px solid #534AB733', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>

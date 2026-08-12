@@ -1367,8 +1367,8 @@ export default function MyProposalClient() {
                   {['Married','Divorced','Khula','Widowed'].includes(user.marital_status || '') && <>
                     {!(user.has_kids === true || user.has_kids as unknown === 'true') && <BoolField label="Has Kids" fieldKey="has_kids" />}
                     {(user.has_kids === true || user.has_kids as unknown === 'true') && <>
-                      <Field label="Sons" fieldKey="boys" type="number" />
-                      <Field label="Daughters" fieldKey="girls" type="number" />
+                      <Field label="Sons" fieldKey="boys" type="number" maxLength={2} />
+                      <Field label="Daughters" fieldKey="girls" type="number" maxLength={2} />
                     </>}
                     {user.marital_status === 'Married' && <Field label="Looking For" fieldKey="marriage_number" options={['Second marriage','Third marriage','Fourth marriage']} />}
                   </>}
@@ -1391,8 +1391,8 @@ export default function MyProposalClient() {
                   <Field label="Mother Occupation" fieldKey="mother_occupation" options={professionList} grouped={professionGroups} />
                   <BoolField label="Has Siblings" fieldKey="has_siblings" />
                   {(user.has_siblings === true || user.has_siblings as unknown === 'true') && <>
-                    <Field label="Brothers" fieldKey="brothers" type="number" />
-                    <Field label="Sisters" fieldKey="sisters" type="number" />
+                    <Field label="Brothers" fieldKey="brothers" type="number" maxLength={2} />
+                    <Field label="Sisters" fieldKey="sisters" type="number" maxLength={2} />
                   </>}
                 </>))}
 
