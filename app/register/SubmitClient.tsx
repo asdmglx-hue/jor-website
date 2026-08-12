@@ -563,6 +563,48 @@ export default function SubmitClient() {
   const [couponIsError, setCouponIsError] = useState(false);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
+  // Referral code — validated against the `affiliates` table via a
+  // SECURITY DEFINER RPC (validate_affiliate_code), since that table has
+  // no public SELECT policy (it holds phone numbers, password hashes,
+  // commission totals — none of which should be readable by an anon
+  // client). Same apply/validate pattern as the coupon above: the raw
+  // text is only sent on submit once it's been confirmed to match a real,
+  // non-deleted affiliate.
+  const [appliedAffiliateCode, setAppliedAffiliateCode] = useState<string | null>(null);
+  const [affiliateMessage, setAffiliateMessage] = useState<string | null>(null);
+  const [affiliateIsError, setAffiliateIsError] = useState(false);
+  const [validatingAffiliate, setValidatingAffiliate] = useState(false);
+
+  const applyAffiliateCode = async () => {
+    const code = form.affiliate.trim();
+    if (!code) return;
+    setValidatingAffiliate(true);
+    setAffiliateMessage(null);
+    try {
+      const { data: res, error: affErr } = await supabase
+        .rpc('validate_affiliate_code', { p_code: code })
+        .maybeSingle();
+
+      if (affErr || !res) {
+        setValidatingAffiliate(false);
+        setAffiliateIsError(true);
+        setAffiliateMessage('Invalid referral code');
+        setAppliedAffiliateCode(null);
+        return;
+      }
+
+      setValidatingAffiliate(false);
+      setAffiliateIsError(false);
+      setAppliedAffiliateCode((res.code as string).toUpperCase());
+      setAffiliateMessage(res.name ? `Referral code applied — supporting ${res.name}!` : 'Referral code applied successfully!');
+    } catch (_) {
+      setValidatingAffiliate(false);
+      setAffiliateIsError(true);
+      setAffiliateMessage('Could not verify referral code — check your connection');
+      setAppliedAffiliateCode(null);
+    }
+  };
+
   const applyCoupon = async () => {
     const code = couponCode.trim();
     if (!code) return;
@@ -589,7 +631,7 @@ export default function SubmitClient() {
       setAppliedCouponCode(code.toUpperCase());
       const type = res.coupon_type || 'percentage';
       if (type === 'free_trial' && res.trial_days) {
-        setCouponMessage(`${res.trial_days}-day free trial will apply once you subscribe!`);
+        setCouponMessage(`${res.trial_days}-day free trial applied successfully!`);
       } else if (type === 'free_days' && res.free_days) {
         setCouponMessage(`+${res.free_days} bonus days will be added once you subscribe!`);
       } else if (res.discount_percent) {
@@ -952,7 +994,7 @@ export default function SubmitClient() {
       guardian_cnic_front_url: guardianCnicFrontUrl,
       guardian_cnic_back_url: guardianCnicBackUrl,
       education_document_url: educationDocumentUrl,
-      affiliate_code: form.affiliate.trim() ? form.affiliate.trim().toUpperCase() : undefined,
+      affiliate_code: appliedAffiliateCode || undefined,
       applied_coupon_code: appliedCouponCode || undefined,
     });
 
@@ -1743,12 +1785,35 @@ export default function SubmitClient() {
                 <div style={{ fontSize: 11, color: '#6B6893', marginTop: 4, lineHeight: 1.5 }}>
                   If someone referred you to Jor, enter their code to support them.
                 </div>
-                <input
-                  value={form.affiliate}
-                  onChange={e => set('affiliate', e.target.value.toUpperCase())}
-                  placeholder="e.g. A3K9BZ"
-                  style={{ width: '100%', marginTop: 10, padding: '10px 12px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 700, color: '#534AB7', letterSpacing: 2, outline: 'none', background: '#fff', boxSizing: 'border-box' }}
-                />
+                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                  <input
+                    value={form.affiliate}
+                    onChange={e => {
+                      set('affiliate', e.target.value.toUpperCase());
+                      setAppliedAffiliateCode(null);
+                      setAffiliateMessage(null);
+                    }}
+                    placeholder="e.g. A3K9BZ"
+                    style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 700, color: '#534AB7', letterSpacing: 2, outline: 'none', background: '#fff', boxSizing: 'border-box' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={applyAffiliateCode}
+                    disabled={validatingAffiliate || !form.affiliate.trim()}
+                    style={{
+                      padding: '0 18px', borderRadius: 8, border: 'none', flexShrink: 0,
+                      background: validatingAffiliate || !form.affiliate.trim() ? '#D4D1F7' : '#534AB7',
+                      color: validatingAffiliate || !form.affiliate.trim() ? '#8F8AC7' : '#fff',
+                      fontWeight: 700, fontSize: 13, cursor: validatingAffiliate || !form.affiliate.trim() ? 'default' : 'pointer',
+                    }}>
+                    {validatingAffiliate ? '...' : 'Apply'}
+                  </button>
+                </div>
+                {affiliateMessage && (
+                  <div style={{ fontSize: 12, marginTop: 8, fontWeight: 600, color: affiliateIsError ? '#DC2626' : '#16A34A' }}>
+                    {affiliateMessage}
+                  </div>
+                )}
               </div>
 
               <div style={{ marginTop: 16, background: '#EEEDFE', border: '1px solid #534AB733', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
