@@ -597,7 +597,7 @@ export default function SubmitClient() {
       setValidatingAffiliate(false);
       setAffiliateIsError(false);
       setAppliedAffiliateCode(res.code.toUpperCase());
-      setAffiliateMessage(res.name ? `Referral code applied — supporting ${res.name}!` : 'Referral code applied successfully!');
+      setAffiliateMessage('Referral code applied');
     } catch (_) {
       setValidatingAffiliate(false);
       setAffiliateIsError(true);
