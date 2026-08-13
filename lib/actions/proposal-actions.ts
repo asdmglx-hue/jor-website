@@ -71,7 +71,7 @@ export async function submitProposalAction(
   // actions. See the note at the top of this file re: why revalidation
   // here has limited visible effect until admin approval.
   const { data: result, error } = await supabase.rpc('submit_proposal_secure', {
-    p_data: { ...data, posted_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    p_data: { ...data, posted_at: new Date().toISOString(), updated_at: new Date().toISOString(), submission_source: 'website' },
   });
 
   if (error || !result?.id) {
