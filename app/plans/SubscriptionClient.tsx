@@ -161,13 +161,13 @@ export default function SubscriptionClient() {
     {
       name: 'Rishta Profile', price: STD_PRICE, priceDisplay: isFreeMode ? 'Free' : `Rs. ${STD_PRICE}`, duration: STD_DURATION,
       tagline: 'Connect with families', color: '#534AB7', bg: '#EEEDFE', popular: true,
-      features: ['Publish your profile', 'Unlimited Local Proposals', 'Unlimited Overseas Proposals', 'Unlock Contact numbers and Photos', 'Use Advanced Search Filters', 'Pause or Edit your profile', 'Validity for 1 Month', '24 hours support'],
+      features: ['Publish your profile', 'Unlock Local Proposals', 'Unlock Overseas Proposals', 'Direct Contact with Families', 'Use Advanced Search Filters', 'Pause, Edit and Share your profile', 'Validity for 1 Month', '24 hours support'],
       note: undefined,
     },
     {
       name: 'Featured Post', price: FT_PRICE, priceDisplay: `Rs. ${FT_PRICE}`, duration: FT_DURATION,
       tagline: 'Stand out. Get noticed.', color: '#E8620A', bg: '#FEEDE3', popular: false,
-      features: ['Schedule Your Featured Date', 'Choose Your Featured City', 'Up to 5× more visibility', `${FT_DURATION} validity`],
+      features: ['Schedule Your Featured Date', 'Choose Your Featured Location', 'Up to 5× more visibility', `${FT_DURATION} validity`],
       note: 'Requires Rishta Profile subscription',
     },
   ];
