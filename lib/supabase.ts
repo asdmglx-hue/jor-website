@@ -1091,22 +1091,72 @@ export function heightDisplay(inches: number): string {
 // go through this so the result is always shown the same way:
 // "+92 xxx xxxxxxx" — country code, then the 10-digit local number
 // (trunk 0 dropped) grouped 3+7, regardless of how it was actually stored.
+// Phone number grouping patterns for major diaspora countries.
+// Each entry: [dial_code, ...group_sizes] where group sizes sum to the
+// expected local digit count. Applied left-to-right after stripping the
+// country code. Longer codes must come first to avoid +1 matching +1868.
+const PHONE_FORMATS: [string, ...number[]][] = [
+  ['+353', 2, 3, 4], // Ireland
+  ['+966', 2, 3, 4], // Saudi Arabia
+  ['+971', 2, 3, 4], // UAE
+  ['+968', 4, 4],    // Oman
+  ['+973', 4, 4],    // Bahrain
+  ['+974', 4, 4],    // Kuwait (also matches Qatar)
+  ['+965', 4, 4],    // Kuwait
+  ['+92',  3, 7],    // Pakistan
+  ['+64',  2, 3, 4], // New Zealand
+  ['+61',  3, 3, 3], // Australia
+  ['+49',  3, 7],    // Germany
+  ['+47',  3, 2, 3], // Norway
+  ['+46',  3, 3, 3], // Sweden
+  ['+45',  2, 2, 2, 2], // Denmark
+  ['+44',  4, 6],    // UK
+  ['+39',  3, 7],    // Italy
+  ['+34',  3, 6],    // Spain
+  ['+33',  1, 2, 2, 2, 2], // France
+  ['+31',  1, 4, 4], // Netherlands
+  ['+30',  3, 7],    // Greece
+  ['+90',  3, 3, 4], // Turkey
+  ['+60',  2, 4, 4], // Malaysia
+  ['+1',   3, 3, 4], // USA / Canada
+];
+
+function groupDigits(digits: string, groups: number[]): string {
+  const parts: string[] = [];
+  let pos = 0;
+  for (const g of groups) {
+    if (pos >= digits.length) break;
+    parts.push(digits.slice(pos, pos + g));
+    pos += g;
+  }
+  if (pos < digits.length) parts.push(digits.slice(pos)); // overflow
+  return parts.join(' ');
+}
+
 export function phoneDisplay(phone: string): string {
   const trimmed = phone.trim();
-  const digitsOnly = trimmed.replace(/\D/g, '');
-  // A number with no '+' was previously always assumed Pakistani. If it
-  // also doesn't start with a recognizable Pakistani prefix (0 or 92),
-  // it's ambiguous — could be a genuine international number stored
-  // without its '+'. Rather than guess and risk mangling it the same
-  // way the app's old bug did, show it as-is. No live profile currently
-  // hits this case, but it's a cheap, defensive fix for if one ever does.
-  const looksPakistani = trimmed.startsWith('+92') || digitsOnly.startsWith('92') || digitsOnly.startsWith('0');
-  const isPakistani = trimmed.startsWith('+92') || (!trimmed.startsWith('+') && looksPakistani);
-  if (!isPakistani) return trimmed; // other countries, or ambiguous — leave exactly as stored
+  if (!trimmed) return trimmed;
 
-  const localDigits = trimmed.replace(/^\+?92/, '').replace(/\D/g, '').replace(/^0+/, '');
-  if (!localDigits) return trimmed;
-  return `+92 ${localDigits.slice(0, 3)} ${localDigits.slice(3)}`;
+  // Numbers stored with an explicit '+' country code
+  if (trimmed.startsWith('+')) {
+    for (const [code, ...groups] of PHONE_FORMATS) {
+      if (trimmed.startsWith(code)) {
+        const local = trimmed.slice(code.length).replace(/\D/g, '').replace(/^0+/, '');
+        return `${code} ${groupDigits(local, groups)}`;
+      }
+    }
+    return trimmed; // unknown country code — show as-is
+  }
+
+  // Legacy Pakistani numbers stored without '+' (0300... or 92300...)
+  const digits = trimmed.replace(/\D/g, '');
+  const isPakistani = digits.startsWith('92') || digits.startsWith('0');
+  if (isPakistani) {
+    const local = digits.replace(/^92/, '').replace(/^0/, '');
+    return `+92 ${groupDigits(local, [3, 7])}`;
+  }
+
+  return trimmed; // ambiguous — show as-is
 }
 
 // The cnic column is always stored as clean digits, no hyphens (enforced
