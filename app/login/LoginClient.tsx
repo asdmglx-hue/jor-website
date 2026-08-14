@@ -5,6 +5,7 @@ import { saveSession } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PasswordInput from '@/components/PasswordInput';
+import PhoneInput from '@/components/PhoneInput';
 import { trackEvent } from '@/lib/analytics';
 
 // Generates a persistent device ID for this browser.
@@ -18,13 +19,18 @@ function getOrCreateWebDeviceId(): string {
   return fresh;
 }
 
-// Normalise a phone number for comparison: strip spaces, dashes, and a
-// leading country code (92) so that 0300-1234567, 03001234567, and
-// 923001234567 all match the same record.
-function normalisePhone(raw: string): string {
-  let digits = raw.replace(/\D/g, '');
-  if (digits.startsWith('92') && digits.length > 10) digits = '0' + digits.slice(2);
-  return digits;
+// Mirrors formatDialedPhone in SubmitClient — how contact_phone is stored in DB:
+// "+92 3001234567" or "+44 7911123456" (strips leading 0 for PK numbers).
+function formatDialedPhone(dialCode: string, number: string): string {
+  const trimmed = number.trim();
+  const local = dialCode === '+92' ? trimmed.replace(/^0+/, '') : trimmed;
+  return `${dialCode} ${local}`;
+}
+
+// Strip spaces for a loose comparison so minor formatting differences don't
+// cause false mismatches ("0300 1234567" stored as "0300 1234567" vs "03001234567").
+function canonicalPhone(s: string): string {
+  return s.replace(/\s+/g, '').toLowerCase();
 }
 
 export default function LoginClient() {
@@ -40,6 +46,7 @@ export default function LoginClient() {
   const [forgotStep, setForgotStep] = useState<1 | 2>(1);
   const [forgotCnic, setForgotCnic] = useState('');
   const [forgotPhone, setForgotPhone] = useState('');
+  const [forgotDialCode, setForgotDialCode] = useState('+92');
   const [forgotError, setForgotError] = useState('');
   const [forgotVerifying, setForgotVerifying] = useState(false);
   const [verifiedProposalId, setVerifiedProposalId] = useState<string | null>(null);
@@ -111,23 +118,17 @@ export default function LoginClient() {
   };
 
   // ── Forgot password: step 1 ─────────────────────────────────────────────
-  // Look up a proposal whose CNIC and contact_phone both match what the user
-  // typed. We do the comparison server-side via Supabase RPC so the raw
-  // password column never reaches the browser.
+  // Build the formatted phone the same way SubmitClient stores it, then
+  // compare canonically (spaces stripped) against the DB value.
   const handleVerifyIdentity = async () => {
     const cnicDigits = forgotCnic.replace(/-/g, '');
-    const phoneDigits = normalisePhone(forgotPhone);
-
     if (cnicDigits.length !== 13) { setForgotError('Enter a complete 13-digit CNIC number.'); return; }
-    if (phoneDigits.length < 10) { setForgotError('Enter a valid phone number.'); return; }
+    if (!forgotPhone.trim()) { setForgotError('Enter your registered phone number.'); return; }
 
     setForgotVerifying(true);
     setForgotError('');
 
     try {
-      // Fetch proposal matching CNIC; then check phone client-side.
-      // (All sensitive columns are already protected by RLS — this select
-      //  returns only id + contact_phone for the matching CNIC row.)
       const { data, error: dbErr } = await supabase
         .from('proposals')
         .select('id, contact_phone')
@@ -139,13 +140,16 @@ export default function LoginClient() {
         return;
       }
 
-      const storedPhone = normalisePhone(data.contact_phone ?? '');
-      if (storedPhone !== phoneDigits) {
+      // Compare using the same format as stored: "+92 3001234567"
+      const enteredFormatted = formatDialedPhone(forgotDialCode, forgotPhone);
+      const storedPhone = canonicalPhone(data.contact_phone ?? '');
+      const enteredPhone = canonicalPhone(enteredFormatted);
+
+      if (storedPhone !== enteredPhone) {
         setForgotError('Phone number does not match our records for this CNIC.');
         return;
       }
 
-      // Identity verified — move to step 2
       setVerifiedProposalId(data.id as string);
       setForgotStep(2);
       setForgotError('');
@@ -172,7 +176,6 @@ export default function LoginClient() {
         .eq('id', verifiedProposalId);
 
       if (updateErr) throw updateErr;
-
       setPasswordSaved(true);
     } catch {
       setForgotError('Failed to update password. Please try again.');
@@ -187,6 +190,7 @@ export default function LoginClient() {
     setForgotStep(1);
     setForgotCnic('');
     setForgotPhone('');
+    setForgotDialCode('+92');
     setForgotError('');
     setVerifiedProposalId(null);
     setNewPassword('');
@@ -194,11 +198,15 @@ export default function LoginClient() {
     setPasswordSaved(false);
   };
 
-  const inputStyle = (hasError = false): React.CSSProperties => ({
+  const inputStyle: React.CSSProperties = {
     width: '100%', padding: '12px 14px', borderRadius: 12, fontSize: 14, outline: 'none',
     color: '#1A1830', boxSizing: 'border-box', background: '#F8F7FF',
-    border: `1.5px solid ${hasError ? '#DC2626' : '#E8E6F5'}`,
-  });
+    border: '1.5px solid #E8E6F5',
+  };
+
+  const phoneInputStyle: React.CSSProperties = {
+    ...inputStyle, flex: 1,
+  };
 
   const busy = forgotVerifying || savingPassword;
 
@@ -234,7 +242,7 @@ export default function LoginClient() {
               style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1.5px solid #E8E6F5', fontSize: 15, outline: 'none', color: '#1A1830' }}
             />
             <div style={{ textAlign: 'right', marginTop: 8 }}>
-              <button onClick={() => { setShowForgotModal(true); }} style={{ background: 'none', border: 'none', padding: 0, color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => setShowForgotModal(true)} style={{ background: 'none', border: 'none', padding: 0, color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                 Forgot Password?
               </button>
             </div>
@@ -280,7 +288,6 @@ export default function LoginClient() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830' }}>Reset Password</div>
-                {/* Step indicator dots */}
                 <div style={{ display: 'flex', gap: 5, marginTop: 5 }}>
                   {([1, 2] as const).map(s => (
                     <div key={s} style={{ width: s === forgotStep ? 18 : 6, height: 6, borderRadius: 3, background: s === forgotStep ? '#534AB7' : s < forgotStep ? '#A5B4FC' : '#E8E6F5', transition: 'all 0.2s' }} />
@@ -307,18 +314,18 @@ export default function LoginClient() {
                   value={forgotCnic}
                   onChange={e => { setForgotCnic(formatCnic(e.target.value)); setForgotError(''); }}
                   maxLength={15} autoFocus
-                  style={{ ...inputStyle(), letterSpacing: 1, marginBottom: 14 }}
+                  style={{ ...inputStyle, letterSpacing: 1, marginBottom: 14 }}
                 />
 
                 <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>Registered Phone Number</label>
-                <input
-                  type="tel" placeholder="e.g. 0300-1234567"
+                <PhoneInput
                   value={forgotPhone}
-                  onChange={e => { setForgotPhone(e.target.value); setForgotError(''); }}
-                  onKeyDown={e => e.key === 'Enter' && handleVerifyIdentity()}
-                  style={{ ...inputStyle(), marginBottom: 0 }}
+                  onChange={v => { setForgotPhone(v); setForgotError(''); }}
+                  dialCode={forgotDialCode}
+                  onDialChange={v => { setForgotDialCode(v); setForgotError(''); }}
+                  inputStyle={phoneInputStyle}
                 />
-                <p style={{ fontSize: 11.5, color: '#9895C0', marginTop: 5, marginBottom: 0 }}>
+                <p style={{ fontSize: 11.5, color: '#9895C0', marginTop: 6, marginBottom: 0 }}>
                   This is Phone Number 1 you entered when registering.
                 </p>
 
@@ -359,7 +366,7 @@ export default function LoginClient() {
                   value={newPassword}
                   onChange={e => { setNewPassword(e.target.value); setForgotError(''); }}
                   autoFocus
-                  style={{ ...inputStyle(), marginBottom: 14 }}
+                  style={{ ...inputStyle, marginBottom: 14 }}
                 />
 
                 <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>Confirm New Password</label>
@@ -367,7 +374,7 @@ export default function LoginClient() {
                   placeholder="Repeat your new password"
                   value={confirmPassword}
                   onChange={e => { setConfirmPassword(e.target.value); setForgotError(''); }}
-                  style={{ ...inputStyle() }}
+                  style={inputStyle}
                 />
 
                 {forgotError && (
