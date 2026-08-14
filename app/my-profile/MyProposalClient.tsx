@@ -199,7 +199,9 @@ function SearchableSelect({ value, options, onChange, placeholder = '— Select 
           <div style={{ overflowY: 'auto' as const, flex: 1 }}>{renderItems()}</div>
         </div>
       )}
-
+    </div>
+  );
+}
 
 // ── Main component ──────────────────────────────────────────────────────────
 export default function MyProposalClient() {
