@@ -200,33 +200,6 @@ function SearchableSelect({ value, options, onChange, placeholder = '— Select 
         </div>
       )}
 
-      {/* ── Account permanently deleted popup ─────────────────────────────────
-          Mirrors the Flutter app's "Account Deleted!" AlertDialog.
-          Shown when admin permanently deletes the user's row while they are
-          logged in. barrierDismissible=false equivalent: no close button,
-          clicking outside does nothing. OK redirects to home. */}
-      {showDeletedPopup && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 340, padding: 28, textAlign: 'center', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}>
-            <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            </div>
-            <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830', marginBottom: 10 }}>Account Deleted</div>
-            <p style={{ fontSize: 13.5, color: '#6B6893', lineHeight: 1.6, marginBottom: 24 }}>
-              This account no longer exists.
-            </p>
-            <button
-              onClick={() => { window.location.replace('/'); }}
-              style={{ width: '100%', padding: '13px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer' }}
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── Main component ──────────────────────────────────────────────────────────
 export default function MyProposalClient() {
@@ -1797,6 +1770,31 @@ export default function MyProposalClient() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Account permanently deleted popup ─────────────────────────────────
+          Mirrors the Flutter app's "Account Deleted!" AlertDialog.
+          Shown when admin permanently deletes the user's row while they are
+          logged in. barrierDismissible=false equivalent: no close button,
+          clicking outside does nothing. OK redirects to home. */}
+      {showDeletedPopup && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 340, padding: 28, textAlign: 'center', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830', marginBottom: 10 }}>Account Deleted</div>
+            <p style={{ fontSize: 13.5, color: '#6B6893', lineHeight: 1.6, marginBottom: 24 }}>
+              This account no longer exists.
+            </p>
+            <button
+              onClick={() => { window.location.replace('/'); }}
+              style={{ width: '100%', padding: '13px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer' }}
+            >
+              OK
+            </button>
           </div>
         </div>
       )}
