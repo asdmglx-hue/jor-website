@@ -1241,3 +1241,19 @@ export async function fetchAllBlogSlugs(): Promise<{ slug: string; published_at:
     .lte('published_at', new Date().toISOString());
   return (data || []) as { slug: string; published_at: string }[];
 }
+
+// ── Forgot Password CNIC photo upload ────────────────────────────────────────
+export async function uploadForgotPasswordCnicPhoto(file: File, cnicDigits: string): Promise<string | null> {
+  try {
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `forgot-password/${cnicDigits}_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from('cnic-photos')
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (error) return null;
+    const { data } = supabase.storage.from('cnic-photos').getPublicUrl(path);
+    return data.publicUrl;
+  } catch {
+    return null;
+  }
+}
