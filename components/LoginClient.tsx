@@ -221,7 +221,7 @@ export default function LoginClient() {
             {/* Error */}
             {forgotError && <div style={{ fontSize: 12, color: '#DC2626', marginTop: 8 }}>{forgotError}</div>}
 
-            {/* Cancel + Submit buttons — mirrors app layout */}
+            {/* Cancel + Submit buttons - mirrors app layout */}
             <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
               <button onClick={() => { setShowForgotModal(false); setForgotCnic(''); setForgotPhoto(null); setForgotError(''); }} disabled={forgotUploading}
                 style={{ flex: 1, padding: '13px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', fontSize: 14, fontWeight: 700, color: '#6B6893', cursor: 'pointer' }}>
@@ -244,5 +244,3 @@ export default function LoginClient() {
     </div>
   );
 }
-
-// cache-bust
