@@ -1245,7 +1245,7 @@ export default function SubmitClient() {
               </Field>
             </div>
 
-            <Field label="Phone Number" required labelRight={<span style={{ fontSize: 11.5, fontWeight: 500, color: '#9990B8', textAlign: 'right' }}>(This number will be used for future verification)</span>}>
+            <Field label="Phone Number" required labelRight={<span style={{ fontSize: 11.5, fontWeight: 500, color: '#9990B8', textAlign: 'left' }}>(This number will be used for future verification)</span>}>
               <PhoneInput value={form.phone} onChange={v => set('phone', v)} dialCode={form.phone_dial_code} onDialChange={v => set('phone_dial_code', v)} required hasError={errorField === 'phone'} inputStyle={inp} />
             </Field>
             {showPhone2 ? (
