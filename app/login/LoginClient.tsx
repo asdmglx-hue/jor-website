@@ -27,11 +27,6 @@ function formatDialedPhone(dialCode: string, number: string): string {
   return `${dialCode} ${local}`;
 }
 
-// Strip spaces for a loose comparison so minor formatting differences don't
-// cause false mismatches ("0300 1234567" stored as "0300 1234567" vs "03001234567").
-function canonicalPhone(s: string): string {
-  return s.replace(/\s+/g, '').toLowerCase();
-}
 
 export default function LoginClient() {
   const [cnic, setCnic] = useState('');
@@ -129,28 +124,24 @@ export default function LoginClient() {
     setForgotError('');
 
     try {
-      const { data, error: dbErr } = await supabase
-        .from('proposals')
-        .select('id, contact_phone')
-        .or(`cnic.eq.${cnicDigits}`)
-        .maybeSingle();
-
-      if (dbErr || !data) {
-        setForgotError('No account found with that CNIC. Please check and try again.');
-        return;
-      }
-
-      // Compare using the same format as stored: "+92 3001234567"
+      // Use a SECURITY DEFINER RPC so accounts in any status (pending,
+      // order, paused, etc.) can reset their password — the public RLS
+      // policy only exposes status='active' rows so a direct table query
+      // would return nothing for unapproved accounts.
       const enteredFormatted = formatDialedPhone(forgotDialCode, forgotPhone);
-      const storedPhone = canonicalPhone(data.contact_phone ?? '');
-      const enteredPhone = canonicalPhone(enteredFormatted);
+      const { data: proposalId, error: rpcErr } = await supabase.rpc(
+        'verify_identity_for_password_reset',
+        { p_cnic: cnicDigits, p_phone: enteredFormatted }
+      );
 
-      if (storedPhone !== enteredPhone) {
-        setForgotError('Phone number does not match our records for this CNIC.');
+      if (rpcErr || !proposalId) {
+        // Give a single generic message — don't reveal whether the CNIC
+        // exists but the phone is wrong vs the CNIC doesn't exist at all.
+        setForgotError('CNIC and phone number do not match our records. Please check and try again.');
         return;
       }
 
-      setVerifiedProposalId(data.id as string);
+      setVerifiedProposalId(proposalId as string);
       setForgotStep(2);
       setForgotError('');
     } catch {
