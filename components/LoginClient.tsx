@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { loginWithCnic, supabase, uploadForgotPasswordCnicPhoto } from '@/lib/supabase';
 import { saveSession } from '@/lib/auth';
@@ -95,7 +95,7 @@ export default function LoginClient() {
     }
   };
 
-  // Simplified to match the app: no CNIC/photo upload here anymore —
+  // Simplified to match the app: no CNIC/photo upload here anymore â€”
   // just point the person to WhatsApp with a generic pre-filled message.
   // Messaging from their own registered number is itself the identity
   // signal (the admin sees the sender), rather than a typed CNIC number
@@ -169,7 +169,7 @@ export default function LoginClient() {
             cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
             boxShadow: '0 4px 14px rgba(83,74,183,0.3)',
           }}>
-            {loading ? 'Logging in...' : 'Login →'}
+            {loading ? 'Logging in...' : 'Login â†’'}
           </button>
 
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#6B6893' }}>
@@ -182,7 +182,7 @@ export default function LoginClient() {
       {showForgotModal && (
         <div onClick={() => { if (!forgotUploading) { setShowForgotModal(false); setForgotCnic(''); setForgotPhoto(null); setForgotError(''); } }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 380, padding: 24 }}>
-            {/* Header with icon — mirrors the app */}
+            {/* Header with icon â€” mirrors the app */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/><line x1="12" y1="15" x2="12" y2="17"/></svg>
@@ -244,3 +244,4 @@ export default function LoginClient() {
     </div>
   );
 }
+// v2
