@@ -1,5 +1,5 @@
-import type { Metadata } from 'next';
-import LoginClientV2 from './LoginClientV2';
+﻿import type { Metadata } from 'next';
+import LoginClient from './LoginClient';
 
 export const metadata: Metadata = {
   title: 'Login | Jor',
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function LoginPage() {
-  return <LoginClientV2 />;
+  return <LoginClient />;
 }
