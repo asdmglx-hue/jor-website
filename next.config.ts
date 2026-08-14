@@ -9,7 +9,7 @@ import type { NextConfig } from "next";
 // an instantly-served page (either the current one, or a
 // still-perfectly-fine slightly-older one while the fresh version
 // generates behind the scenes).
-const nextConfig: NextConfig = {
+const nextConfig: NextConfig = { // build-bust-202608141222
   compress: true,
   // Without this, Next.js's client-side Router Cache holds onto a
   // recently-visited dynamic page (e.g. /proposals/bhatti) for ~30
