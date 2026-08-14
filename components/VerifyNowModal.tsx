@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { compressImage } from '@/lib/compressImage';
 import { updateOwnProposalAction } from '@/lib/actions/proposal-actions';
+import { supabase } from '@/lib/supabase';
 import type { Proposal } from '@/lib/supabase';
 
 // Same visual pattern as app/register/SubmitClient.tsx's Verification step
@@ -74,6 +75,20 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
   onClose: () => void;
   onSaved: (updates: Record<string, unknown>) => void;
 }) {
+  const [showCandidateCnic, setShowCandidateCnic] = useState(true);
+  const [showLatestDegree, setShowLatestDegree] = useState(true);
+  const [showParentsCnic, setShowParentsCnic] = useState(true);
+
+  useEffect(() => {
+    supabase.from('app_settings').select('key, value').then(({ data }) => {
+      if (!data) return;
+      const map = Object.fromEntries(data.map(r => [r.key, r.value]));
+      if (map['require_candidate_cnic'] === 'false') setShowCandidateCnic(false);
+      if (map['require_latest_degree']  === 'false') setShowLatestDegree(false);
+      if (map['require_parents_cnic']   === 'false') setShowParentsCnic(false);
+    });
+  }, []);
+
   const [cnicFront, setCnicFront] = useState<File | null>(null);
   const [cnicBack, setCnicBack] = useState<File | null>(null);
   const [educationDocument, setEducationDocument] = useState<File | null>(null);
@@ -187,6 +202,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
             Identity verification documents are required to activate your account. Upload whatever you have — you can always finish the rest later.
           </div>
 
+          {showCandidateCnic && (<>
           <SecHeader title="FOR MARRIAGE-SEEKING PERSON" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <UploadBox label="CNIC Front" file={cnicFront} preview={cnicFrontPreview} compressing={compressingCnicFront}
@@ -206,7 +222,9 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
               }}
               onRemove={() => { setCnicBack(null); setCnicBackPreview(''); }} />
           </div>
+          </>)}
 
+          {showLatestDegree && (
           <UploadBox label="Most Recent Education Document" file={educationDocument} preview={educationDocumentPreview} compressing={compressingEducationDocument}
             onFileSelected={async raw => {
               setCompressingEducationDocument(true);
@@ -215,7 +233,9 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
               setCompressingEducationDocument(false);
             }}
             onRemove={() => { setEducationDocument(null); setEducationDocumentPreview(''); }} />
+          )}
 
+          {showParentsCnic && (<>
           <SecHeader title="PARENT / GUARDIAN" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <UploadBox label="CNIC Front" file={guardianCnicFront} preview={guardianCnicFrontPreview} compressing={compressingGuardianCnicFront}
@@ -235,6 +255,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
               }}
               onRemove={() => { setGuardianCnicBack(null); setGuardianCnicBackPreview(''); }} />
           </div>
+          </>)}
 
           {error && (
             <div style={{ marginTop: 4, marginBottom: 8, fontSize: 12.5, fontWeight: 600, color: '#DC2626' }}>{error}</div>
