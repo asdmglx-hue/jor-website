@@ -544,6 +544,102 @@ export async function fetchCities(): Promise<Record<string, string[]>> {
   } catch { return {}; }
 }
 
+// ── Active Cities — only cities that have at least one active proposal ────────
+export async function fetchActiveCities(): Promise<Record<string, string[]>> {
+  try {
+    // Step 1: get official cities with province info
+    const { data: cityData, error: cityError } = await supabase
+      .from('cities')
+      .select('name, province');
+    if (cityError || !cityData?.length) return {};
+
+    const provinceOf: Record<string, string> = {};
+    for (const row of cityData) {
+      const name = (row.name as string)?.trim();
+      const prov = (row.province as string)?.trim();
+      if (name && prov) provinceOf[name] = prov;
+    }
+    const officialCities = new Set(Object.keys(provinceOf));
+
+    // Step 2: get distinct cities from active proposals (proposals_feed view)
+    const { data: feedData, error: feedError } = await supabase
+      .from('proposals_feed')
+      .select('city');
+    if (feedError || !feedData?.length) return {};
+
+    const activeCityNames = new Set(
+      feedData.map(r => (r.city as string)?.trim()).filter(Boolean)
+    );
+
+    // Step 3: intersection — only official Pakistan cities with active proposals
+    const validCities = [...activeCityNames].filter(c => officialCities.has(c));
+
+    // Step 4: group by province, sort alphabetically within each province
+    const raw: Record<string, string[]> = {};
+    for (const city of validCities) {
+      const prov = provinceOf[city];
+      raw[prov] = raw[prov] ?? [];
+      raw[prov].push(city);
+    }
+    for (const key of Object.keys(raw)) raw[key].sort();
+
+    // Step 5: fixed province order
+    const order = ['Punjab','Sindh','KPK','Balochistan','Islamabad','Gilgit Baltistan','Azad Kashmir'];
+    const grouped: Record<string, string[]> = {};
+    for (const p of order) { if (raw[p]) grouped[p] = raw[p]; }
+    for (const [k, v] of Object.entries(raw)) { if (!grouped[k]) grouped[k] = v; }
+    return grouped;
+  } catch { return {}; }
+}
+
+// ── Active Castes — only castes that have at least one active proposal ────────
+export async function fetchActiveCastes(): Promise<Record<string, string[]>> {
+  try {
+    // Step 1: get official castes with group info
+    const { data: casteData, error: casteError } = await supabase
+      .from('castes')
+      .select('name, group_name');
+    if (casteError || !casteData?.length) return {};
+
+    const groupOf: Record<string, string> = {};
+    for (const row of casteData) {
+      const name = (row.name as string)?.trim();
+      const group = (row.group_name as string)?.trim();
+      if (name && group) groupOf[name] = group;
+    }
+    const officialCastes = new Set(Object.keys(groupOf));
+
+    // Step 2: get distinct castes from active proposals (proposals_feed view)
+    const { data: feedData, error: feedError } = await supabase
+      .from('proposals_feed')
+      .select('caste');
+    if (feedError || !feedData?.length) return {};
+
+    const activeCasteNames = new Set(
+      feedData.map(r => (r.caste as string)?.trim()).filter(Boolean)
+    );
+
+    // Step 3: intersection — only official castes with active proposals
+    const validCastes = [...activeCasteNames].filter(c => officialCastes.has(c));
+
+    // Step 4: group by region, sort alphabetically within each group
+    const raw: Record<string, string[]> = {};
+    for (const caste of validCastes) {
+      const group = groupOf[caste];
+      raw[group] = raw[group] ?? [];
+      raw[group].push(caste);
+    }
+    for (const key of Object.keys(raw)) raw[key].sort();
+
+    // Step 5: fixed group order
+    const order = ['Punjab','Sindh','KPK / Pashtun','Kashmir & Northern','Balochistan','Urdu-speaking / Muhajir','General'];
+    const grouped: Record<string, string[]> = {};
+    for (const g of order) { if (raw[g]) grouped[g] = raw[g]; }
+    for (const [k, v] of Object.entries(raw)) { if (!grouped[k]) grouped[k] = v; }
+    return grouped;
+  } catch { return {}; }
+}
+
 // ── Castes — fetched from the castes table (single source of truth) ──────────
 export async function fetchCastes(): Promise<Record<string, string[]>> {
   try {

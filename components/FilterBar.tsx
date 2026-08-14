@@ -1,6 +1,6 @@
 'use client';
 import { useRef, useEffect, useState } from 'react';
-import { FilterState, fetchOverseasCountries, fetchCastes, fetchOccupations, fetchCities } from '@/lib/supabase';
+import { FilterState, fetchOverseasCountries, fetchCastes, fetchOccupations, fetchCities, fetchActiveCities, fetchActiveCastes } from '@/lib/supabase';
 import { CITY_GROUPS } from '@/lib/constants';
 
 // Was a locally hand-typed duplicate of the same list now in
@@ -171,8 +171,8 @@ export default function FilterBar({ filters, onChange, total, showSaved, onSaved
   // truth as the user app. Falls back to the hardcoded lists above if the
   // fetch fails or hasn't resolved yet.
   useEffect(() => {
-    fetchCities().then(data => { if (Object.keys(data).length > 0) setCityGroups(data); });
-    fetchCastes().then(data => { if (Object.keys(data).length > 0) setCasteGroups(data); });
+    fetchActiveCities().then(data => { if (Object.keys(data).length > 0) setCityGroups(data); });
+    fetchActiveCastes().then(data => { if (Object.keys(data).length > 0) setCasteGroups(data); });
     fetchOccupations().then(data => {
       if (Object.keys(data).length > 0) {
         const cats = Object.keys(data).filter(k => k !== 'Other');
