@@ -199,6 +199,31 @@ function SearchableSelect({ value, options, onChange, placeholder = '— Select 
           <div style={{ overflowY: 'auto' as const, flex: 1 }}>{renderItems()}</div>
         </div>
       )}
+
+      {/* ── Account permanently deleted popup ─────────────────────────────────
+          Mirrors the Flutter app's "Account Deleted!" AlertDialog.
+          Shown when admin permanently deletes the user's row while they are
+          logged in. barrierDismissible=false equivalent: no close button,
+          clicking outside does nothing. OK redirects to home. */}
+      {showDeletedPopup && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 340, padding: 28, textAlign: 'center', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830', marginBottom: 10 }}>Account Deleted</div>
+            <p style={{ fontSize: 13.5, color: '#6B6893', lineHeight: 1.6, marginBottom: 24 }}>
+              This account no longer exists.
+            </p>
+            <button
+              onClick={() => { window.location.replace('/'); }}
+              style={{ width: '100%', padding: '13px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer' }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -232,6 +257,7 @@ export default function MyProposalClient() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [loadingSaved, setLoadingSaved] = useState(false);
+  const [showDeletedPopup, setShowDeletedPopup] = useState(false);
   const [saving, setSaving] = useState(false);
   const [featuredBoosts, setFeaturedBoosts] = useState<{ id: string; city: string; scheduled_date: string; is_used: boolean; created_at?: string }[]>([]);
   const [hasFeaturedBoost, setHasFeaturedBoost] = useState(false);
@@ -446,6 +472,45 @@ export default function MyProposalClient() {
       refreshBoosts();
       refreshFeaturedDataRef.current = refreshBoosts;
     }
+
+    // ── Realtime deletion detection ─────────────────────────────────────────
+    // Mirrors the Flutter app's subscribeToProposalStatus DELETE listener:
+    // when admin permanently deletes this proposal row the DB fires a DELETE
+    // postgres-changes event. We subscribe here so the user sees an immediate
+    // popup and is logged out — instead of staying on the page with stale data.
+    //
+    // Two listeners on the same channel:
+    //   1. UPDATE  — catches soft-deletes / status changes (future use)
+    //   2. DELETE  — catches permanent deletion (the case we care about here)
+    //
+    // Supabase Realtime doesn't support server-side filters on DELETE events
+    // (silently ignored), so every delete on the proposals table reaches this
+    // client; we match the id client-side exactly as the Flutter app does.
+    if (!session.id?.startsWith('admin:')) {
+      const deletionChannel = supabase
+        .channel(`proposal-deleted:${session.id}`)
+        .on(
+          'postgres_changes' as Parameters<ReturnType<typeof supabase.channel>['on']>[0],
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'proposals',
+          },
+          (payload: { old: Record<string, unknown> }) => {
+            if (payload.old?.id !== session.id) return;
+            // Row is gone — clear session and show popup
+            localStorage.removeItem('er_user');
+            localStorage.removeItem('jor_session_token');
+            localStorage.removeItem('jor_login_time');
+            localStorage.removeItem('er_saved');
+            setShowDeletedPopup(true);
+          }
+        )
+        .subscribe();
+
+      return () => { supabase.removeChannel(deletionChannel); };
+    }
+
     return () => {};
   }, [router]);
 
