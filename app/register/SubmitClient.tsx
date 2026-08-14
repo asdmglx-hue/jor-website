@@ -516,10 +516,29 @@ export default function SubmitClient() {
   const [casteGroups, setCasteGroups] = useState<Record<string, string[]>>(CASTE_GROUPS);
   const [professionGroups, setProfessionGroups] = useState<Record<string, string[]>>(PROFESSION_GROUPS);
 
+  // Verification section visibility — controlled by admin via app_settings.
+  // Mirrors the exact same keys read by the user app and the admin toggle card.
+  // Default true so sections always show before settings load (safe fallback).
+  const [requireCandidateCnic, setRequireCandidateCnic] = useState(true);
+  const [requireLatestDegree, setRequireLatestDegree] = useState(true);
+  const [requireParentsCnic, setRequireParentsCnic] = useState(true);
+
   useEffect(() => {
     fetchCities().then(data => { if (Object.keys(data).length > 0) setCityGroups(data); });
     fetchCastes().then(data => { if (Object.keys(data).length > 0) setCasteGroups(data); });
     fetchOccupations().then(data => { if (Object.keys(data).length > 0) setProfessionGroups(data); });
+    // Fetch verification toggles from app_settings (same table + keys the admin
+    // app writes to, and the user app reads from cachedSettings).
+    supabase.from('app_settings').select('key, value')
+      .in('key', ['require_candidate_cnic', 'require_latest_degree', 'require_parents_cnic'])
+      .then(({ data }) => {
+        if (!data) return;
+        const map: Record<string, string> = {};
+        (data as { key: string; value: string }[]).forEach(r => { map[r.key] = r.value; });
+        if (map['require_candidate_cnic'] === 'false') setRequireCandidateCnic(false);
+        if (map['require_latest_degree']  === 'false') setRequireLatestDegree(false);
+        if (map['require_parents_cnic']   === 'false') setRequireParentsCnic(false);
+      });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [maxStep, setMaxStep] = useState<number>(1);
@@ -1542,59 +1561,69 @@ export default function SubmitClient() {
               Identity verification documents are required to activate your account, but you can skip this step and submit them later.
             </div>
 
-            <SecHeader title="FOR MARRIAGE-SEEKING PERSON" />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <CnicUploadBox label="CNIC Front" fieldKey="cnicFront" errorField={errorField}
-                file={cnicFront} preview={cnicFrontPreview} compressing={compressingCnicFront}
-                onFileSelected={async raw => {
-                  setCompressingCnicFront(true);
-                  const f = await compressImage(raw);
-                  setCnicFront(f); setCnicFrontPreview(URL.createObjectURL(f));
-                  setCompressingCnicFront(false);
-                }}
-                onRemove={() => { setCnicFront(null); setCnicFrontPreview(''); }} />
-              <CnicUploadBox label="CNIC Back" fieldKey="cnicBack" errorField={errorField}
-                file={cnicBack} preview={cnicBackPreview} compressing={compressingCnicBack}
-                onFileSelected={async raw => {
-                  setCompressingCnicBack(true);
-                  const f = await compressImage(raw);
-                  setCnicBack(f); setCnicBackPreview(URL.createObjectURL(f));
-                  setCompressingCnicBack(false);
-                }}
-                onRemove={() => { setCnicBack(null); setCnicBackPreview(''); }} />
-            </div>
+            {requireCandidateCnic && (
+              <>
+                <SecHeader title="FOR MARRIAGE-SEEKING PERSON" />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <CnicUploadBox label="CNIC Front" fieldKey="cnicFront" errorField={errorField}
+                    file={cnicFront} preview={cnicFrontPreview} compressing={compressingCnicFront}
+                    onFileSelected={async raw => {
+                      setCompressingCnicFront(true);
+                      const f = await compressImage(raw);
+                      setCnicFront(f); setCnicFrontPreview(URL.createObjectURL(f));
+                      setCompressingCnicFront(false);
+                    }}
+                    onRemove={() => { setCnicFront(null); setCnicFrontPreview(''); }} />
+                  <CnicUploadBox label="CNIC Back" fieldKey="cnicBack" errorField={errorField}
+                    file={cnicBack} preview={cnicBackPreview} compressing={compressingCnicBack}
+                    onFileSelected={async raw => {
+                      setCompressingCnicBack(true);
+                      const f = await compressImage(raw);
+                      setCnicBack(f); setCnicBackPreview(URL.createObjectURL(f));
+                      setCompressingCnicBack(false);
+                    }}
+                    onRemove={() => { setCnicBack(null); setCnicBackPreview(''); }} />
+                </div>
+              </>
+            )}
 
-            <CnicUploadBox label="Most Recent Education Document" fieldKey="educationDocument" errorField={errorField}
-              file={educationDocument} preview={educationDocumentPreview} compressing={compressingEducationDocument}
-              onFileSelected={async raw => {
-                setCompressingEducationDocument(true);
-                const f = await compressImage(raw);
-                setEducationDocument(f); setEducationDocumentPreview(URL.createObjectURL(f));
-                setCompressingEducationDocument(false);
-              }}
-              onRemove={() => { setEducationDocument(null); setEducationDocumentPreview(''); }} />
+            {requireLatestDegree && (
+              <CnicUploadBox label="Most Recent Education Document" fieldKey="educationDocument" errorField={errorField}
+                file={educationDocument} preview={educationDocumentPreview} compressing={compressingEducationDocument}
+                onFileSelected={async raw => {
+                  setCompressingEducationDocument(true);
+                  const f = await compressImage(raw);
+                  setEducationDocument(f); setEducationDocumentPreview(URL.createObjectURL(f));
+                  setCompressingEducationDocument(false);
+                }}
+                onRemove={() => { setEducationDocument(null); setEducationDocumentPreview(''); }} />
+            )}
 
-            <SecHeader title="PARENT / GUARDIAN" />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <CnicUploadBox label="CNIC Front" fieldKey="guardianCnicFront" errorField={errorField}
-                file={guardianCnicFront} preview={guardianCnicFrontPreview} compressing={compressingGuardianCnicFront}
-                onFileSelected={async raw => {
-                  setCompressingGuardianCnicFront(true);
-                  const f = await compressImage(raw);
-                  setGuardianCnicFront(f); setGuardianCnicFrontPreview(URL.createObjectURL(f));
-                  setCompressingGuardianCnicFront(false);
-                }}
-                onRemove={() => { setGuardianCnicFront(null); setGuardianCnicFrontPreview(''); }} />
-              <CnicUploadBox label="CNIC Back" fieldKey="guardianCnicBack" errorField={errorField}
-                file={guardianCnicBack} preview={guardianCnicBackPreview} compressing={compressingGuardianCnicBack}
-                onFileSelected={async raw => {
-                  setCompressingGuardianCnicBack(true);
-                  const f = await compressImage(raw);
-                  setGuardianCnicBack(f); setGuardianCnicBackPreview(URL.createObjectURL(f));
-                  setCompressingGuardianCnicBack(false);
-                }}
-                onRemove={() => { setGuardianCnicBack(null); setGuardianCnicBackPreview(''); }} />
-            </div>
+            {requireParentsCnic && (
+              <>
+                <SecHeader title="PARENT / GUARDIAN" />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <CnicUploadBox label="CNIC Front" fieldKey="guardianCnicFront" errorField={errorField}
+                    file={guardianCnicFront} preview={guardianCnicFrontPreview} compressing={compressingGuardianCnicFront}
+                    onFileSelected={async raw => {
+                      setCompressingGuardianCnicFront(true);
+                      const f = await compressImage(raw);
+                      setGuardianCnicFront(f); setGuardianCnicFrontPreview(URL.createObjectURL(f));
+                      setCompressingGuardianCnicFront(false);
+                    }}
+                    onRemove={() => { setGuardianCnicFront(null); setGuardianCnicFrontPreview(''); }} />
+                  <CnicUploadBox label="CNIC Back" fieldKey="guardianCnicBack" errorField={errorField}
+                    file={guardianCnicBack} preview={guardianCnicBackPreview} compressing={compressingGuardianCnicBack}
+                    onFileSelected={async raw => {
+                      setCompressingGuardianCnicBack(true);
+                      const f = await compressImage(raw);
+                      setGuardianCnicBack(f); setGuardianCnicBackPreview(URL.createObjectURL(f));
+                      setCompressingGuardianCnicBack(false);
+                    }}
+                    onRemove={() => { setGuardianCnicBack(null); setGuardianCnicBackPreview(''); }} />
+                </div>
+              </>
+            )}
 
           </div>
         )}
