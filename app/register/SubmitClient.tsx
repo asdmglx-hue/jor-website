@@ -522,6 +522,7 @@ export default function SubmitClient() {
   const [requireCandidateCnic, setRequireCandidateCnic] = useState(true);
   const [requireLatestDegree, setRequireLatestDegree] = useState(true);
   const [requireParentsCnic, setRequireParentsCnic] = useState(true);
+  const [requireVerifStep, setRequireVerifStep] = useState(false);
 
   useEffect(() => {
     fetchCities().then(data => { if (Object.keys(data).length > 0) setCityGroups(data); });
@@ -530,14 +531,15 @@ export default function SubmitClient() {
     // Fetch verification toggles from app_settings (same table + keys the admin
     // app writes to, and the user app reads from cachedSettings).
     supabase.from('app_settings').select('key, value')
-      .in('key', ['require_candidate_cnic', 'require_latest_degree', 'require_parents_cnic'])
+      .in('key', ['require_candidate_cnic', 'require_latest_degree', 'require_parents_cnic', 'require_verification_step'])
       .then(({ data }) => {
         if (!data) return;
         const map: Record<string, string> = {};
         (data as { key: string; value: string }[]).forEach(r => { map[r.key] = r.value; });
         if (map['require_candidate_cnic'] === 'false') setRequireCandidateCnic(false);
         if (map['require_latest_degree']  === 'false') setRequireLatestDegree(false);
-        if (map['require_parents_cnic']   === 'false') setRequireParentsCnic(false);
+        if (map['require_parents_cnic']      === 'false') setRequireParentsCnic(false);
+        if (map['require_verification_step'] === 'true')  setRequireVerifStep(true);
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1457,9 +1459,11 @@ export default function SubmitClient() {
                   <div style={{ fontSize: 12, color: '#68629C' }}>All fields below are optional</div>
                 </div>
               </div>
-              <button onClick={() => skip(4)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-                Skip →
-              </button>
+              {!requireVerifStep && (
+                <button onClick={() => skip(4)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                  Skip →
+                </button>
+              )}
             </div>
 
             {/* FAMILY */}
@@ -1611,9 +1615,11 @@ export default function SubmitClient() {
                   <div style={{ fontSize: 12, color: '#68629C' }}>Your documents remain private and fully secured</div>
                 </div>
               </div>
-              <button onClick={() => skip(5)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-                Skip →
-              </button>
+              {!requireVerifStep && (
+                <button onClick={() => skip(5)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                  Skip →
+                </button>
+              )}
             </div>
 
             <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
