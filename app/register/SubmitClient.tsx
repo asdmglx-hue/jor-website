@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase, fetchCastes, fetchOccupations, fetchCities } from '@/lib/supabase';
 import { trackEvent } from '@/lib/analytics';
@@ -568,6 +568,7 @@ export default function SubmitClient() {
   const [guardianCnicBackPreview, setGuardianCnicBackPreview] = useState('');
   const [educationDocumentPreview, setEducationDocumentPreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const navigating = useRef(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [errorField, setErrorField] = useState('');
@@ -824,11 +825,17 @@ export default function SubmitClient() {
   };
 
   const next = async () => {
-    const err = await validateStepAsync();
-    if (err) { setError(err.msg); setErrorField(err.field); return; }
-    setError(''); setErrorField('');
-    setStep(s => { const n = (s + 1) as 1 | 2 | 3 | 4 | 5; setMaxStep(m => Math.max(m, n)); return n; });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (navigating.current) return;
+    navigating.current = true;
+    try {
+      const err = await validateStepAsync();
+      if (err) { setError(err.msg); setErrorField(err.field); return; }
+      setError(''); setErrorField('');
+      setStep(s => { const n = (s + 1) as 1 | 2 | 3 | 4 | 5; setMaxStep(m => Math.max(m, n)); return n; });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      navigating.current = false;
+    }
   };
 
   const skip = (target: 4 | 5 = 4) => {
