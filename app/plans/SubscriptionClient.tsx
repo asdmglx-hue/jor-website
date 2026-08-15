@@ -167,7 +167,7 @@ export default function SubscriptionClient() {
     {
       name: 'Featured Post', price: FT_PRICE, priceDisplay: `Rs. ${FT_PRICE}`, duration: FT_DURATION,
       tagline: 'Stand out. Get noticed.', color: '#E8620A', bg: '#FEEDE3', popular: false,
-      features: ['Schedule Your Featured Date', 'Choose Your Featured Location', 'Up to 5× more visibility', `${FT_DURATION} validity`],
+      features: ['Schedule your Featured Date', 'Choose your Featured Location', 'Up to 5× more visibility', `${FT_DURATION} validity`],
       note: 'Requires Rishta Profile subscription',
     },
   ];
@@ -293,7 +293,9 @@ export default function SubscriptionClient() {
             )}
 
             <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.6, margin: '16px 0' }}>
-              {settings['payment_instruction'] || 'Send your payment proof on WhatsApp. Your subscription will be activated within 24 hours.'}
+              {(selected === 1 ? settings['featured_payment_instruction'] : null)
+                || settings['payment_instruction']
+                || 'Send your payment proof on WhatsApp. Your subscription will be activated within 24 hours.'}
             </div>
 
             <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
