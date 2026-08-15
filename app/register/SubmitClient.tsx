@@ -1320,7 +1320,14 @@ export default function SubmitClient() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="Sect / Maslak" required>
-                <Sel value={form.sect} onChange={v => set('sect', v)} options={SECTS} placeholder="Select" hasError={errorField === 'sect'} />
+                <SearchableSelect
+                  value={form.sect}
+                  onChange={v => set('sect', v)}
+                  groups={{ 'Sect': SECTS.filter(s => s !== 'Other') }}
+                  placeholder="Select"
+                  hasError={errorField === 'sect'}
+                  pinnedOption={{ label: "Other (not listed)", value: 'Other' }}
+                />
               </Field>
               <Field label="Native Language">
                 <Sel value={form.language} onChange={v => set('language', v)} options={LANGUAGES} placeholder="Select" />
