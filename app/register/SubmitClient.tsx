@@ -1308,7 +1308,7 @@ export default function SubmitClient() {
             )}
 
             <Field label="Caste" required>
-              <SearchableSelect value={form.caste} onChange={v => { set('caste', v); if (v !== 'Other') set('caste_custom', ''); }} groups={casteGroups} placeholder="Select caste" hasError={errorField === 'caste'} />
+              <SearchableSelect value={form.caste} onChange={v => { set('caste', v); if (v !== 'Other') set('caste_custom', ''); }} groups={casteGroups} placeholder="Select caste" hasError={errorField === 'caste'} pinnedOption={{ label: "Other (my caste isn't listed)", value: 'Other' }} />
             </Field>
             {form.caste === 'Other' && (
               <SubSection>

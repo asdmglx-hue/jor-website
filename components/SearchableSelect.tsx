@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 // results (with group-name headers) when the search box is empty and more
 // than one group was passed in — used by the registration form's
 // caste/profession/education fields (see CASTE_GROUPS/PROFESSION_GROUPS).
-export default function SearchableSelect({ value, onChange, groups, placeholder, hasError, buttonStyle }: { value: string; onChange: (v: string) => void; groups: Record<string, string[]>; placeholder: string; hasError?: boolean; buttonStyle?: React.CSSProperties }) {
+export default function SearchableSelect({ value, onChange, groups, placeholder, hasError, buttonStyle, pinnedOption }: { value: string; onChange: (v: string) => void; groups: Record<string, string[]>; placeholder: string; hasError?: boolean; buttonStyle?: React.CSSProperties; pinnedOption?: { label: string; value: string } }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const ref = useRef<HTMLDivElement>(null);
@@ -47,6 +47,18 @@ export default function SearchableSelect({ value, onChange, groups, placeholder,
             />
           </div>
           <div style={{ maxHeight: 220, overflowY: 'auto' }}>
+            {pinnedOption && (
+              <div
+                onClick={() => { onChange(pinnedOption.value); setOpen(false); setQuery(''); }}
+                style={{ padding: '8px 12px', fontSize: 13, cursor: 'pointer', borderBottom: '1px solid #E8E6F5',
+                  color: value === pinnedOption.value ? '#534AB7' : '#68629C',
+                  fontWeight: value === pinnedOption.value ? 700 : 500,
+                  background: value === pinnedOption.value ? '#EEEDFE' : '#FAFAFA' }}
+                onMouseEnter={e => { if (value !== pinnedOption.value) (e.currentTarget as HTMLElement).style.background = '#F0EFFE'; }}
+                onMouseLeave={e => { if (value !== pinnedOption.value) (e.currentTarget as HTMLElement).style.background = '#FAFAFA'; }}>
+                {pinnedOption.label}
+              </div>
+            )}
             {value && (
               <div onClick={() => { onChange(''); setOpen(false); }} style={{ padding: '8px 12px', fontSize: 13, color: '#68629C', cursor: 'pointer' }}>
                 Clear selection
