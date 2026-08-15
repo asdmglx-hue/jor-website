@@ -277,7 +277,34 @@ export default function MyProposalClient() {
   // pieces — this splits on whichever known dial code the number actually
   // starts with, checking longest codes first so e.g. "+1" doesn't
   // incorrectly match before a longer code that also starts with "1".
-  function splitPhone(raw: string): { dialCode: string; local: string } {
+  const PHONE_FORMATS_EDIT: [string, ...number[]][] = [
+    ['+353', 2, 3, 4], ['+966', 2, 3, 4], ['+971', 2, 3, 4],
+    ['+968', 4, 4], ['+974', 4, 4], ['+973', 4, 4], ['+965', 4, 4],
+    ['+92',  3, 7], ['+64',  2, 3, 4], ['+61',  3, 3, 3],
+    ['+49',  3, 7], ['+47',  3, 2, 3], ['+46',  3, 3, 3],
+    ['+45',  2, 2, 2, 2], ['+44', 4, 6], ['+39', 3, 7],
+    ['+34',  3, 6], ['+33',  1, 2, 2, 2, 2], ['+31', 1, 4, 4],
+    ['+30',  3, 7], ['+90',  3, 3, 4], ['+60',  2, 4, 4],
+    ['+1',   3, 3, 4],
+  ];
+  function formatDialedPhone(dialCode: string, number: string): string {
+    const digits = number.replace(/\D/g, '');
+    const local = dialCode === '+92' ? digits.replace(/^0+/, '') : digits;
+    const fmt = PHONE_FORMATS_EDIT.find(([code]) => code === dialCode);
+    if (!fmt) return `${dialCode} ${local}`;
+    const [, ...groups] = fmt;
+    const parts: string[] = [];
+    let pos = 0;
+    for (const g of groups) {
+      if (pos >= local.length) break;
+      parts.push(local.slice(pos, pos + g));
+      pos += g;
+    }
+    if (pos < local.length) parts.push(local.slice(pos));
+    return `${dialCode} ${parts.join(' ')}`;
+  }
+
+    function splitPhone(raw: string): { dialCode: string; local: string } {
     const trimmed = (raw || '').trim();
     if (!trimmed) return { dialCode: '+92', local: '' };
     if (!trimmed.startsWith('+')) return { dialCode: '+92', local: trimmed };
@@ -1251,7 +1278,7 @@ export default function MyProposalClient() {
                               onChange={e => setInlineVal(maxLength ? e.target.value.slice(0, maxLength) : e.target.value)}
                               style={fieldStyle} autoFocus />
                       }
-                      {inlineButtons(fieldKey, type === 'number' ? Number(inlineVal) : type === 'tel' ? `${inlineDialCode}${inlineVal}` : inlineVal)}
+                      {inlineButtons(fieldKey, type === 'number' ? Number(inlineVal) : type === 'tel' ? formatDialedPhone(inlineDialCode, inlineVal) : inlineVal)}
                     </>
                   ) : displayVal ? (
                     fieldDisabled(fieldKey) ? (
