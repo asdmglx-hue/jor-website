@@ -220,19 +220,60 @@ export default function PhoneInput({ value, onChange, dialCode, onDialChange, re
   const selected = DIAL_CODES.find(d => d.code === dialCode) ?? DIAL_CODES[0];
   const filtered = query.trim() ? DIAL_CODES.filter(d => d.name.toLowerCase().includes(query.toLowerCase()) || d.code.includes(query)) : DIAL_CODES;
   const isPK = dialCode === '+92';
-  const placeholder = isPK ? '0300 0000000' : 'Phone number';
+  const PLACEHOLDERS: Record<string, string> = {
+    '+92': '0300 0000000', '+44': '7911 123456', '+1': '212 345 6789',
+    '+61': '412 345 678', '+966': '50 123 4567', '+971': '50 123 4567',
+    '+49': '151 1234567', '+353': '85 123 4567', '+64': '21 123 4567',
+    '+47': '912 34 567', '+46': '712 345 678', '+45': '12 34 56 78',
+    '+39': '312 3456789', '+34': '612 345678', '+33': '6 12 34 56 78',
+    '+31': '6 1234 5678', '+30': '690 1234567', '+90': '512 345 6789',
+    '+60': '12 3456 7890', '+974': '3312 3456', '+973': '3312 3456',
+    '+965': '9999 1234', '+968': '9212 3456',
+  };
+  const placeholder = PLACEHOLDERS[dialCode] ?? 'Phone number';
+
+  // Phone grouping patterns — same table as phoneDisplay() in lib/supabase.ts
+  const PHONE_FORMATS: [string, ...number[]][] = [
+    ['+353', 2, 3, 4], ['+966', 2, 3, 4], ['+971', 2, 3, 4],
+    ['+968', 4, 4], ['+974', 4, 4], ['+973', 4, 4], ['+965', 4, 4],
+    ['+92',  3, 7], ['+64',  2, 3, 4], ['+61',  3, 3, 3],
+    ['+49',  3, 7], ['+47',  3, 2, 3], ['+46',  3, 3, 3],
+    ['+45',  2, 2, 2, 2], ['+44', 4, 6], ['+39', 3, 7],
+    ['+34',  3, 6], ['+33',  1, 2, 2, 2, 2], ['+31', 1, 4, 4],
+    ['+30',  3, 7], ['+90',  3, 3, 4], ['+60',  2, 4, 4],
+    ['+1',   3, 3, 4],
+  ];
 
   const handlePhoneChange = (raw: string) => {
+    // Strip everything except digits and spaces (allow user to backspace spaces)
+    const digits = raw.replace(/\D/g, '');
+
     if (isPK) {
-      const digits = raw.replace(/\D/g, '');
       const maxDigits = digits.startsWith('0') || digits.length === 0 ? 11 : 10;
       const capped = digits.slice(0, maxDigits);
       const breakAt = capped.startsWith('0') ? 4 : 3;
       const formatted = capped.length > breakAt ? `${capped.slice(0, breakAt)} ${capped.slice(breakAt)}` : capped;
       onChange(formatted);
-    } else {
-      onChange(raw.slice(0, 12));
+      return;
     }
+
+    // Find grouping for this dial code
+    const fmt = PHONE_FORMATS.find(([code]) => code === dialCode);
+    if (!fmt) { onChange(digits.slice(0, 15)); return; }
+
+    const [, ...groups] = fmt;
+    const maxDigits = groups.reduce((a, b) => a + b, 0);
+    const capped = digits.slice(0, maxDigits);
+
+    // Build grouped string — only add spaces up to where user has typed
+    const parts: string[] = [];
+    let pos = 0;
+    for (const g of groups) {
+      if (pos >= capped.length) break;
+      parts.push(capped.slice(pos, pos + g));
+      pos += g;
+    }
+    onChange(parts.join(' '));
   };
 
   return (
@@ -252,7 +293,7 @@ export default function PhoneInput({ value, onChange, dialCode, onDialChange, re
             </div>
             <div style={{ maxHeight: 220, overflowY: 'auto' }}>
               {filtered.map(d => (
-                <div key={d.name} onClick={() => { onDialChange(d.code); setOpen(false); setQuery(''); }}
+                <div key={d.name} onClick={() => { onDialChange(d.code); onChange(''); setOpen(false); setQuery(''); }}
                   style={{ padding: '8px 12px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, background: d.code === dialCode ? '#EEEDFE' : 'transparent', color: d.code === dialCode ? '#534AB7' : '#1A1830', fontWeight: d.code === dialCode ? 700 : 400 }}
                   onMouseEnter={e => { if (d.code !== dialCode) (e.currentTarget as HTMLElement).style.background = '#F8F7FF'; }}
                   onMouseLeave={e => { if (d.code !== dialCode) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
