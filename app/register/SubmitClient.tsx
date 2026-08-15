@@ -1587,7 +1587,7 @@ export default function SubmitClient() {
             </div>
 
             <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-              Identity verification documents are required to activate your account, but you can skip this step and submit them later.
+              The following documents are required to verify your identity.
             </div>
 
             {requireCandidateCnic && (

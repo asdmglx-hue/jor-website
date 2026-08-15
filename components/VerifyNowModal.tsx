@@ -199,7 +199,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
           </div>
 
           <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginTop: 14, marginBottom: 6, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-            Identity verification documents are required to activate your account. Upload whatever you have — you can always finish the rest later.
+            The following documents are required to verify your identity.
           </div>
 
           {showCandidateCnic && (<>
