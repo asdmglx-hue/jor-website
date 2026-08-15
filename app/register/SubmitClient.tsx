@@ -569,6 +569,8 @@ export default function SubmitClient() {
   const [educationDocumentPreview, setEducationDocumentPreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const navigating = useRef(false);
+  const [cnicState, setCnicState] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const cnicCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [errorField, setErrorField] = useState('');
@@ -1166,17 +1168,35 @@ export default function SubmitClient() {
 
             <Field label="CNIC Number" required>
               <div style={{ position: 'relative' }}>
-                <input value={form.cnic} style={{ ...inp, ...err('cnic'), paddingRight: 40 }} onChange={e => {
+                <input value={form.cnic} style={{ ...inp, paddingRight: 40,
+                  ...(cnicState === 'taken' ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : err('cnic'))
+                }} onChange={e => {
                   const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
                   let formatted = digits;
                   if (digits.length > 5) formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
                   if (digits.length > 12) formatted = `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
                   set('cnic', formatted);
+                  setCnicState('idle');
+                  if (cnicCheckTimer.current) clearTimeout(cnicCheckTimer.current);
+                  if (digits.length === 13) {
+                    setCnicState('checking');
+                    cnicCheckTimer.current = setTimeout(async () => {
+                      try {
+                        const { data } = await supabase.rpc('get_cnic_profile_status', { p_cnic: digits });
+                        setCnicState(data ? 'taken' : 'available');
+                      } catch { setCnicState('idle'); }
+                    }, 500);
+                  }
                 }} placeholder="12345-1234567-1" maxLength={15} />
                 {(() => {
                   const d = form.cnic.replace(/\D/g, '').length;
                   if (d === 0) return null;
-                  if (d === 13) return (
+                  if (d === 13 && cnicState === 'checking') return (
+                    <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </span>
+                  );
+                  if (d === 13 && cnicState === 'available') return (
                     <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="10" fill="#16A34A"/>
@@ -1184,15 +1204,25 @@ export default function SubmitClient() {
                       </svg>
                     </span>
                   );
+                  if (d === 13 && cnicState === 'taken') return (
+                    <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" fill="#DC2626"/>
+                        <line x1="15" y1="9" x2="9" y2="15" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                        <line x1="9" y1="9" x2="15" y2="15" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </span>
+                  );
                   return <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 11, fontWeight: 600, color: '#9CA3AF', pointerEvents: 'none' }}>{d}/13</span>;
                 })()}
               </div>
+              {cnicState === 'taken' && (
+                <div style={{ marginTop: 6, fontSize: 12.5, color: '#DC2626', fontWeight: 600 }}>
+                  This CNIC is already registered. <a href="/login" style={{ color: '#534AB7', textDecoration: 'none' }}>→ Login instead</a>
+                </div>
+              )}
             </Field>
-            {error.includes('already registered') && (
-              <div style={{ marginTop: -8, marginBottom: 14, fontSize: 13 }}>
-                <Link href="/login" style={{ color: '#534AB7', fontWeight: 700, textDecoration: 'none' }}>→ Go to Login</Link>
-              </div>
-            )}
+
             <Field label="Set Password" required>
               <PasswordInput value={form.password} onChange={e => set('password', e.target.value)} style={{ ...inp, ...err('password') }} placeholder="Min 6 characters" />
             </Field>
