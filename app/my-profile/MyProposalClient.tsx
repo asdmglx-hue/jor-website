@@ -246,6 +246,7 @@ export default function MyProposalClient() {
   const [bookModalOpen, setBookModalOpen] = useState(false);
   const [manageModalOpen, setManageModalOpen] = useState(false);
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
+  const [hasPendingVerification, setHasPendingVerification] = useState(false);
   const [bookingResult, setBookingResult] = useState<{ lines: string[]; allToday: boolean } | null>(null);
   const refreshFeaturedDataRef = useRef<() => void>(() => {});
   const [isAdminAccount, setIsAdminAccount] = useState(false);
@@ -858,7 +859,7 @@ export default function MyProposalClient() {
                 below, which checks all 5 URL fields directly rather than
                 a separate flag, so it can never drift out of sync with
                 what's actually on the row. */}
-            {user.status === 'pending' && !user.cnic_front_url && !user.cnic_back_url && !user.education_document_url && !user.guardian_cnic_front_url && !user.guardian_cnic_back_url && (
+            {user.status === 'pending' && !hasPendingVerification && !user.cnic_front_url && !user.cnic_back_url && !user.education_document_url && !user.guardian_cnic_front_url && !user.guardian_cnic_back_url && (
               <button onClick={() => setVerifyModalOpen(true)}
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -1027,6 +1028,7 @@ export default function MyProposalClient() {
           user={user}
           onClose={() => setVerifyModalOpen(false)}
           onSaved={updates => {
+            setHasPendingVerification(true);
             setUser(prev => {
               const next = { ...prev, ...updates } as typeof user;
               import('@/lib/auth').then(m => m.saveSession(next));
