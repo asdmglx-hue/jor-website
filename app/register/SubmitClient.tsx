@@ -74,11 +74,33 @@ const PROPERTY_TYPES = ['Residential','Commercial','Land','Multiple'];
 // Combines a dial code with a locally-entered number for storage/display.
 // Pakistani numbers are usually typed with their trunk-prefix "0" (e.g.
 // 0300 1234567) — that 0 must never be kept when it's prefixed with the
-// +92 country code (should read "+92 300 1234567", not "+92 0300 1234567").
+// Formats a dialed phone number using country-aware grouping.
+// Same country table as phoneDisplay() in lib/supabase.ts.
+const PHONE_FORMATS_REG: [string, ...number[]][] = [
+  ['+353', 2, 3, 4], ['+966', 2, 3, 4], ['+971', 2, 3, 4],
+  ['+968', 4, 4], ['+974', 4, 4], ['+973', 4, 4], ['+965', 4, 4],
+  ['+92',  3, 7], ['+64',  2, 3, 4], ['+61',  3, 3, 3],
+  ['+49',  3, 7], ['+47',  3, 2, 3], ['+46',  3, 3, 3],
+  ['+45',  2, 2, 2, 2], ['+44', 4, 6], ['+39', 3, 7],
+  ['+34',  3, 6], ['+33',  1, 2, 2, 2, 2], ['+31', 1, 4, 4],
+  ['+30',  3, 7], ['+90',  3, 3, 4], ['+60',  2, 4, 4],
+  ['+1',   3, 3, 4],
+];
 function formatDialedPhone(dialCode: string, number: string): string {
-  const trimmed = number.trim();
+  const trimmed = number.trim().replace(/\D/g, '');
   const local = dialCode === '+92' ? trimmed.replace(/^0+/, '') : trimmed;
-  return `${dialCode} ${local}`;
+  const fmt = PHONE_FORMATS_REG.find(([code]) => code === dialCode);
+  if (!fmt) return `${dialCode} ${local}`;
+  const [, ...groups] = fmt;
+  const parts: string[] = [];
+  let pos = 0;
+  for (const g of groups) {
+    if (pos >= local.length) break;
+    parts.push(local.slice(pos, pos + g));
+    pos += g;
+  }
+  if (pos < local.length) parts.push(local.slice(pos));
+  return `${dialCode} ${parts.join(' ')}`;
 }
 
 // COUNTRIES_FLAT / COUNTRY_GROUPS moved to lib/constants.ts (shared single
