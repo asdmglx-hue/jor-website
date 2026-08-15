@@ -1617,7 +1617,7 @@ export default function SubmitClient() {
             </div>
 
             <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-              The following documents are required to verify your identity.
+              Documents are required for identity verification, but you can submit them later.
             </div>
 
             {requireCandidateCnic && (
