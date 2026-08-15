@@ -806,9 +806,9 @@ export default function SubmitClient() {
     }
     // Step 4 (Verification) — only validated if admin has made it compulsory
     if (step === 4 && requireVerifStep) {
-      const hasAnyCnicDoc = form.cnic_front || form.cnic_back;
-      const hasEducationDoc = !!form.education_document;
-      const hasGuardianDoc = form.guardian_cnic_front || form.guardian_cnic_back;
+      const hasAnyCnicDoc = cnicFront || cnicBack;
+      const hasEducationDoc = !!educationDocument;
+      const hasGuardianDoc = guardianCnicFront || guardianCnicBack;
       if (!hasAnyCnicDoc && !hasEducationDoc && !hasGuardianDoc) {
         return fail('Please upload at least one verification document to continue', 'cnic_front');
       }
