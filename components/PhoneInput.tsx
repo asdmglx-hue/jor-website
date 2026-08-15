@@ -293,7 +293,7 @@ export default function PhoneInput({ value, onChange, dialCode, onDialChange, re
             </div>
             <div style={{ maxHeight: 220, overflowY: 'auto' }}>
               {filtered.map(d => (
-                <div key={d.name} onClick={() => { onDialChange(d.code); onChange(''); setOpen(false); setQuery(''); }}
+                <div key={d.name} onClick={() => { onDialChange(d.code); setOpen(false); setQuery(''); }}
                   style={{ padding: '8px 12px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, background: d.code === dialCode ? '#EEEDFE' : 'transparent', color: d.code === dialCode ? '#534AB7' : '#1A1830', fontWeight: d.code === dialCode ? 700 : 400 }}
                   onMouseEnter={e => { if (d.code !== dialCode) (e.currentTarget as HTMLElement).style.background = '#F8F7FF'; }}
                   onMouseLeave={e => { if (d.code !== dialCode) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
