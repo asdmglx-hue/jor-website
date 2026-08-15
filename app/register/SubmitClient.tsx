@@ -594,6 +594,7 @@ export default function SubmitClient() {
   const [submitting, setSubmitting] = useState(false);
   const navigating = useRef(false);
   const [cnicState, setCnicState] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [verifError, setVerifError] = useState(false);
   const cnicCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -828,12 +829,15 @@ export default function SubmitClient() {
     }
     // Step 4 (Verification) — only validated if admin has made it compulsory
     if (step === 4 && requireVerifStep) {
-      const hasAnyCnicDoc = cnicFront || cnicBack;
-      const hasEducationDoc = !!educationDocument;
-      const hasGuardianDoc = guardianCnicFront || guardianCnicBack;
-      if (!hasAnyCnicDoc && !hasEducationDoc && !hasGuardianDoc) {
-        return fail('Please upload at least one verification document to continue', 'cnic_front');
+      const missing: string[] = [];
+      if (requireCandidateCnic && (!cnicFront || !cnicBack)) missing.push('Candidate CNIC (front & back)');
+      if (requireLatestDegree && !educationDocument) missing.push('Education Document');
+      if (requireParentsCnic && (!guardianCnicFront || !guardianCnicBack)) missing.push('Guardian CNIC (front & back)');
+      if (missing.length > 0) {
+        setVerifError(true);
+        return fail(`Please upload all required documents: ${missing.join(', ')}`, 'cnic_front');
       }
+      setVerifError(false);
     }
     return { msg: '', field: '' };
   };
@@ -1646,7 +1650,7 @@ export default function SubmitClient() {
               )}
             </div>
 
-            <div style={{ background: requireVerifStep ? '#FEE2E2' : '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: requireVerifStep ? '#DC2626' : '#534AB7', lineHeight: 1.6 }}>
+            <div style={{ background: verifError ? '#FEE2E2' : '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: verifError ? '#DC2626' : '#534AB7', lineHeight: 1.6 }}>
               {requireVerifStep ? 'The following documents are required to verify your identity.' : 'Documents are required for identity verification, but you can submit them later.'}
             </div>
 
