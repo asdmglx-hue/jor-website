@@ -55,7 +55,7 @@ function getProfessionCategory(profession: string): string {
 // CITY_GROUPS moved to lib/constants.ts (shared single source with
 // FeaturedBookModal.tsx — see that file's comment for why).
 
-const SECTS = ['Sunni','Shia','Barelvi','Deobandi','Ahl-e-Hadith','Other'];
+const SECTS = ['Sunni','Shia','Barelvi','Deobandi','Ahl-e-Hadith'];
 const LANGUAGES = ['Punjabi','Pashto','Sindhi','Saraiki','Balochi','Urdu','English','Other'];
 const EDUCATIONS = ['Matric','FSc/FA','Diploma',"Bachelor's","Master's",'MPhil','PhD','Other'];
 const PRACTICE_LEVELS = ['High','Moderate','Low'];
@@ -804,10 +804,15 @@ export default function SubmitClient() {
       if (!form.home_type) return fail('House type is required', 'home_type');
       if (!form.marital_status) return fail('Marital status is required', 'marital_status');
     }
-    // Step 4 (Verification) is intentionally not validated here — every
-    // document in it (applicant CNIC, guardian CNIC, education document)
-    // is optional, so the account can be submitted and activated without
-    // them and the documents added later.
+    // Step 4 (Verification) — only validated if admin has made it compulsory
+    if (step === 4 && requireVerifStep) {
+      const hasAnyCnicDoc = form.cnic_front || form.cnic_back;
+      const hasEducationDoc = !!form.education_document;
+      const hasGuardianDoc = form.guardian_cnic_front || form.guardian_cnic_back;
+      if (!hasAnyCnicDoc && !hasEducationDoc && !hasGuardianDoc) {
+        return fail('Please upload at least one verification document to continue', 'cnic_front');
+      }
+    }
     return { msg: '', field: '' };
   };
 
@@ -1370,10 +1375,9 @@ export default function SubmitClient() {
                 <SearchableSelect
                   value={form.sect}
                   onChange={v => set('sect', v)}
-                  groups={{ 'Sect': SECTS.filter(s => s !== 'Other') }}
+                  groups={{ 'Sect': SECTS }}
                   placeholder="Select"
                   hasError={errorField === 'sect'}
-                  pinnedOption={{ label: "Other (not listed)", value: 'Other' }}
                 />
               </Field>
               <Field label="Native Language">
@@ -1459,11 +1463,9 @@ export default function SubmitClient() {
                   <div style={{ fontSize: 12, color: '#68629C' }}>All fields below are optional</div>
                 </div>
               </div>
-              {!requireVerifStep && (
-                <button onClick={() => skip(4)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-                  Skip →
-                </button>
-              )}
+              <button onClick={() => skip(4)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                Skip →
+              </button>
             </div>
 
             {/* FAMILY */}
@@ -1611,7 +1613,7 @@ export default function SubmitClient() {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </div>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Verification</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Verification{requireVerifStep && <span style={{ color: '#DC2626' }}> *</span>}</div>
                   <div style={{ fontSize: 12, color: '#68629C' }}>Your documents remain private and fully secured</div>
                 </div>
               </div>
@@ -1622,8 +1624,8 @@ export default function SubmitClient() {
               )}
             </div>
 
-            <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-              Documents are required for identity verification, but you can submit them later.
+            <div style={{ background: requireVerifStep ? '#FEE2E2' : '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: requireVerifStep ? '#DC2626' : '#534AB7', lineHeight: 1.6 }}>
+              {requireVerifStep ? 'The following documents are required to verify your identity.' : 'Documents are required for identity verification, but you can submit them later.'}
             </div>
 
             {requireCandidateCnic && (
