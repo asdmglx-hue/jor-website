@@ -1165,13 +1165,28 @@ export default function SubmitClient() {
             </div>
 
             <Field label="CNIC Number" required>
-              <input value={form.cnic} style={{ ...inp, ...err('cnic') }} onChange={e => {
-                const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
-                let formatted = digits;
-                if (digits.length > 5) formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
-                if (digits.length > 12) formatted = `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
-                set('cnic', formatted);
-              }} placeholder="12345-1234567-1" maxLength={15} />
+              <div style={{ position: 'relative' }}>
+                <input value={form.cnic} style={{ ...inp, ...err('cnic'), paddingRight: 40 }} onChange={e => {
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
+                  let formatted = digits;
+                  if (digits.length > 5) formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
+                  if (digits.length > 12) formatted = `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+                  set('cnic', formatted);
+                }} placeholder="12345-1234567-1" maxLength={15} />
+                {(() => {
+                  const d = form.cnic.replace(/\D/g, '').length;
+                  if (d === 0) return null;
+                  if (d === 13) return (
+                    <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" fill="#16A34A"/>
+                        <polyline points="8 12 11 15 16 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                  );
+                  return <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 11, fontWeight: 600, color: '#9CA3AF', pointerEvents: 'none' }}>{d}/13</span>;
+                })()}
+              </div>
             </Field>
             {error.includes('already registered') && (
               <div style={{ marginTop: -8, marginBottom: 14, fontSize: 13 }}>
