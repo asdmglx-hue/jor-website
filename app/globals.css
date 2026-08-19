@@ -163,7 +163,7 @@ body {
 }
 .proposal-sidebar {
   position: sticky;
-  top: 80px;
+  top: 16px;
   align-self: start;
 }
 
