@@ -217,7 +217,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           {/* Personal Details */}
           {(heightFt || p.weight_kg || p.complexion || p.marital_status ||
             (p.marital_status !== 'Single' && p.marital_status !== 'Never married' && (p.boys || p.girls)) ||
-            p.open_to_polygamy || p.practice_level ||
+            p.practice_level ||
             (p.gender === 'Female' && p.hijab != null) || (p.gender === 'Male' && p.beard != null) ||
             (p.languages && p.languages.length > 0)) && (
           <Section title="Personal Details">
