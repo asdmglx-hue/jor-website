@@ -150,7 +150,6 @@ body {
   display: grid;
   grid-template-columns: 1fr 340px;
   gap: 20px;
-  align-items: start;
 }
 /* Grid items default to min-width: auto, meaning they refuse to shrink
    below their content's natural width — same underlying quirk as
@@ -165,6 +164,7 @@ body {
 .proposal-sidebar {
   position: sticky;
   top: 80px;
+  align-self: start;
 }
 
 /* Name font size lives here (not inline) specifically so the mobile
