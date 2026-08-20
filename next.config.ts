@@ -27,10 +27,24 @@ const nextConfig: NextConfig = { // build-bust-202608141222
     },
   },
   images: {
-    unoptimized: true,
+    // Use Cloudflare's built-in image resizing (cdn-cgi/image) as the
+    // Next.js image loader. This converts profile photos to WebP/AVIF,
+    // resizes them to the exact size needed, and serves from Cloudflare's
+    // edge cache — so the /proposals page goes from loading 20 full-size
+    // JPEGs to loading 20 tiny WebP thumbnails.
+    //
+    // Requires "Image Resizing" to be enabled in your Cloudflare dashboard:
+    //   Speed → Optimization → Image Optimization → Image Resizing → ON
+    // It's included on all paid plans (Pro+). Free plan: toggle it on in
+    // the dashboard — Cloudflare offers it free for Workers sites.
+    //
+    // Format: https://joronline.com/cdn-cgi/image/{options}/{original_url}
+    loader: 'custom',
+    loaderFile: './lib/cloudflareImageLoader.ts',
     remotePatterns: [
       { protocol: 'https', hostname: '*.supabase.co' },
       { protocol: 'https', hostname: '*.r2.cloudflarestorage.com' },
+      { protocol: 'https', hostname: '*.r2.dev' },
       { protocol: 'https', hostname: '*.cloudflare.com' },
       { protocol: 'https', hostname: 'flagcdn.com' },
     ],

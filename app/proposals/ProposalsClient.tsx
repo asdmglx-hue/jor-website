@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Head from 'next/head';
+import { trackEvent } from '@/lib/analytics';
 import { fetchProposals, fetchFeaturedForCarousel, FilterState, Proposal, supabase, TIME_CHIPS, chipDateRange } from '@/lib/supabase';
 import { getNotInterestedIds, addNotInterested, getLockedGenderFilter } from '@/lib/auth';
 import ProposalCard from '@/components/ProposalCard';
@@ -357,6 +358,14 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
 
     // Combined filters, or a value without a dedicated page yet — same
     // behavior as before this feature existed.
+    // Track which filters are actively used — this shows in GA4 exactly
+    // which cities, castes, professions people search, helping prioritise
+    // which category pages to improve or add content to.
+    const activeFilters = Object.entries(next)
+      .filter(([, v]) => v !== undefined && v !== '' && v !== false)
+      .map(([k]) => k)
+      .join(',');
+    if (activeFilters) trackEvent('filter_applied', { filters: activeFilters });
     setFilters(next);
   };
 

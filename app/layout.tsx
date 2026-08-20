@@ -5,6 +5,7 @@ import Link from "next/link";
 import Script from "next/script";
 import "./globals.css";
 import NavbarWrapper from "@/components/NavbarWrapper";
+import NavigationTracker from "@/components/NavigationTracker";
 import ContactSupportButton from "@/components/ContactSupportButton";
 import { supabase } from "@/lib/supabase";
 
@@ -16,23 +17,11 @@ export const metadata: Metadata = {
   keywords: "rishta, matrimonial, Pakistan, shaadi, marriage, proposals, nikah, brides, grooms",
   icons: {
     icon: [
-      // Listed first so modern browsers (which prefer SVG when present)
-      // pick this — perfectly crisp at every size, unlike the fixed-
-      // resolution PNGs below. Traced from a verified 2000x2000 source
-      // and visually confirmed to match (99.78% pixel-identical, the
-      // rest being expected anti-aliasing) before being added here.
       { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico', sizes: 'any' },
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      // Google Search's own favicon guidance recommends a favicon larger
-      // than 48x48px for best display quality across surfaces — without
-      // this, the largest icon Google could find on the page was 32x32.
       { url: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
-      // The largest genuinely-available square icon in /public — already
-      // used in site.webmanifest, now also listed here so browsers/Google
-      // can pick it directly from the page's own <head> rather than only
-      // discovering it via the manifest.
       { url: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
     shortcut: '/favicon.ico',
@@ -43,8 +32,16 @@ export const metadata: Metadata = {
     title: "Jor – Pakistan's Trusted Matrimonial Platform",
     description: "Browse verified rishta proposals across Pakistan. Filter by city, caste, profession and more.",
     type: "website",
+    url: "https://joronline.com",
+    siteName: "Jor",
     locale: "en_PK",
     images: [{ url: 'https://joronline.com/hero-wedding.jpg', width: 1200, height: 630, alt: "Jor – Pakistan's Trusted Matrimonial Platform" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Jor – Pakistan's Trusted Matrimonial Platform",
+    description: "Browse verified rishta proposals across Pakistan. Filter by city, caste, profession and more.",
+    images: ["https://joronline.com/hero-wedding.jpg"],
   },
   robots: { index: true, follow: true },
 };
@@ -84,8 +81,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { helpCenterName, affiliateEnabled, helpCenterVisible, waNumber } = await getFooterSettings();
   return (
     <html lang="en">
+      <head>
+        {/* Preconnect to external domains the page fetches on load.
+            Opens TCP+TLS connections before the browser parses body content —
+            saves 100-300ms per domain on mobile connections.
+            R2: profile photos. Supabase: API. GTM: analytics. */}
+        <link rel="preconnect" href="https://pub-45b25e06fb4b4f448d2ee349c6f55922.r2.dev" />
+        <link rel="preconnect" href="https://olzfarkfxhwcwabgribo.supabase.co" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        {/* Inter via Google Fonts — font-display:swap (baked into the ?display=swap
+            param) means text renders immediately in the system font then
+            swaps to Inter once downloaded. No layout shift: Inter metrics
+            closely match system-ui so the reflow is imperceptible. */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        />
+      </head>
       <body className={inter.className}>
         <NavbarWrapper />
+        <NavigationTracker />
         <main className="site-main" style={{ minHeight: 'calc(100vh - 60px)', overflowX: 'hidden' }}>
           {children}
         </main>
