@@ -71,6 +71,11 @@ export async function revalidateListings(): Promise<void> {
   revalidatePath('/proposals/[slug]', 'page');
   revalidatePath('/proposals/[slug]/[gender]', 'page');
   revalidatePath('/proposals/overseas/[country]', 'page');
+  // Revalidate the sitemap too — so when a profile is deleted, Google's
+  // next sitemap fetch no longer lists that URL, stopping it from being
+  // re-crawled and counted as a 404. Without this the sitemap could lag
+  // by up to the cache TTL and keep sending Google to dead profile pages.
+  revalidatePath('/sitemap.xml');
 }
 
 /**

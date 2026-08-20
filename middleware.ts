@@ -34,6 +34,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(canonicalUrl, 308);
   }
 
+  // Malformed URLs like https://joronline.com/$ and https://joronline.com/&
+  // appear in Google Search Console as 404s — these are caused by broken
+  // links or scrapers appending junk characters. Redirect them cleanly to
+  // the homepage rather than letting them become dead ends that hurt rankings.
+  const pathname = url.pathname;
+  if (/^\/[$&]/.test(pathname)) {
+    const cleanUrl = url.clone();
+    cleanUrl.pathname = '/';
+    cleanUrl.search = '';
+    return NextResponse.redirect(cleanUrl, 301);
+  }
+
   return NextResponse.next();
 }
 

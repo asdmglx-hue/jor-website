@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Head from 'next/head';
 import { fetchProposals, fetchFeaturedForCarousel, FilterState, Proposal, supabase, TIME_CHIPS, chipDateRange } from '@/lib/supabase';
 import { getNotInterestedIds, addNotInterested, getLockedGenderFilter } from '@/lib/auth';
 import ProposalCard from '@/components/ProposalCard';
@@ -434,11 +435,22 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
           <div style={{ marginTop: 12 }}>Loading proposals...</div>
         </div>
       ) : visible.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 0' }}>
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C4C2D8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto 12px' }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#6B6893', marginBottom: 8 }}>No proposals found</div>
-          <div style={{ fontSize: 14, color: '#68629C' }}>Try adjusting your filters</div>
-        </div>
+        <>
+          {/* When filters produce 0 results, tell Google not to index this
+              URL. Without this, Google treats it as a "soft 404" — a page
+              that looks empty but returns 200 OK — which harms rankings.
+              The canonical tag on the parent /proposals page already points
+              here, but noindex is more explicit and fixes the GSC warning. */}
+          <Head>
+            <meta name="robots" content="noindex, follow" />
+          </Head>
+          <div style={{ textAlign: 'center', padding: '60px 0' }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C4C2D8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto 12px' }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#6B6893', marginBottom: 8 }}>No proposals found</div>
+            <div style={{ fontSize: 14, color: '#68629C' }}>Try adjusting your filters</div>
+          </div>
+        </>
+      
       ) : (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, alignItems: 'stretch' }}>

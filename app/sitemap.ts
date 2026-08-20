@@ -10,6 +10,21 @@ const BASE = 'https://joronline.com';
 const GENDER_SLUGS = ['bride', 'groom'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // IMPORTANT — only include pages that:
+  //   1. Exist and return 200 (no redirects, no 404s)
+  //   2. Are not blocked by robots.txt
+  //   3. Use the canonical https:// URL (middleware handles http→https so
+  //      we never need to list http:// URLs here)
+  // Excluded intentionally:
+  //   /get-android  — redirects to Play Store (302/301); listing a redirect
+  //                   in the sitemap wastes crawl budget and confuses Google
+  //   /get-ios      — same reason
+  //   /my-profile   — blocked by robots.txt; listing blocked pages here
+  //                   causes a "blocked but in sitemap" warning in Search Console
+  //   /my-proposal  — same (private user page, blocked in robots.txt)
+  //   /login        — blocked in robots.txt
+  //   /admin/*      — blocked in robots.txt
+  //   /api/*        — blocked in robots.txt
   const staticPages: MetadataRoute.Sitemap = [
     { url: BASE, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
     { url: `${BASE}/proposals`, lastModified: new Date(), changeFrequency: 'hourly', priority: 0.9 },
