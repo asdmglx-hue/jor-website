@@ -23,20 +23,12 @@ export default function ReportButton({ proposalId }: { proposalId: string }) {
     if (!session || session.id?.startsWith('admin:')) return;
     if (session.id === proposalId) return;
 
-    // Fetch fresh subscription status from server — session in localStorage
-    // may be stale if subscription expired after login
-    supabase
-      .from('proposals')
-      .select('subscription_tier, subscription_expiry')
-      .eq('id', session.id)
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const tier   = data.subscription_tier as string | undefined;
-        const expiry = data.subscription_expiry as string | undefined;
-        const active = tier && tier !== 'none' && (!expiry || new Date(expiry) > new Date());
-        setIsActive(!!active);
-      });
+    // Use session subscription data — it's saved fresh at login
+    // and subscription_expiry tells us if it's still valid
+    const tier   = (session as any).subscription_tier as string | undefined;
+    const expiry = (session as any).subscription_expiry as string | undefined;
+    const active = tier && tier !== 'none' && (!expiry || new Date(expiry) > new Date());
+    setIsActive(!!active);
   }, [proposalId]);
 
   if (!isActive) return null;
