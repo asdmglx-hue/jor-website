@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { supabase, fetchCastes, fetchOccupations, fetchCities } from '@/lib/supabase';
 import { trackEvent } from '@/lib/analytics';
@@ -55,7 +55,7 @@ function getProfessionCategory(profession: string): string {
 // CITY_GROUPS moved to lib/constants.ts (shared single source with
 // FeaturedBookModal.tsx — see that file's comment for why).
 
-const SECTS = ['Sunni','Shia','Barelvi','Deobandi','Ahl-e-Hadith'];
+const SECTS = ['Sunni','Shia','Barelvi','Deobandi','Ahl-e-Hadith','Other'];
 const LANGUAGES = ['Punjabi','Pashto','Sindhi','Saraiki','Balochi','Urdu','English','Other'];
 const EDUCATIONS = ['Matric','FSc/FA','Diploma',"Bachelor's","Master's",'MPhil','PhD','Other'];
 const PRACTICE_LEVELS = ['High','Moderate','Low'];
@@ -74,33 +74,11 @@ const PROPERTY_TYPES = ['Residential','Commercial','Land','Multiple'];
 // Combines a dial code with a locally-entered number for storage/display.
 // Pakistani numbers are usually typed with their trunk-prefix "0" (e.g.
 // 0300 1234567) — that 0 must never be kept when it's prefixed with the
-// Formats a dialed phone number using country-aware grouping.
-// Same country table as phoneDisplay() in lib/supabase.ts.
-const PHONE_FORMATS_REG: [string, ...number[]][] = [
-  ['+353', 2, 3, 4], ['+966', 2, 3, 4], ['+971', 2, 3, 4],
-  ['+968', 4, 4], ['+974', 4, 4], ['+973', 4, 4], ['+965', 4, 4],
-  ['+92',  3, 7], ['+64',  2, 3, 4], ['+61',  3, 3, 3],
-  ['+49',  3, 7], ['+47',  3, 2, 3], ['+46',  3, 3, 3],
-  ['+45',  2, 2, 2, 2], ['+44', 4, 6], ['+39', 3, 7],
-  ['+34',  3, 6], ['+33',  1, 2, 2, 2, 2], ['+31', 1, 4, 4],
-  ['+30',  3, 7], ['+90',  3, 3, 4], ['+60',  2, 4, 4],
-  ['+1',   3, 3, 4],
-];
+// +92 country code (should read "+92 300 1234567", not "+92 0300 1234567").
 function formatDialedPhone(dialCode: string, number: string): string {
-  const trimmed = number.trim().replace(/\D/g, '');
+  const trimmed = number.trim();
   const local = dialCode === '+92' ? trimmed.replace(/^0+/, '') : trimmed;
-  const fmt = PHONE_FORMATS_REG.find(([code]) => code === dialCode);
-  if (!fmt) return `${dialCode} ${local}`;
-  const [, ...groups] = fmt;
-  const parts: string[] = [];
-  let pos = 0;
-  for (const g of groups) {
-    if (pos >= local.length) break;
-    parts.push(local.slice(pos, pos + g));
-    pos += g;
-  }
-  if (pos < local.length) parts.push(local.slice(pos));
-  return `${dialCode} ${parts.join(' ')}`;
+  return `${dialCode} ${local}`;
 }
 
 // COUNTRIES_FLAT / COUNTRY_GROUPS moved to lib/constants.ts (shared single
@@ -538,31 +516,10 @@ export default function SubmitClient() {
   const [casteGroups, setCasteGroups] = useState<Record<string, string[]>>(CASTE_GROUPS);
   const [professionGroups, setProfessionGroups] = useState<Record<string, string[]>>(PROFESSION_GROUPS);
 
-  // Verification section visibility — controlled by admin via app_settings.
-  // Mirrors the exact same keys read by the user app and the admin toggle card.
-  // Default true so sections always show before settings load (safe fallback).
-  const [requireCandidateCnic, setRequireCandidateCnic] = useState(true);
-  const [requireLatestDegree, setRequireLatestDegree] = useState(true);
-  const [requireParentsCnic, setRequireParentsCnic] = useState(true);
-  const [requireVerifStep, setRequireVerifStep] = useState(false);
-
   useEffect(() => {
     fetchCities().then(data => { if (Object.keys(data).length > 0) setCityGroups(data); });
     fetchCastes().then(data => { if (Object.keys(data).length > 0) setCasteGroups(data); });
     fetchOccupations().then(data => { if (Object.keys(data).length > 0) setProfessionGroups(data); });
-    // Fetch verification toggles from app_settings (same table + keys the admin
-    // app writes to, and the user app reads from cachedSettings).
-    supabase.from('app_settings').select('key, value')
-      .in('key', ['require_candidate_cnic', 'require_latest_degree', 'require_parents_cnic', 'require_verification_step'])
-      .then(({ data }) => {
-        if (!data) return;
-        const map: Record<string, string> = {};
-        (data as { key: string; value: string }[]).forEach(r => { map[r.key] = r.value; });
-        if (map['require_candidate_cnic'] === 'false') setRequireCandidateCnic(false);
-        if (map['require_latest_degree']  === 'false') setRequireLatestDegree(false);
-        if (map['require_parents_cnic']      === 'false') setRequireParentsCnic(false);
-        if (map['require_verification_step'] === 'true')  setRequireVerifStep(true);
-      });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [maxStep, setMaxStep] = useState<number>(1);
@@ -592,13 +549,24 @@ export default function SubmitClient() {
   const [guardianCnicBackPreview, setGuardianCnicBackPreview] = useState('');
   const [educationDocumentPreview, setEducationDocumentPreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const navigating = useRef(false);
-  const [cnicState, setCnicState] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
-  const [verifError, setVerifError] = useState(false);
-  const cnicCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [errorField, setErrorField] = useState('');
+
+  // Verification section toggles — synced from app_settings
+  const [showCandidateCnic, setShowCandidateCnic] = useState(true);
+  const [showLatestDegree, setShowLatestDegree] = useState(true);
+  const [showParentsCnic, setShowParentsCnic] = useState(true);
+
+  useEffect(() => {
+    supabase.from('app_settings').select('key, value').then(({ data }) => {
+      if (!data) return;
+      const map = Object.fromEntries(data.map((r: {key: string; value: string}) => [r.key, r.value]));
+      if (map['require_candidate_cnic'] === 'false') setShowCandidateCnic(false);
+      if (map['require_latest_degree']  === 'false') setShowLatestDegree(false);
+      if (map['require_parents_cnic']   === 'false') setShowParentsCnic(false);
+    });
+  }, []);
 
   // ── Coupon code (mirrors app/plans/SubscriptionClient.tsx + the admin
   // app's live re-validation on approval — same coupon_codes table, same
@@ -827,18 +795,10 @@ export default function SubmitClient() {
       if (!form.home_type) return fail('House type is required', 'home_type');
       if (!form.marital_status) return fail('Marital status is required', 'marital_status');
     }
-    // Step 4 (Verification) — only validated if admin has made it compulsory
-    if (step === 4 && requireVerifStep) {
-      const missing: string[] = [];
-      if (requireCandidateCnic && (!cnicFront || !cnicBack)) missing.push('Candidate CNIC (front & back)');
-      if (requireLatestDegree && !educationDocument) missing.push('Education Document');
-      if (requireParentsCnic && (!guardianCnicFront || !guardianCnicBack)) missing.push('Guardian CNIC (front & back)');
-      if (missing.length > 0) {
-        setVerifError(true);
-        return fail(`Please upload all required documents: ${missing.join(', ')}`, 'cnic_front');
-      }
-      setVerifError(false);
-    }
+    // Step 4 (Verification) is intentionally not validated here — every
+    // document in it (applicant CNIC, guardian CNIC, education document)
+    // is optional, so the account can be submitted and activated without
+    // them and the documents added later.
     return { msg: '', field: '' };
   };
 
@@ -860,17 +820,11 @@ export default function SubmitClient() {
   };
 
   const next = async () => {
-    if (navigating.current) return;
-    navigating.current = true;
-    try {
-      const err = await validateStepAsync();
-      if (err) { setError(err.msg); setErrorField(err.field); return; }
-      setError(''); setErrorField('');
-      setStep(s => { const n = (s + 1) as 1 | 2 | 3 | 4 | 5; setMaxStep(m => Math.max(m, n)); return n; });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } finally {
-      navigating.current = false;
-    }
+    const err = await validateStepAsync();
+    if (err) { setError(err.msg); setErrorField(err.field); return; }
+    setError(''); setErrorField('');
+    setStep(s => { const n = (s + 1) as 1 | 2 | 3 | 4 | 5; setMaxStep(m => Math.max(m, n)); return n; });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const skip = (target: 4 | 5 = 4) => {
@@ -1135,7 +1089,7 @@ export default function SubmitClient() {
       <div style={{ width: 72, height: 72, borderRadius: 20, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <h2 className="submit-success-heading" style={{ fontSize: 24, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Profile Submitted!</h2>
+      <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Profile Submitted!</h2>
       <p style={{ color: '#6B6893', marginBottom: 24, lineHeight: 1.6 }}>
         Thank you for submitting your profile! Please allow up to 24 hours for review.
       </p>
@@ -1146,7 +1100,7 @@ export default function SubmitClient() {
   );
 
   const steps = ['Account Setup', 'Basic Info', 'Additional Info', 'Verification', 'Review'];
-  const stepsMobile = ['Account', 'Basic Info', 'Additional Info', 'Verification', 'Review'];
+  const stepsMobile = ['Account', 'Basic Info', 'Add. Info', 'Verification', 'Review'];
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px 20px' }}>
@@ -1200,62 +1154,19 @@ export default function SubmitClient() {
             </div>
 
             <Field label="CNIC Number" required>
-              <div style={{ position: 'relative' }}>
-                <input value={form.cnic} style={{ ...inp, paddingRight: 40,
-                  ...(cnicState === 'taken' ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : err('cnic'))
-                }} onChange={e => {
-                  const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
-                  let formatted = digits;
-                  if (digits.length > 5) formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
-                  if (digits.length > 12) formatted = `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
-                  set('cnic', formatted);
-                  setCnicState('idle');
-                  if (cnicCheckTimer.current) clearTimeout(cnicCheckTimer.current);
-                  if (digits.length === 13) {
-                    setCnicState('checking');
-                    cnicCheckTimer.current = setTimeout(async () => {
-                      try {
-                        const { data } = await supabase.rpc('get_cnic_profile_status', { p_cnic: digits });
-                        setCnicState(data ? 'taken' : 'available');
-                      } catch { setCnicState('idle'); }
-                    }, 500);
-                  }
-                }} placeholder="12345-1234567-1" maxLength={15} />
-                {(() => {
-                  const d = form.cnic.replace(/\D/g, '').length;
-                  if (d === 0) return null;
-                  if (d === 13 && cnicState === 'checking') return (
-                    <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                    </span>
-                  );
-                  if (d === 13 && cnicState === 'available') return (
-                    <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" fill="#16A34A"/>
-                        <polyline points="8 12 11 15 16 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </span>
-                  );
-                  if (d === 13 && cnicState === 'taken') return (
-                    <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" fill="#DC2626"/>
-                        <line x1="15" y1="9" x2="9" y2="15" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                        <line x1="9" y1="9" x2="15" y2="15" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                    </span>
-                  );
-                  return <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 11, fontWeight: 600, color: '#9CA3AF', pointerEvents: 'none' }}>{d}/13</span>;
-                })()}
-              </div>
-              {cnicState === 'taken' && (
-                <div style={{ marginTop: 6, fontSize: 12.5, color: '#DC2626', fontWeight: 600 }}>
-                  This CNIC is already registered. <a href="/login" style={{ color: '#534AB7', textDecoration: 'none' }}>→ Login instead</a>
-                </div>
-              )}
+              <input value={form.cnic} style={{ ...inp, ...err('cnic') }} onChange={e => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
+                let formatted = digits;
+                if (digits.length > 5) formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
+                if (digits.length > 12) formatted = `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+                set('cnic', formatted);
+              }} placeholder="12345-1234567-1" maxLength={15} />
             </Field>
-
+            {error.includes('already registered') && (
+              <div style={{ marginTop: -8, marginBottom: 14, fontSize: 13 }}>
+                <Link href="/login" style={{ color: '#534AB7', fontWeight: 700, textDecoration: 'none' }}>→ Go to Login</Link>
+              </div>
+            )}
             <Field label="Set Password" required>
               <PasswordInput value={form.password} onChange={e => set('password', e.target.value)} style={{ ...inp, ...err('password') }} placeholder="Min 6 characters" />
             </Field>
@@ -1330,7 +1241,7 @@ export default function SubmitClient() {
               </Field>
             </div>
 
-            <Field label="Phone Number" required labelExtra={<span style={{ fontSize: 11, fontWeight: 500, color: '#9990B8' }}> · (This number will be used for future verification)</span>}>
+            <Field label="Phone Number" required labelRight={<span style={{ fontSize: 11.5, fontWeight: 500, color: '#9990B8', textAlign: 'right' }}>(This number will be used for future verification)</span>}>
               <PhoneInput value={form.phone} onChange={v => set('phone', v)} dialCode={form.phone_dial_code} onDialChange={v => set('phone_dial_code', v)} required hasError={errorField === 'phone'} inputStyle={inp} />
             </Field>
             {showPhone2 ? (
@@ -1386,7 +1297,7 @@ export default function SubmitClient() {
             )}
 
             <Field label="Caste" required>
-              <SearchableSelect value={form.caste} onChange={v => { set('caste', v); if (v !== 'Other') set('caste_custom', ''); }} groups={casteGroups} placeholder="Select caste" hasError={errorField === 'caste'} pinnedOption={{ label: "Other (my caste isn't listed)", value: 'Other' }} />
+              <SearchableSelect value={form.caste} onChange={v => { set('caste', v); if (v !== 'Other') set('caste_custom', ''); }} groups={casteGroups} placeholder="Select caste" hasError={errorField === 'caste'} />
             </Field>
             {form.caste === 'Other' && (
               <SubSection>
@@ -1398,13 +1309,7 @@ export default function SubmitClient() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="Sect / Maslak" required>
-                <SearchableSelect
-                  value={form.sect}
-                  onChange={v => set('sect', v)}
-                  groups={{ 'Sect': SECTS }}
-                  placeholder="Select"
-                  hasError={errorField === 'sect'}
-                />
+                <Sel value={form.sect} onChange={v => set('sect', v)} options={SECTS} placeholder="Select" hasError={errorField === 'sect'} />
               </Field>
               <Field label="Native Language">
                 <Sel value={form.language} onChange={v => set('language', v)} options={LANGUAGES} placeholder="Select" />
@@ -1485,7 +1390,7 @@ export default function SubmitClient() {
                   <div style={{ fontSize: 12, color: '#68629C' }}>All fields below are optional</div>
                 </div>
               </div>
-              <button onClick={() => skip(4)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => skip(4)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 Skip →
               </button>
             </div>
@@ -1635,84 +1540,78 @@ export default function SubmitClient() {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </div>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Verification{requireVerifStep && <span style={{ color: '#DC2626' }}> *</span>}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#1A1830' }}>Verification</div>
                   <div style={{ fontSize: 12, color: '#68629C' }}>Your documents remain private and fully secured</div>
                 </div>
               </div>
-              {!requireVerifStep && (
-                <button onClick={() => skip(5)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-                  Skip →
-                </button>
-              )}
+              <button onClick={() => skip(5)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                Skip →
+              </button>
             </div>
 
-            <div style={{ background: verifError ? '#FEE2E2' : '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: verifError ? '#DC2626' : '#534AB7', lineHeight: 1.6 }}>
-              {requireVerifStep ? 'The following documents are required to verify your identity.' : 'Documents are required for identity verification, but you can submit them later.'}
+            <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
+              The following documents are required to verify your identity.
             </div>
 
-            {requireCandidateCnic && (
-              <>
-                <SecHeader title="FOR MARRIAGE-SEEKING PERSON" />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <CnicUploadBox label="CNIC Front" fieldKey="cnicFront" errorField={errorField}
-                    file={cnicFront} preview={cnicFrontPreview} compressing={compressingCnicFront}
-                    onFileSelected={async raw => {
-                      setCompressingCnicFront(true);
-                      const f = await compressImage(raw);
-                      setCnicFront(f); setCnicFrontPreview(URL.createObjectURL(f));
-                      setCompressingCnicFront(false);
-                    }}
-                    onRemove={() => { setCnicFront(null); setCnicFrontPreview(''); }} />
-                  <CnicUploadBox label="CNIC Back" fieldKey="cnicBack" errorField={errorField}
-                    file={cnicBack} preview={cnicBackPreview} compressing={compressingCnicBack}
-                    onFileSelected={async raw => {
-                      setCompressingCnicBack(true);
-                      const f = await compressImage(raw);
-                      setCnicBack(f); setCnicBackPreview(URL.createObjectURL(f));
-                      setCompressingCnicBack(false);
-                    }}
-                    onRemove={() => { setCnicBack(null); setCnicBackPreview(''); }} />
-                </div>
-              </>
-            )}
-
-            {requireLatestDegree && (
-              <CnicUploadBox label="Most Recent Education Document" fieldKey="educationDocument" errorField={errorField}
-                file={educationDocument} preview={educationDocumentPreview} compressing={compressingEducationDocument}
+            {showCandidateCnic && (<>
+            <SecHeader title="FOR MARRIAGE-SEEKING PERSON" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <CnicUploadBox label="CNIC Front" fieldKey="cnicFront" errorField={errorField}
+                file={cnicFront} preview={cnicFrontPreview} compressing={compressingCnicFront}
                 onFileSelected={async raw => {
-                  setCompressingEducationDocument(true);
+                  setCompressingCnicFront(true);
                   const f = await compressImage(raw);
-                  setEducationDocument(f); setEducationDocumentPreview(URL.createObjectURL(f));
-                  setCompressingEducationDocument(false);
+                  setCnicFront(f); setCnicFrontPreview(URL.createObjectURL(f));
+                  setCompressingCnicFront(false);
                 }}
-                onRemove={() => { setEducationDocument(null); setEducationDocumentPreview(''); }} />
+                onRemove={() => { setCnicFront(null); setCnicFrontPreview(''); }} />
+              <CnicUploadBox label="CNIC Back" fieldKey="cnicBack" errorField={errorField}
+                file={cnicBack} preview={cnicBackPreview} compressing={compressingCnicBack}
+                onFileSelected={async raw => {
+                  setCompressingCnicBack(true);
+                  const f = await compressImage(raw);
+                  setCnicBack(f); setCnicBackPreview(URL.createObjectURL(f));
+                  setCompressingCnicBack(false);
+                }}
+                onRemove={() => { setCnicBack(null); setCnicBackPreview(''); }} />
+            </div>
+            </>)}
+
+            {showLatestDegree && (
+            <CnicUploadBox label="Most Recent Education Document" fieldKey="educationDocument" errorField={errorField}
+              file={educationDocument} preview={educationDocumentPreview} compressing={compressingEducationDocument}
+              onFileSelected={async raw => {
+                setCompressingEducationDocument(true);
+                const f = await compressImage(raw);
+                setEducationDocument(f); setEducationDocumentPreview(URL.createObjectURL(f));
+                setCompressingEducationDocument(false);
+              }}
+              onRemove={() => { setEducationDocument(null); setEducationDocumentPreview(''); }} />
             )}
 
-            {requireParentsCnic && (
-              <>
-                <SecHeader title="PARENT / GUARDIAN" />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <CnicUploadBox label="CNIC Front" fieldKey="guardianCnicFront" errorField={errorField}
-                    file={guardianCnicFront} preview={guardianCnicFrontPreview} compressing={compressingGuardianCnicFront}
-                    onFileSelected={async raw => {
-                      setCompressingGuardianCnicFront(true);
-                      const f = await compressImage(raw);
-                      setGuardianCnicFront(f); setGuardianCnicFrontPreview(URL.createObjectURL(f));
-                      setCompressingGuardianCnicFront(false);
-                    }}
-                    onRemove={() => { setGuardianCnicFront(null); setGuardianCnicFrontPreview(''); }} />
-                  <CnicUploadBox label="CNIC Back" fieldKey="guardianCnicBack" errorField={errorField}
-                    file={guardianCnicBack} preview={guardianCnicBackPreview} compressing={compressingGuardianCnicBack}
-                    onFileSelected={async raw => {
-                      setCompressingGuardianCnicBack(true);
-                      const f = await compressImage(raw);
-                      setGuardianCnicBack(f); setGuardianCnicBackPreview(URL.createObjectURL(f));
-                      setCompressingGuardianCnicBack(false);
-                    }}
-                    onRemove={() => { setGuardianCnicBack(null); setGuardianCnicBackPreview(''); }} />
-                </div>
-              </>
-            )}
+            {showParentsCnic && (<>
+            <SecHeader title="PARENT / GUARDIAN" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <CnicUploadBox label="CNIC Front" fieldKey="guardianCnicFront" errorField={errorField}
+                file={guardianCnicFront} preview={guardianCnicFrontPreview} compressing={compressingGuardianCnicFront}
+                onFileSelected={async raw => {
+                  setCompressingGuardianCnicFront(true);
+                  const f = await compressImage(raw);
+                  setGuardianCnicFront(f); setGuardianCnicFrontPreview(URL.createObjectURL(f));
+                  setCompressingGuardianCnicFront(false);
+                }}
+                onRemove={() => { setGuardianCnicFront(null); setGuardianCnicFrontPreview(''); }} />
+              <CnicUploadBox label="CNIC Back" fieldKey="guardianCnicBack" errorField={errorField}
+                file={guardianCnicBack} preview={guardianCnicBackPreview} compressing={compressingGuardianCnicBack}
+                onFileSelected={async raw => {
+                  setCompressingGuardianCnicBack(true);
+                  const f = await compressImage(raw);
+                  setGuardianCnicBack(f); setGuardianCnicBackPreview(URL.createObjectURL(f));
+                  setCompressingGuardianCnicBack(false);
+                }}
+                onRemove={() => { setGuardianCnicBack(null); setGuardianCnicBackPreview(''); }} />
+            </div>
+            </>)}
 
           </div>
         )}
@@ -1924,7 +1823,7 @@ export default function SubmitClient() {
                     onClick={() => applyCoupon()}
                     disabled={validatingCoupon || !couponCode.trim()}
                     style={{
-                      padding: '0 18px', borderRadius: 8, border: 'none', flexShrink: 0,
+                      padding: '9px 14px', borderRadius: 8, border: 'none', flexShrink: 0, minWidth: 64,
                       background: validatingCoupon || !couponCode.trim() ? '#F5D9C4' : '#E8620A',
                       color: validatingCoupon || !couponCode.trim() ? '#B98254' : '#fff',
                       fontWeight: 700, fontSize: 13, cursor: validatingCoupon || !couponCode.trim() ? 'default' : 'pointer',
@@ -1970,7 +1869,7 @@ export default function SubmitClient() {
                     onClick={() => applyAffiliateCode()}
                     disabled={validatingAffiliate || !form.affiliate.trim()}
                     style={{
-                      padding: '0 18px', borderRadius: 8, border: 'none', flexShrink: 0,
+                      padding: '9px 14px', borderRadius: 8, border: 'none', flexShrink: 0, minWidth: 64,
                       background: validatingAffiliate || !form.affiliate.trim() ? '#D4D1F7' : '#534AB7',
                       color: validatingAffiliate || !form.affiliate.trim() ? '#8F8AC7' : '#fff',
                       fontWeight: 700, fontSize: 13, cursor: validatingAffiliate || !form.affiliate.trim() ? 'default' : 'pointer',

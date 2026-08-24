@@ -1100,7 +1100,7 @@ export default function SubmitClient() {
   );
 
   const steps = ['Account Setup', 'Basic Info', 'Additional Info', 'Verification', 'Review'];
-  const stepsMobile = ['Account', 'Basic Info', 'Additional Info', 'Verification', 'Review'];
+  const stepsMobile = ['Account', 'Basic Info', 'Add. Info', 'Verification', 'Review'];
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px 20px' }}>
@@ -1390,7 +1390,7 @@ export default function SubmitClient() {
                   <div style={{ fontSize: 12, color: '#68629C' }}>All fields below are optional</div>
                 </div>
               </div>
-              <button onClick={() => skip(4)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => skip(4)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 Skip →
               </button>
             </div>
@@ -1544,7 +1544,7 @@ export default function SubmitClient() {
                   <div style={{ fontSize: 12, color: '#68629C' }}>Your documents remain private and fully secured</div>
                 </div>
               </div>
-              <button onClick={() => skip(5)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => skip(5)} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #534AB733', background: '#EEEDFE', color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 Skip →
               </button>
             </div>
@@ -1823,7 +1823,7 @@ export default function SubmitClient() {
                     onClick={() => applyCoupon()}
                     disabled={validatingCoupon || !couponCode.trim()}
                     style={{
-                      padding: '0 18px', borderRadius: 8, border: 'none', flexShrink: 0,
+                      padding: '9px 14px', borderRadius: 8, border: 'none', flexShrink: 0, minWidth: 64,
                       background: validatingCoupon || !couponCode.trim() ? '#F5D9C4' : '#E8620A',
                       color: validatingCoupon || !couponCode.trim() ? '#B98254' : '#fff',
                       fontWeight: 700, fontSize: 13, cursor: validatingCoupon || !couponCode.trim() ? 'default' : 'pointer',
@@ -1869,7 +1869,7 @@ export default function SubmitClient() {
                     onClick={() => applyAffiliateCode()}
                     disabled={validatingAffiliate || !form.affiliate.trim()}
                     style={{
-                      padding: '0 18px', borderRadius: 8, border: 'none', flexShrink: 0,
+                      padding: '9px 14px', borderRadius: 8, border: 'none', flexShrink: 0, minWidth: 64,
                       background: validatingAffiliate || !form.affiliate.trim() ? '#D4D1F7' : '#534AB7',
                       color: validatingAffiliate || !form.affiliate.trim() ? '#8F8AC7' : '#fff',
                       fontWeight: 700, fontSize: 13, cursor: validatingAffiliate || !form.affiliate.trim() ? 'default' : 'pointer',
