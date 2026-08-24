@@ -1,0 +1,547 @@
+@import "tailwindcss";
+
+@theme {
+  --color-purple: #534AB7;
+  --color-purple-deep: #3D35A0;
+  --color-purple-light: #EEEDFE;
+  --color-purple-mid: #D4D1F7;
+  --color-teal: #0F6E56;
+  --color-teal-light: #E1F5EE;
+  --color-amber: #E8620A;
+  --color-amber-light: #FEEDE3;
+  --color-rose: #E11D48;
+  --color-rose-light: #FFE4E6;
+  --color-ink: #1A1830;
+  --color-ink-light: #6B6893;
+  --color-ink-faint: #68629C;
+  --color-surface: #FAF9FF;
+  --color-card: #FFFFFF;
+  --color-border: #E8E6F5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* On the homepage specifically, remove the footer's usual top gap so the
+   "How It Works" section's own light-lavender background flows directly
+   into the dark footer with no visible seam, instead of leaving a blank
+   strip of the page's default background in between. Scoped with :has()
+   so this only ever applies when .home-last-section actually exists in
+   the page — every other page keeps the normal footer spacing untouched. */
+body:has(.home-last-section) footer.site-footer {
+  margin-top: 0 !important;
+}
+
+.bullet-purple {
+  list-style: disc;
+}
+
+.bullet-purple li::marker {
+  color: #534AB7;
+}
+
+@keyframes gradientSlide {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 100% 0%; }
+}
+
+.nav-gradient-bar {
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(90deg, #534AB7, #7C6FE0, #0F6E56, #2D9CDB, #E11D48, #534AB7);
+  background-size: 200% 100%;
+  animation: gradientSlide 3s linear infinite;
+}
+
+
+html {
+  /* Same reasoning as body below — some browsers treat html, not body,
+     as the actual page-level horizontal scroll container, so both need
+     this to reliably prevent sideways scrolling in every browser. */
+  overflow-x: hidden;
+}
+
+body {
+  background: #FAF9FF;
+  color: #1A1830;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #FAF9FF; }
+::-webkit-scrollbar-thumb { background: #D4D1F7; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #534AB7; }
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Smooth transitions */
+.card-hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transform: translateZ(0);
+}
+.card-hover:hover {
+  box-shadow: 0 8px 24px rgba(83, 74, 183, 0.12);
+  transform: translate3d(0, -1px, 0);
+}
+
+/* ── Responsive utilities ─────────────────────────────────────────────────── */
+
+/* Footer */
+.site-footer a { transition: color 0.2s; }
+.footer-nav-main a:hover,
+.footer-nav-mobile-copy a:hover { color: #A89EF0 !important; }
+.footer-nav-legal a:hover { color: #A89EF0 !important; }
+.footer-inner {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.footer-nav-links {
+  display: flex;
+  gap: 24px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.footer-payment-img {
+  display: block;
+  margin-left: auto;
+  margin-bottom: 4px;
+  height: 36px;
+  width: auto;
+  max-width: 100%;
+}
+
+/* Proposal detail two-column layout */
+.proposal-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+}
+/* Grid items default to min-width: auto, meaning they refuse to shrink
+   below their content's natural width — same underlying quirk as
+   flexbox. Without this, any long unbroken text anywhere in either
+   column (a name, a sentence with no natural wrap point, etc.) silently
+   pushes the entire grid — and therefore the whole page — wider than the
+   viewport on mobile, even though each individual piece of text "looks"
+   like it should just wrap normally. */
+.proposal-detail-grid > * {
+  min-width: 0;
+}
+.proposal-sidebar {
+  position: sticky;
+  top: 16px;
+  align-self: start;
+}
+
+/* Name font size lives here (not inline) specifically so the mobile
+   media query below can shrink it — only this element, only on mobile,
+   nothing else on the page or on desktop is touched. */
+.profile-name {
+  font-size: 22px;
+}
+
+/* FEATURED badge on profile detail page — same reasoning as .profile-name
+   above: font-size/padding/icon live here so the mobile query can shrink
+   them independently of the desktop size. */
+.featured-badge {
+  font-size: 11px;
+  padding: 4px 12px;
+  gap: 4px;
+  top: -12px;
+}
+.featured-badge svg {
+  width: 10px;
+  height: 10px;
+}
+
+/* Hero stats */
+.hero-stats {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+.hero-stat-card {
+  background: rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 14px 24px;
+  min-width: 120px;
+}
+
+/* My proposal form grid */
+.form-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── Footer nav desktop/mobile visibility ─────────────────────────────────── */
+.footer-nav-desktop { display: block !important; }
+.footer-nav-mobile-copy { display: none !important; }
+
+/* ── Contact Support floating button — hidden entirely on small screens ─── */
+@media (max-width: 600px) {
+  .contact-support-btn {
+    display: none !important;
+  }
+}
+
+/* ── Footer mobile responsive ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .site-footer {
+    padding: 28px 16px 40px !important;
+    text-align: center;
+  }
+  .footer-top-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 20px;
+    margin-bottom: 0 !important;
+    text-align: center;
+  }
+  .footer-top-row > img {
+    margin-left: 36px !important;
+    margin-right: 0 !important;
+    transform: scale(0.8) !important;
+    transform-origin: center !important;
+  }
+  .footer-tagline {
+    margin: 4px 0 28px !important;
+    text-align: center;
+    font-size: 18px !important;
+  }
+  .footer-app-badges {
+    margin-bottom: 32px;
+    justify-content: center;
+  }
+  .footer-nav-right {
+    text-align: center !important;
+    width: 100%;
+  }
+  .footer-nav-main {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 14px !important;
+    font-size: 14px !important;
+  }
+  .footer-nav-legal {
+    justify-content: center !important;
+    margin-top: 8px;
+  }
+  .footer-nav-desktop { display: none !important; }
+  .footer-nav-mobile-copy { display: block !important; width: 100%; text-align: center; }
+  .footer-nav-mobile-copy div { justify-content: center; }
+  .footer-bottom-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0 !important;
+    margin-top: 20px;
+  }
+  .footer-payment {
+    text-align: center !important;
+    width: 100%;
+  }
+  .footer-payment img {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .footer-payment p {
+    text-align: center !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-br { display: none; }
+}
+
+/* Filter bar responsive */
+.filter-desktop { display: block; }
+.filter-mobile { display: none; }
+.saved-btn { padding: 8px 16px; border-radius: 12px; font-size: 13px; }
+.proposals-br { display: none; }
+
+@media (max-width: 768px) {
+  .filter-desktop { display: none; }
+  .filter-mobile { display: flex; }
+  .my-account-right { align-items: center !important; width: 100% !important; }
+  .my-account-actions { gap: 8px !important; justify-content: center !important; width: 100% !important; }
+  .my-account-actions a, .my-account-actions button { flex: 1 !important; justify-content: center !important; }
+  .my-account-actions a, .my-account-actions button { padding: 6px 8px !important; }
+  .hash-desktop { display: none !important; }
+  .hash-mobile { display: block !important; }
+  .credits-badge-desktop { display: none !important; }
+  /* Mobile: hide desktop layout, show mobile layout */
+  .featured-desktop-layout { display: none !important; }
+  .featured-mobile-layout { display: block !important; }
+  /* Register form: Apply button must not wrap on narrow phones */
+  .coupon-apply-btn, .referral-apply-btn { white-space: nowrap !important; min-width: 64px !important; padding: 9px 12px !important; flex-shrink: 0 !important; }
+  /* Register step tabs: Additional Info must fit */
+  .step-tab-label { font-size: 9px !important; }
+  .my-account-left { width: 100% !important; }
+  .saved-btn-header { display: none !important; }
+  .proposals-br { display: block; }
+  .plans-grid { grid-template-columns: 1fr !important; }
+  .refer-steps-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .refer-cta-btns { flex-direction: column !important; align-items: stretch !important; }
+  .refer-cta-btns button { width: 100% !important; }
+  .refer-page-wrap { padding: 20px 16px !important; }
+  .site-main { min-height: auto !important; }
+  /* Register success screen heading — 24px is too large on 360px phones */
+  .submit-success-heading { font-size: 20px !important; }
+}
+
+/* Navbar responsive */
+.nav-mobile { display: none !important; }
+.nav-desktop { display: flex !important; }
+.logo-full { display: block; }
+.logo-mobile { display: none; }
+.step-label-desktop { display: inline !important; }
+.step-label-mobile { display: none !important; }
+
+@media (max-width: 640px) {
+  .nav-mobile { display: flex !important; }
+  .nav-desktop { display: none !important; }
+  .logo-full { display: none; }
+  .logo-mobile { display: block; }
+  .step-label-desktop { display: none !important; }
+  .step-label-mobile { display: inline !important; }
+}
+
+@media (max-width: 768px) {
+  .step-label-desktop { display: none !important; }
+  .step-label-mobile { display: inline !important; }
+
+  /* Footer */
+  footer {
+    padding: 28px 16px 40px !important;
+  }
+  .footer-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .footer-nav-links {
+    justify-content: flex-start;
+    gap: 14px;
+    font-size: 14px;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .footer-payment-img {
+    margin-left: 0;
+  }
+
+  /* Proposal detail — stack sidebar below content on mobile */
+  .proposal-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .proposal-sidebar {
+    position: static;
+  }
+  .profile-name {
+    font-size: 18px;
+  }
+  .featured-badge {
+    font-size: 9px;
+    padding: 3px 9px;
+    gap: 3px;
+    top: -9px;
+  }
+  .featured-badge svg {
+    width: 8px;
+    height: 8px;
+  }
+
+  /* Hero stats — tighter on mobile */
+  .hero-stats {
+    gap: 10px;
+    margin-top: 28px;
+  }
+  .hero-stat-card {
+    min-width: 90px;
+    padding: 12px 16px;
+  }
+
+  /* My proposal form — single column on mobile */
+  .form-grid-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-nav-links {
+    gap: 10px;
+    font-size: 13px;
+  }
+  .hero-stat-card {
+    min-width: 80px;
+    padding: 10px 12px;
+  }
+}
+
+/* Small loading spinner used for the "Processing photo…" indicator shown
+   while client-side image compression runs before upload. */
+.spin {
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Testimonials page — the connecting "thread" timeline ────────────────
+   Visual nod to what "Jor" itself means (a bond/pairing): a single line
+   runs the full height of the story list, with a small knot marking each
+   story's connection to it, alternating left/right like a garland. */
+.testi-scroll-wrap {
+  position: relative;
+}
+.testi-scroll {
+  /* Roughly 2 story cards tall (card height + row gap) as a fallback
+     before StoryScrollBox's JS measures the exact height on mount, then
+     scrolls — tune this if card copy length changes noticeably. No
+     padding on this element itself — StoryScrollBox's wheel handler
+     reads its scrollHeight/clientHeight directly, and padding here would
+     throw that math off by a few px, which is exactly what caused the
+     "stuck until you move the pointer" bug. */
+  max-height: 620px;
+  overflow-y: auto;
+  /* Without this, the browser's own native scroll-chaining can leak into
+     the page's scroll WHILE this box still has room left — running
+     alongside StoryScrollBox's manual forwarding rather than instead of
+     it, which is what caused the page to visibly move at the same time
+     as the box. This makes StoryScrollBox's JS the only thing that
+     decides when to hand off to the page (once the box is genuinely
+     maxed), instead of the browser doing some of that on its own too. */
+  overscroll-behavior-y: contain;
+  /* Scrollbar hidden on purpose — mouse-wheel/touch scrolling over this
+     box still works exactly like scrolling the page itself, it just
+     doesn't show its own scrollbar track so it doesn't read as a
+     separate boxed-in widget. */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
+}
+.testi-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, new Edge */
+}
+.testi-scroll-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 56px;
+  background: linear-gradient(180deg, rgba(250, 249, 255, 0) 0%, #FAF9FF 85%);
+  pointer-events: none;
+}
+.testi-timeline {
+  position: relative;
+}
+.testi-thread-line {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: linear-gradient(180deg, #D4D1F7 0%, #534AB7 12%, #534AB7 88%, #D4D1F7 100%);
+  z-index: 0;
+}
+.testi-row {
+  display: flex;
+  align-items: center;
+  position: relative;
+  margin-bottom: 56px;
+}
+.testi-row:last-child { margin-bottom: 0; }
+.testi-row-left { justify-content: flex-start; }
+.testi-row-right { justify-content: flex-end; }
+.testi-card {
+  width: 44%;
+  position: relative;
+  z-index: 1;
+}
+.testi-knot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 3px solid #FAF9FF;
+  z-index: 2;
+  box-shadow: 0 0 0 2px rgba(83, 74, 183, 0.15);
+}
+.testi-monogram {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .testi-scroll { max-height: 600px; }
+  .testi-thread-line { left: 22px; }
+  .testi-row-left, .testi-row-right { justify-content: flex-start; }
+  .testi-card { width: calc(100% - 46px); margin-left: 46px; }
+  .testi-knot { left: 22px; }
+  .testi-hero h1 { padding: 0 4px; }
+}
+
+/* ── Blog listing grid ────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .blog-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 600px) {
+  .blog-grid { grid-template-columns: 1fr !important; }
+}
+
+
+
+/* Sticky navbar for homepage only */
+.navbar-sticky {
+  position: sticky !important;
+  top: 0;
+  z-index: 100;
+}
