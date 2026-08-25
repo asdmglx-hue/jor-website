@@ -13,7 +13,7 @@ function Field({ label, required, children }: { label: string; required?: boolea
   return (
     <div style={{ marginBottom: 14 }}>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>
-        {label}
+        {label}{required && <span style={{ color: '#DC2626', marginLeft: 2 }}>*</span>}
       </label>
       {children}
     </div>
@@ -49,7 +49,10 @@ function UploadBox({ label, file, preview, compressing, onFileSelected, onRemove
             ? <img src={preview} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <div style={{ textAlign: 'center', color: '#68629C' }}>
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 8px' }}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="7" cy="13" r="1"/></svg>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>Tap to upload {label}</div>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>
+                  Tap to upload {label.replace(' *', '')}
+                  {label.endsWith(' *') && <span style={{ color: '#DC2626' }}> *</span>}
+                </div>
                 <div style={{ fontSize: 11, marginTop: 2 }}>JPG, PNG supported</div>
               </div>
           }
