@@ -905,40 +905,34 @@ export default function MyProposalClient() {
             )}
             {/* Verify Now / Get Verified Badge — show for pending AND active profiles */}
             {(user.status === 'pending' || user.status === 'active') && (() => {
-              const dv = user.doc_verification ?? {};
-              const anyRejected = Object.values(dv).some((v) => v === 'rejected');
-              if (anyRejected) return true;
-              if (user.is_doc_verified) return false;
+              const dv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
+              const anyRejected = Object.values(dv).some((v: string) => v === 'rejected');
+              if (anyRejected) {
+                return (
+                  <button onClick={() => setVerifyModalOpen(true)}
+                    style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>Verify Now</span>
+                  </button>
+                );
+              }
+              if (user.is_doc_verified) return null;
               const hasCnic    = !!(user.cnic_front_url && user.cnic_back_url);
               const hasDegree  = !!user.education_document_url;
               const hasParents = !!(user.guardian_cnic_front_url && user.guardian_cnic_back_url);
               const showCnic    = verifyNowSettings['verify_now_candidate_cnic'] !== 'false';
               const showDegree  = verifyNowSettings['verify_now_latest_degree']  !== 'false';
               const showParents = verifyNowSettings['verify_now_parents_cnic']   !== 'false';
-              return (showCnic && !hasCnic) || (showDegree && !hasDegree) || (showParents && !hasParents);
-            })() && (() => {
-              // Determine label: "Verify Now" if compulsory doc missing, else "Get Verified Badge"
-              const hasCnic    = !!(user.cnic_front_url && user.cnic_back_url);
-              const hasDegree  = !!user.education_document_url;
-              const hasParents = !!(user.guardian_cnic_front_url && user.guardian_cnic_back_url);
-              // We don't have settings client-side here, so we approximate:
-              // if any rejected doc exists, always say Verify Now
-              const dv = user.doc_verification ?? {};
-              const anyRejected = Object.values(dv).some((v) => v === 'rejected');
-              // Check if missing docs are compulsory (use is_doc_verified as proxy:
-              // if cnic+parents approved but education missing → non-compulsory → badge label)
-              const cnicApproved    = dv['cnic_front'] === 'approved' && dv['cnic_back'] === 'approved';
-              const parentsApproved = dv['guardian_cnic_front'] === 'approved' && dv['guardian_cnic_back'] === 'approved';
+              const shouldShow  = (showCnic && !hasCnic) || (showDegree && !hasDegree) || (showParents && !hasParents);
+              if (!shouldShow) return null;
               const cnicCompulsory    = verifyNowSettings['verify_now_candidate_cnic_compulsory'] !== 'false';
               const degreeCompulsory  = verifyNowSettings['verify_now_latest_degree_compulsory']  === 'true';
               const parentsCompulsory = verifyNowSettings['verify_now_parents_cnic_compulsory']   !== 'false';
               const missingCompulsory =
-                (verifyNowSettings['verify_now_candidate_cnic'] !== 'false' && cnicCompulsory && !hasCnic) ||
-                (verifyNowSettings['verify_now_latest_degree']  !== 'false' && degreeCompulsory && !hasDegree) ||
-                (verifyNowSettings['verify_now_parents_cnic']   !== 'false' && parentsCompulsory && !hasParents) ||
-                anyRejected;
-              const allCompulsoryDone = !missingCompulsory;
-              const label = allCompulsoryDone ? 'Get Verified Badge' : 'Verify Now';
+                (showCnic    && cnicCompulsory    && !hasCnic) ||
+                (showDegree  && degreeCompulsory  && !hasDegree) ||
+                (showParents && parentsCompulsory && !hasParents);
+              const label = missingCompulsory ? 'Verify Now' : 'Get Verified Badge';
               return (
                 <button onClick={() => setVerifyModalOpen(true)}
                   style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
