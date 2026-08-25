@@ -46,6 +46,64 @@ export async function updateOwnProposalAction(params: {
   return { data, error };
 }
 
+// Self-service document verification ("Verify Now").
+//
+// This MUST go through submit_cnic_verification, exactly like the user app
+// does (SupabaseService.submitCnicVerification → same RPC). It is not the
+// same thing as writing the five *_url columns via update_own_proposal_secure,
+// which is what this site used to do. That older path skipped three steps the
+// RPC performs, and each one broke something:
+//
+//   1. inserts a row into cnic_verification_requests — this is the ONLY thing
+//      the Admin app watches to raise the red dot on the Users tab and to fire
+//      its realtime channel. Without it a website submission is invisible to
+//      the reviewer.
+//   2. resets doc_verification[key] to 'pending' for each submitted doc, so a
+//      previously *rejected* document is reviewable again and the admin's
+//      Approve/Reject buttons reset. Without it the doc stays 'rejected'
+//      forever and the member re-uploads in a loop with nothing changing.
+//   3. sets is_doc_verified = false, so swapping a document on an already
+//      verified profile requires re-approval instead of silently keeping the
+//      badge.
+//
+// The RPC also deletes any existing pending request first (re-submission
+// replaces rather than stacks), and coalesces the URLs so omitted documents
+// keep whatever is already on the profile.
+//
+// Only pass URLs that are actually set — the RPC's parameters all default to
+// NULL, and it nullif('')s anyway, but omitting them keeps the call identical
+// in shape to the app's.
+export async function submitCnicVerificationAction(params: {
+  p_cnic: string;
+  frontUrl?: string;
+  backUrl?: string;
+  guardianFrontUrl?: string;
+  guardianBackUrl?: string;
+  educationDocumentUrl?: string;
+  proposalNumber?: number | string;
+}): Promise<{ ok: boolean; error: string | null }> {
+  const rpcParams: Record<string, string> = { p_cnic: params.p_cnic.trim() };
+  if (params.frontUrl)            rpcParams.p_front_url               = params.frontUrl;
+  if (params.backUrl)             rpcParams.p_back_url                = params.backUrl;
+  if (params.guardianFrontUrl)    rpcParams.p_guardian_front_url      = params.guardianFrontUrl;
+  if (params.guardianBackUrl)     rpcParams.p_guardian_back_url       = params.guardianBackUrl;
+  if (params.educationDocumentUrl) rpcParams.p_education_document_url = params.educationDocumentUrl;
+
+  const { error } = await supabase.rpc('submit_cnic_verification', rpcParams);
+
+  if (error) return { ok: false, error: error.message };
+
+  // The documents themselves are never shown publicly, but is_doc_verified
+  // drives the badge on the card and profile page, and this call can turn it
+  // off — so the cached pages need refreshing.
+  await revalidateListings();
+  if (params.proposalNumber !== undefined) {
+    await revalidateProfile(params.proposalNumber);
+  }
+
+  return { ok: true, error: null };
+}
+
 export async function deleteOwnProposalAction(params: {
   p_id: string;
   p_password: string;

@@ -904,7 +904,7 @@ export default function MyProposalClient() {
               </Link>
             )}
             {/* Verify Now / Get Verified Badge — show for pending AND active profiles */}
-            {(user.status === 'pending' || user.status === 'active') && (() => {
+            {(user.status === 'pending' || user.status === 'active') && user.cnic_verified !== true && (() => {
               const dv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
               const anyRejected = Object.values(dv).some((v: string) => v === 'rejected');
               if (anyRejected) {
@@ -932,7 +932,9 @@ export default function MyProposalClient() {
                 (showCnic    && cnicCompulsory    && !hasCnic) ||
                 (showDegree  && degreeCompulsory  && !hasDegree) ||
                 (showParents && parentsCompulsory && !hasParents);
-              const label = missingCompulsory ? 'Verify Now' : 'Get Verified Badge';
+              // Matches the app: with badges switched off there is no badge to
+              // offer, so the button never reads "Get Verified Badge".
+              const label = !badgeEnabled || missingCompulsory ? 'Verify Now' : 'Get Verified Badge';
               return (
                 <button onClick={() => setVerifyModalOpen(true)}
                   style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>

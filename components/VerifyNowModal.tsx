@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { compressImage } from '@/lib/compressImage';
-import { updateOwnProposalAction } from '@/lib/actions/proposal-actions';
+import { submitCnicVerificationAction } from '@/lib/actions/proposal-actions';
 import { supabase } from '@/lib/supabase';
 import type { Proposal } from '@/lib/supabase';
 
@@ -130,25 +130,44 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
 
   const hasAnyFile = !!(cnicFront || cnicBack || educationDocument || guardianCnicFront || guardianCnicBack);
 
+  // Validation, upload gating and the submit call below all mirror the user
+  // app's _showVerifyNowSheet (subscription_screen.dart) line for line, so the
+  // two clients behave identically. Notably: the candidate CNIC is required
+  // whenever its section is SHOWN — the app gates on requireCnic, not on
+  // compulsoryCnic — and only sections that are shown get uploaded at all.
   const handleSubmit = async () => {
-    if (!hasAnyFile) { setError('Upload at least one document before submitting.'); return; }
-    // CNIC pairs: both sides must be provided together
-    if ((cnicFront && !cnicBack) || (!cnicFront && cnicBack)) {
-      setError('Please upload both sides of the candidate CNIC (front and back).');
+    // 1. Candidate CNIC — both sides mandatory while the section is shown.
+    if (showCandidateCnic && (!cnicFront || !cnicBack)) {
+      setError('Please add both CNIC Front and Back photos');
       return;
     }
+    // 2. Nothing is being collected at all.
+    if (!showCandidateCnic && !showLatestDegree && !showParentsCnic) {
+      setError('No verification documents are currently required');
+      return;
+    }
+    // 3. Guardian CNIC — both sides or neither.
     if ((guardianCnicFront && !guardianCnicBack) || (!guardianCnicFront && guardianCnicBack)) {
-      setError('Please upload both sides of the guardian CNIC (front and back).');
+      setError('Please add both Guardian CNIC Front and Back photos');
       return;
     }
+    if (!hasAnyFile) { setError('Upload at least one document before submitting.'); return; }
+
     setSubmitting(true);
     setError('');
 
     const digits = (user.cnic || '').replace(/\D/g, '');
+    // Mirrors the local state the app refreshes after submitting, so the
+    // Verify Now button and section visibility update without a reload.
     const updates: Record<string, unknown> = {};
+    const nextDocVerification: Record<string, string> = { ...(user.doc_verification ?? {}) };
 
     try {
-      if (cnicFront && cnicBack) {
+      if (!digits) throw new Error('Could not verify account — CNIC is missing.');
+
+      let frontUrl: string | undefined;
+      let backUrl: string | undefined;
+      if (showCandidateCnic && cnicFront && cnicBack) {
         const fd = new FormData();
         fd.append('cnic', digits);
         fd.append('front', cnicFront);
@@ -156,11 +175,30 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
         const res = await fetch('/api/upload-cnic', { method: 'POST', body: fd });
         const uploaded = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(uploaded.error || 'Failed to upload CNIC photos.');
-        updates.cnic_front_url = uploaded.front;
-        updates.cnic_back_url = uploaded.back;
+        frontUrl = uploaded.front;
+        backUrl = uploaded.back;
+        updates.cnic_front_url = frontUrl;
+        updates.cnic_back_url = backUrl;
+        nextDocVerification.cnic_front = 'pending';
+        nextDocVerification.cnic_back = 'pending';
       }
 
-      if (guardianCnicFront && guardianCnicBack) {
+      let educationUrl: string | undefined;
+      if (showLatestDegree && educationDocument) {
+        const fd = new FormData();
+        fd.append('cnic', digits);
+        fd.append('file', educationDocument);
+        const res = await fetch('/api/upload-education-document', { method: 'POST', body: fd });
+        const uploaded = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(uploaded.error || 'Failed to upload education document.');
+        educationUrl = uploaded.url;
+        updates.education_document_url = educationUrl;
+        nextDocVerification.education_document = 'pending';
+      }
+
+      let guardianFrontUrl: string | undefined;
+      let guardianBackUrl: string | undefined;
+      if (showParentsCnic && guardianCnicFront && guardianCnicBack) {
         const fd = new FormData();
         fd.append('cnic', digits);
         fd.append('front', guardianCnicFront);
@@ -168,33 +206,38 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
         const res = await fetch('/api/upload-guardian-cnic', { method: 'POST', body: fd });
         const uploaded = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(uploaded.error || 'Failed to upload guardian CNIC photos.');
-        updates.guardian_cnic_front_url = uploaded.front;
-        updates.guardian_cnic_back_url = uploaded.back;
-      }
-
-      if (educationDocument) {
-        const fd = new FormData();
-        fd.append('cnic', digits);
-        fd.append('file', educationDocument);
-        const res = await fetch('/api/upload-education-document', { method: 'POST', body: fd });
-        const uploaded = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(uploaded.error || 'Failed to upload education document.');
-        updates.education_document_url = uploaded.url;
+        guardianFrontUrl = uploaded.front;
+        guardianBackUrl = uploaded.back;
+        updates.guardian_cnic_front_url = guardianFrontUrl;
+        updates.guardian_cnic_back_url = guardianBackUrl;
+        nextDocVerification.guardian_cnic_front = 'pending';
+        nextDocVerification.guardian_cnic_back = 'pending';
       }
 
       if (Object.keys(updates).length === 0) {
-        setError('Upload both sides of a CNIC together (front and back) before submitting.');
+        setError('Upload at least one document before submitting.');
         setSubmitting(false);
         return;
       }
 
-      const { data: result } = await updateOwnProposalAction({
-        p_id: user.id,
-        p_updates: updates,
+      // Same RPC the app calls. It creates the pending
+      // cnic_verification_requests row the Admin app watches, resets each
+      // submitted doc to 'pending', and clears is_doc_verified.
+      const { ok, error: rpcError } = await submitCnicVerificationAction({
+        p_cnic: digits,
+        frontUrl,
+        backUrl,
+        guardianFrontUrl,
+        guardianBackUrl,
+        educationDocumentUrl: educationUrl,
         proposalNumber: user.proposal_number,
       });
 
-      if (!result) throw new Error('Failed to save your documents. Please try again.');
+      if (!ok) throw new Error(rpcError || 'Failed to save your documents. Please try again.');
+
+      // Reflect what the RPC just did server-side.
+      updates.doc_verification = nextDocVerification;
+      updates.is_doc_verified = false;
 
       onSaved(updates);
       onClose();
@@ -251,7 +294,8 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
           </div>
           </>)}
 
-          {showLatestDegree && (
+          {showLatestDegree && (<>
+          {!showCandidateCnic && <SecHeader title="DOCUMENTS" />}
           <UploadBox label={`Recent Education Document${showLatestDegree && compulsoryLatestDegree ? " *" : ""}`} file={educationDocument} preview={educationDocumentPreview} compressing={compressingEducationDocument}
             onFileSelected={async raw => {
               setCompressingEducationDocument(true);
@@ -260,7 +304,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
               setCompressingEducationDocument(false);
             }}
             onRemove={() => { setEducationDocument(null); setEducationDocumentPreview(''); }} />
-          )}
+          </>)}
 
           {showParentsCnic && (<>
           <SecHeader title="PARENT / GUARDIAN" />
