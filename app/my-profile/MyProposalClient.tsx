@@ -804,7 +804,7 @@ export default function MyProposalClient() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830' }}>{user.name}</div>
                 {user.is_doc_verified && badgeEnabled && (
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="#22C55E" style={{ flexShrink: 0 }}>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="#16A34A" style={{ flexShrink: 0 }}>
                     <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                   </svg>
                 )}
