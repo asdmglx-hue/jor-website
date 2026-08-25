@@ -247,7 +247,7 @@ export default function MyProposalClient() {
   const [manageModalOpen, setManageModalOpen] = useState(false);
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
   const [hasPendingVerification, setHasPendingVerification] = useState(false);
-  const [freeMode, setFreeMode] = useState(false);
+  const [freeMode, setFreeMode] = useState<boolean | null>(null); // null = settings not yet loaded
   const [badgeEnabled, setBadgeEnabled] = useState(true);
   const [verifyNowSettings, setVerifyNowSettings] = useState<Record<string, string>>({});
   useEffect(() => {
@@ -895,8 +895,8 @@ export default function MyProposalClient() {
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#534AB7' }}>View</span>
               </Link>
             ))}
-            {/* Pay Now — hidden when plan is free (free_mode=true) */}
-            {user.status === 'pending' && !freeMode && (
+            {/* Pay Now — hidden when plan is free (free_mode=true) or settings not yet loaded */}
+            {user.status === 'pending' && freeMode === false && (
               <Link href="/plans?plan=rishta-profile"
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', textDecoration: 'none' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
