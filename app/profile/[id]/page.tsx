@@ -189,7 +189,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                 maskedLabel={label}
               />
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, minWidth: 0 }}>
                   <ProfileName
                     proposalId={p.id}
                     fallback={`${p.gender === 'Male' ? 'Groom' : 'Bride'} #${p.proposal_number}`}
@@ -197,8 +197,8 @@ export default async function ProposalDetailPage({ params }: Props) {
                     style={{ fontWeight: 900, color: '#1A1830', margin: 0 }}
                   />
                   {p.is_doc_verified && badgeEnabled && (
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#16A34A" style={{ flexShrink: 0 }} aria-label="Verified">
-                      <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#16A34A" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }} aria-label="Verified">
+                      <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/>
                     </svg>
                   )}
                 </div>
