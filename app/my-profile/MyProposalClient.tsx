@@ -760,6 +760,7 @@ export default function MyProposalClient() {
   // rather than hidden, all actions locked, since there's no live profile
   // to view/share/pause either way.
   const isPendingAccount = user.status === 'pending' || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed';
+  const isRejected = getStatusLabel(user) === 'Rejected';
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '24px 20px' }}>
@@ -872,7 +873,7 @@ export default function MyProposalClient() {
               <span style={{ fontSize: 10, fontWeight: 700, color: shareLocked ? '#9CA3AF' : '#534AB7' }}>Share</span>
             </button>
             {/* Pause/Resume — shown for active/paused/pending/inactive, disabled for pending/inactive */}
-            {(['Active', 'Featured', 'Paused', 'Pending', 'Rejected', 'Removed', 'Inactive'].includes(getStatusLabel(user, hasFeaturedBoost))) && <button disabled={isAdminAccount || isPendingAccount || isInactive} onClick={async () => {
+            {(['Active', 'Featured', 'Paused', 'Pending', 'Removed', 'Inactive'].includes(getStatusLabel(user, hasFeaturedBoost))) && !isRejected && <button disabled={isAdminAccount || isPendingAccount || isInactive} onClick={async () => {
                 const isPaused = user.status === 'paused';
                 const msg = isPaused ? 'Resume your profile? It will become visible in the group again.' : 'Pause your profile? It will be hidden from the group. You can resume anytime.';
                 if (!window.confirm(msg)) return;
@@ -887,7 +888,7 @@ export default function MyProposalClient() {
               <span style={{ fontSize: 10, fontWeight: 700, color: (isAdminAccount || isPendingAccount || isInactive) ? '#9CA3AF' : (user.status === 'paused' ? '#16A34A' : '#6B7280') }}>{user.status === 'paused' ? 'Resume' : 'Pause'}</span>
             </button>}
             {/* View */}
-            {(['Active','Featured','Pending','Rejected','Removed','Inactive'].includes(getStatusLabel(user, hasFeaturedBoost))) && ((isAdminAccount || isPendingAccount || isInactive) ? (
+            {(['Active','Featured','Pending','Removed','Inactive'].includes(getStatusLabel(user, hasFeaturedBoost))) && !isRejected && ((isAdminAccount || isPendingAccount || isInactive) ? (
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#F5F5F5', opacity: 0.5, cursor: 'not-allowed' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF' }}>View</span>
@@ -906,7 +907,7 @@ export default function MyProposalClient() {
                 locked for Rejected/Removed, where someone should always be
                 able to finish deleting their own already-rejected account. */}
             {/* Verify Now — desktop only, next to Delete */}
-            {(user.status === 'pending' || user.status === 'active') && user.cnic_verified !== true && (() => {
+            {(user.status === 'pending' || user.status === 'active') && !isRejected && user.cnic_verified !== true && (() => {
               const dv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
               const anyRejected = Object.values(dv).some((v: string) => v === 'rejected');
               const hasCnic    = !!(user.cnic_front_url && user.cnic_back_url);
