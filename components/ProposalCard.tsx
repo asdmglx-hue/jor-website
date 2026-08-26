@@ -159,22 +159,22 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
           <Avatar name={p.name} photoUrl={p.profile_photo_url} size={52} locked={!isActive} index={index} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: 6 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, flex: '1 1 0', overflow: 'hidden' }}>
+              {/* Name + badge in a block div so badge flows inline with name text.
+                  Using a block wrapper (not flex) means the badge can never be
+                  "pushed right" — it just sits after the last character of the name,
+                  regardless of whether ProfileName/ExpandableName shows hashcode or real name. */}
+              <div style={{ flex: '1 1 0', minWidth: 0, overflow: 'hidden' }}>
                 <ExpandableName
                   name={isFeatured && p.name.length > 14 ? p.name.slice(0, 14) + '…' : p.name}
-                  style={{ fontSize: 15, fontWeight: 800, color: '#1A1830' }}
+                  style={{ fontSize: 15, fontWeight: 800, color: '#1A1830', display: 'inline' }}
+                  badgeSuffix={p.is_doc_verified && badgeEnabled ? (
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="#16A34A" style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 4, flexShrink: 0 }}>
+                      <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/>
+                    </svg>
+                  ) : undefined}
                 />
-              </span>
-              {/* Verified badge + date + featured in the right column.
-                  Badge is here (not inside the name span) so it never
-                  gets pushed right when ExpandableName grows to fill the
-                  left span — it stays fixed-width next to the date. */}
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                {p.is_doc_verified && badgeEnabled && (
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="#16A34A" style={{ flexShrink: 0 }}>
-                    <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/>
-                  </svg>
-                )}
                 <span style={{ fontSize: 11, color: '#68629C', lineHeight: 1 }}>
                   {new Date(p.posted_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                 </span>

@@ -1,3 +1,4 @@
+import React from 'react';
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -9,11 +10,12 @@ import ExpandableName from './ExpandableName';
 // bio) for SEO, without a person's actual name becoming Google-searchable.
 // Real visitors still see the name almost instantly; it's just not part of
 // what gets crawled and stored in Google's index.
-export default function ProfileName({ proposalId, fallback, style, className }: {
+export default function ProfileName({ proposalId, fallback, style, className, badgeSuffix }: {
   proposalId: string;
   fallback: string;
   style?: React.CSSProperties;
   className?: string;
+  badgeSuffix?: React.ReactNode;
 }) {
   const [name, setName] = useState<string | null>(null);
 
@@ -26,7 +28,7 @@ export default function ProfileName({ proposalId, fallback, style, className }: 
   }, [proposalId]);
 
   if (!name) {
-    return <h1 className={className} style={style}>{fallback}</h1>;
+    return <h1 className={className} style={style}>{fallback}{badgeSuffix}</h1>;
   }
-  return <ExpandableName name={name} className={className} style={style} />;
+  return <ExpandableName name={name} className={className} style={style} badgeSuffix={badgeSuffix} />;
 }

@@ -6,7 +6,7 @@ import { useState, useRef } from 'react';
 // full name in place — useful now that long names correctly truncate
 // instead of breaking the page layout, but some people will still want
 // to see the whole thing without it looking cut off forever.
-export default function ExpandableName({ name, style, className }: { name: string; style?: React.CSSProperties; className?: string }) {
+export default function ExpandableName({ name, style, className, badgeSuffix }: { name: string; style?: React.CSSProperties; className?: string; badgeSuffix?: React.ReactNode }) {
   const [expanded, setExpanded] = useState(false);
   const ref = useRef<HTMLHeadingElement>(null);
 
@@ -35,7 +35,7 @@ export default function ExpandableName({ name, style, className }: { name: strin
       }}
       title={expanded ? undefined : name} // native tooltip as a bonus on devices/browsers that support hover
     >
-      {name}
+      {name}{badgeSuffix}
     </h1>
   );
 }
