@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { isSubscriptionActive, supabase, Proposal, phoneDisplay } from '@/lib/supabase';
 import { getSession, saveSession } from '@/lib/auth';
 import { trackEvent } from '@/lib/analytics';
+import { useCallback } from 'react';
 
 export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2, proposalNumber }: { phone: string; phone2?: string; proposalNumber?: number }) {
   const phone = phoneDisplay(rawPhone);
@@ -13,6 +14,11 @@ export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2, pro
     const session = getSession();
     return session ? isSubscriptionActive(session) : false;
   });
+  const [isPaused, setIsPaused] = useState(() => {
+    const session = getSession();
+    return session?.status === 'paused';
+  });
+  const [pausedToast, setPausedToast] = useState(false);
   const waNumber = phone.replace(/\D/g, '');
 
   useEffect(() => {
@@ -24,6 +30,7 @@ export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2, pro
         const fresh = { ...session, ...data } as Proposal;
         saveSession(fresh);
         setIsActive(isSubscriptionActive(fresh));
+        setIsPaused(fresh.status === 'paused');
       } else {
         setIsActive(isSubscriptionActive(session));
       }
@@ -91,8 +98,15 @@ export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2, pro
   return (
     <>
       {!revealed ? (
+        <>
+        {pausedToast && (
+          <div style={{ background: '#FFF3CD', border: '1px solid #FFC107', borderRadius: 10, padding: '10px 14px', marginBottom: 10, fontSize: 13, fontWeight: 600, color: '#856404', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#856404" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Please resume your profile to view contacts.
+          </div>
+        )}
         <button
-          onClick={() => { setRevealed(true); trackEvent('contact_reveal', { proposal_number: proposalNumber ?? 0 }); }}
+          onClick={() => { if (isPaused) { setPausedToast(true); setTimeout(() => setPausedToast(false), 4000); return; } setRevealed(true); trackEvent('contact_reveal', { proposal_number: proposalNumber ?? 0 }); }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '13px', borderRadius: 12,
             background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15,
@@ -105,6 +119,7 @@ export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2, pro
           </svg>
           View Contact
         </button>
+        </>
       ) : (
         <>
           <a href={`tel:${phone}`} onClick={() => trackEvent('phone_call', { proposal_number: proposalNumber ?? 0, phone_index: 1 })} style={{
@@ -137,10 +152,10 @@ export default function ContactButtons({ phone: rawPhone, phone2: rawPhone2, pro
       )}
 
       <a
-        href={`https://wa.me/${waNumber}`}
+        href={isPaused ? '#' : `https://wa.me/${waNumber}`}
+        onClick={isPaused ? (e) => { e.preventDefault(); setPausedToast(true); setTimeout(() => setPausedToast(false), 4000); } : () => trackEvent('whatsapp_click', { proposal_number: proposalNumber ?? 0 })}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={() => trackEvent('whatsapp_click', { proposal_number: proposalNumber ?? 0 })}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           width: '100%', padding: '13px', borderRadius: 12,
