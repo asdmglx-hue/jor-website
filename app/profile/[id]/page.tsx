@@ -90,7 +90,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 function InfoRow({ icon: _icon, label, value, certUrl }: { icon: string; label: string; value?: string | number | boolean | null; certUrl?: string | null }) {
-  if (value === null || value === undefined || value === '') return null;
+  if (value === null || value === undefined || value === '' || value === 0) return null;
   const display = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value);
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F5F5F5' }}>
@@ -246,7 +246,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           )}
 
           {/* Education & Career */}
-          {(p.education || p.degree_title || p.institute || p.degree_title_2 || p.institute_2 ||
+          {!!(p.education || p.degree_title || p.institute || p.degree_title_2 || p.institute_2 ||
             p.degree_title_3 || p.institute_3 || p.profession || p.employment_type || p.monthly_income) && (
           <Section title="Education & Career">
             <InfoRow icon="" label="Education" value={p.education} />
@@ -263,7 +263,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           )}
 
           {/* Family */}
-          {(p.family_type || p.father_alive != null || p.mother_alive != null || p.brothers || p.sisters) && (
+          {!!(p.family_type || p.father_alive != null || p.mother_alive != null || p.brothers || p.sisters) && (
           <Section title="Family Background">
             {p.family_type && <InfoRow icon="" label="Family Type" value={p.family_type} />}
             <InfoRow icon="" label="Father" value={p.father_alive === true ? 'Alive' : p.father_alive === false ? 'Deceased' : null} />
@@ -274,7 +274,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           )}
 
           {/* Property */}
-          {(p.home_type || p.has_car || p.has_generator != null || p.has_solar != null || p.has_servant != null) && (
+          {!!(p.home_type || p.has_car || p.has_generator != null || p.has_solar != null || p.has_servant != null) && (
           <Section title="Property & Assets">
             <InfoRow icon="" label="Home Type" value={p.home_type} />
             <InfoRow icon="" label="Car" value={p.has_car === 'yes' ? (p.car_name || 'Yes') : p.has_car === 'no' ? 'No' : p.has_car} />
