@@ -541,9 +541,9 @@ export default function SubmitClient() {
   // Verification section visibility — controlled by admin via app_settings.
   // Mirrors the exact same keys read by the user app and the admin toggle card.
   // Default true so sections always show before settings load (safe fallback).
-  const [requireCandidateCnic, setRequireCandidateCnic] = useState(true);
-  const [requireLatestDegree, setRequireLatestDegree] = useState(true);
-  const [requireParentsCnic, setRequireParentsCnic] = useState(true);
+  const [requireCandidateCnic, setRequireCandidateCnic] = useState<boolean | null>(null);
+  const [requireLatestDegree, setRequireLatestDegree] = useState<boolean | null>(null);
+  const [requireParentsCnic, setRequireParentsCnic] = useState<boolean | null>(null);
   const [requireVerifStep, setRequireVerifStep] = useState(false);
 
   useEffect(() => {
@@ -558,9 +558,9 @@ export default function SubmitClient() {
         if (!data) return;
         const map: Record<string, string> = {};
         (data as { key: string; value: string }[]).forEach(r => { map[r.key] = r.value; });
-        if (map['require_candidate_cnic'] === 'false') setRequireCandidateCnic(false);
-        if (map['require_latest_degree']  === 'false') setRequireLatestDegree(false);
-        if (map['require_parents_cnic']      === 'false') setRequireParentsCnic(false);
+        setRequireCandidateCnic(map['require_candidate_cnic'] !== 'false');
+        setRequireLatestDegree(map['require_latest_degree'] !== 'false');
+        setRequireParentsCnic(map['require_parents_cnic'] !== 'false');
         if (map['require_verification_step'] === 'true')  setRequireVerifStep(true);
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -599,7 +599,9 @@ export default function SubmitClient() {
   // When all 3 verification sections are turned off in admin, the
   // Verification step has no content — hide it entirely so users
   // don't see an empty step. Computed from the 3 require_* settings.
-  const noVerifSections = !requireCandidateCnic && !requireLatestDegree && !requireParentsCnic;
+  // null = settings not yet loaded; show nothing until we know
+  const settingsLoaded = requireCandidateCnic !== null && requireLatestDegree !== null && requireParentsCnic !== null;
+  const noVerifSections = settingsLoaded && !requireCandidateCnic && !requireLatestDegree && !requireParentsCnic;
   // If settings loaded AFTER the user already navigated to step 4 (Verification),
   // redirect them to step 5 (Review/Submit). This happens when all 3 sections
   // are off and the user clicks through quickly before the async fetch finishes.
@@ -1202,8 +1204,8 @@ export default function SubmitClient() {
         <p style={{ color: '#6B6893', fontSize: 14 }}>Reaches thousands of families</p>
       </div>
 
-      {/* Step indicator */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 28 }}>
+      {/* Step indicator — hidden until settings load so Verification tab never flashes */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 28, visibility: settingsLoaded ? 'visible' : 'hidden' }}>
         {steps.map((s, i) => {
           const reachable = i + 1 !== step;
           return (
