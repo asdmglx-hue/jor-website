@@ -51,7 +51,6 @@ function UploadBox({ label, file, preview, compressing, onFileSelected, onRemove
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 8px' }}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="7" cy="13" r="1"/></svg>
                 <div style={{ fontSize: 13, fontWeight: 600 }}>
                   Tap to upload {label.replace(' *', '')}
-                  {label.endsWith(' *') && <span style={{ color: '#DC2626' }}> *</span>}
                 </div>
                 <div style={{ fontSize: 11, marginTop: 2 }}>JPG, PNG supported</div>
               </div>
@@ -151,7 +150,22 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
     }
     // 3. Guardian CNIC — both sides or neither.
     if ((guardianCnicFront && !guardianCnicBack) || (!guardianCnicFront && guardianCnicBack)) {
-      setError('Please add both Guardian CNIC Front and Back photos');
+      setError('Please add both Parent/Guardian CNIC Front and Back photos');
+      return;
+    }
+    // If all compulsory sections must be submitted together, block partial submissions.
+    const missing: string[] = [];
+    if (showCandidateCnic && compulsoryCandidateCnic && (!cnicFront || !cnicBack)) {
+      missing.push('Candidate CNIC (front & back)');
+    }
+    if (showLatestDegree && compulsoryLatestDegree && !educationDocument) {
+      missing.push('Recent Education Document');
+    }
+    if (showParentsCnic && compulsoryParentsCnic && (!guardianCnicFront || !guardianCnicBack)) {
+      missing.push('Parent/Guardian CNIC (front & back)');
+    }
+    if (missing.length > 0) {
+      setError('Please upload all required documents: ' + missing.join(', '));
       return;
     }
     if (!hasAnyFile) { setError('Upload at least one document before submitting.'); return; }
