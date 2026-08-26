@@ -162,21 +162,19 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
               <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, flex: '1 1 0', overflow: 'hidden' }}>
                 <ExpandableName
                   name={isFeatured && p.name.length > 14 ? p.name.slice(0, 14) + '…' : p.name}
-                  style={{ fontSize: 15, fontWeight: 800, color: '#1A1830', flex: '0 1 auto' }}
+                  style={{ fontSize: 15, fontWeight: 800, color: '#1A1830' }}
                 />
+              </span>
+              {/* Verified badge + date + featured in the right column.
+                  Badge is here (not inside the name span) so it never
+                  gets pushed right when ExpandableName grows to fill the
+                  left span — it stays fixed-width next to the date. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                 {p.is_doc_verified && badgeEnabled && (
                   <svg viewBox="0 0 24 24" width="15" height="15" fill="#16A34A" style={{ flexShrink: 0 }}>
                     <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/>
                   </svg>
                 )}
-              </span>
-              {/* Date and FEATURED badge are flex siblings in the same row
-                  now (previously the badge floated absolutely above
-                  everything) — alignItems: center on this row is what
-                  guarantees they're always vertically aligned with each
-                  other, rather than depending on matching up two
-                  independently-positioned elements' offsets by hand. */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                 <span style={{ fontSize: 11, color: '#68629C', lineHeight: 1 }}>
                   {new Date(p.posted_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                 </span>
