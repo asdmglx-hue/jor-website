@@ -1201,7 +1201,8 @@ export default function SubmitClient() {
             <div key={i} style={{ flex: 1, textAlign: 'center', cursor: reachable ? 'pointer' : 'default' }}
               onClick={async () => {
                 if (!reachable) return;
-                const targetStep = (i + 1) as 1 | 2 | 3 | 4 | 5;
+                // When verification step is hidden, the 4th visible step is Review (step 5 real).
+                const targetStep = (noVerifSections && i === 3 ? 5 : i + 1) as 1 | 2 | 3 | 4 | 5;
                 if (targetStep > step) {
                   const err = await validateStepAsync();
                   if (err) { setError(err.msg); setErrorField(err.field); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
@@ -2043,7 +2044,7 @@ export default function SubmitClient() {
             : <div />
           }
           {step < 5
-            ? <button onClick={next} style={{ padding: '12px 28px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 14px rgba(83,74,183,0.3)' }}>{step === 4 ? 'Review →' : 'Next →'}</button>
+            ? <button onClick={next} style={{ padding: '12px 28px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 14px rgba(83,74,183,0.3)' }}>{(step === 4 || (noVerifSections && step === 3)) ? 'Review →' : 'Next →'}</button>
             : <button onClick={handleSubmit} disabled={submitting || compressingCnicFront || compressingCnicBack || compressingProfilePhoto} style={{ padding: '12px 28px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 14, cursor: (submitting || compressingCnicFront || compressingCnicBack || compressingProfilePhoto) ? 'not-allowed' : 'pointer', opacity: (submitting || compressingCnicFront || compressingCnicBack || compressingProfilePhoto) ? 0.7 : 1, boxShadow: '0 4px 14px rgba(83,74,183,0.3)' }}>
                 {submitting ? 'Submitting...' : 'Submit Proposal →'}
               </button>
