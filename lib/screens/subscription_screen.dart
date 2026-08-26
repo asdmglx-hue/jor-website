@@ -550,7 +550,7 @@ class SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBind
             // been reviewed yet (raw pending), or there's no live profile
             // left to act on (Rejected/Removed).
             final isPendingAccount = isPending || label == 'Rejected' || label == 'Removed';
-            final isInactive = label == 'Inactive';
+            final isInactive = label == 'Inactive' || label == 'Expired';
             // Edit/View/Pause/Share all share this same lock formula on
             // the website (isAdmin || isPendingAccount || isInactive) —
             // enabled only for Active/Featured/Paused.
@@ -564,8 +564,8 @@ class SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBind
                         ? 'Contact Support'
                         : isPending
                             ? 'Profile under review'
-                            : _statusLabel(_userStatus) == 'Inactive'
-                                ? 'Subscription inactive'
+                            : _statusLabel(_userStatus) == 'Inactive' || _statusLabel(_userStatus) == 'Expired'
+                                ? 'Subscription expired'
                                 : _userStatus?['subscription_expiry'] != null
                                     ? 'Subscription ends ${_formatExpiry(_userStatus!['subscription_expiry'])}'
                                     : '';
@@ -2449,7 +2449,7 @@ class SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBind
     // Active with valid subscription
     if ((status == 'active' || status == 'approved') && isActive) return 'Active';
     // Subscription lapsed
-    if (expiry != null && !expiry.isAfter(DateTime.now())) return 'Inactive';
+    if (expiry != null && !expiry.isAfter(DateTime.now())) return 'Expired';
     if (status == 'active' || status == 'approved') return 'Active';
     return 'Inactive';
   }
@@ -2459,6 +2459,7 @@ class SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBind
       case 'Active':   return kGreen;
       case 'Featured': return kAmber;
       case 'Inactive': return const Color(0xFF6B7280);
+      case 'Expired': return kRose;
       case 'Removed':  return kRose;
       case 'Rejected': return kRose;
       case 'Paused':   return const Color(0xFF6B7280);
@@ -3566,13 +3567,6 @@ class SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBind
       setSheetState(() { onPicked(File(picked.path)); errorMsg = null; });
     }
 
-    // Whether any remaining doc is compulsory — drives both the sheet
-    // heading and the button label (same logic as the button builder above).
-    final missingCompulsory =
-        (requireCnic    && compulsoryCnic)    ||
-        (requireDegree  && compulsoryDegree)  ||
-        (requireParents && compulsoryParents);
-
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -3656,9 +3650,9 @@ class SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBind
                         SizedBox(width: s.s(12)),
                         Expanded(
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(missingCompulsory ? 'Verify Your Profile' : 'Get Verified Badge', style: TextStyle(fontSize: s.f(16), fontWeight: FontWeight.w800, color: kInk)),
+                            Text('Verify Your Profile', style: TextStyle(fontSize: s.f(16), fontWeight: FontWeight.w800, color: kInk)),
                             SizedBox(height: s.s(2)),
-                            Text(missingCompulsory ? 'Upload your identity documents' : 'Submit the following documents to get your verified badge', style: TextStyle(fontSize: s.f(12), color: kInkLight)),
+                            Text('Upload your identity documents', style: TextStyle(fontSize: s.f(12), color: kInkLight)),
                           ]),
                         ),
                       ]),
