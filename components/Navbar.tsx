@@ -137,7 +137,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
                     ? <img src={user.profile_photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     : (user.name || '?').charAt(0).toUpperCase()}
                 </div>
-                {(user.name || 'Account').split(' ')[0]} ▾
+                {((user.name || 'Account').length > 15 ? (user.name || 'Account').substring(0, 15) + '…' : (user.name || 'Account').split(' ')[0])} ▾
               </button>
               {menuOpen === 'desktop' && (
                 <div style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, padding: '6px', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 1100 }}>
