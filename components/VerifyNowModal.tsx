@@ -314,7 +314,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
           </>)}
 
           {showLatestDegree && (<>
-          {!showCandidateCnic && <SecHeader title="DOCUMENTS" />}
+          {!showCandidateCnic && <SecHeader title="MARRIAGE-SEEKING CANDIDATE" />}
           <UploadBox label={`Recent Education Document${showLatestDegree && compulsoryLatestDegree ? " *" : ""}`} file={educationDocument} preview={educationDocumentPreview} compressing={compressingEducationDocument}
             onFileSelected={async raw => {
               setCompressingEducationDocument(true);
