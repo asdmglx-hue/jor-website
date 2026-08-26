@@ -804,7 +804,7 @@ export default function MyProposalClient() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830' }}>{user.name}</div>
                 {user.is_doc_verified && badgeEnabled && (
-                  <span title="Verified" style={{ display: 'inline-block', verticalAlign: 'middle', lineHeight: 1 }}><svg viewBox="0 0 24 24" width="18" height="18" fill="#16A34A" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
+                  <span title="Verified" style={{ display: 'inline-block', verticalAlign: 'middle', lineHeight: 1, position: 'relative', top: '-1px' }}><svg viewBox="0 0 24 24" width="18" height="18" fill="#16A34A" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
                     <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/>
                   </svg></span>
                 )}
@@ -982,7 +982,7 @@ export default function MyProposalClient() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <div>
               <div style={{ fontSize: 14, fontWeight: 800, color: '#92400E', marginBottom: 2 }}>Profile Under Review</div>
-              <div style={{ fontSize: 13, color: '#B45309', lineHeight: 1.5 }}>Your profile is being reviewed by our team. It may take up to 24 hours to be approved and live.</div>
+              <div style={{ fontSize: 13, color: '#B45309', lineHeight: 1.5 }}>Your profile is being reviewed by our team. It may take up to 24 hours to be approved.</div>
             </div>
           </div>
         );

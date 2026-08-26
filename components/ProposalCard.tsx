@@ -168,7 +168,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
                   name={isFeatured && p.name.length > 14 ? p.name.slice(0, 14) + '…' : p.name}
                   style={{ fontSize: 15, fontWeight: 800, color: '#1A1830', display: 'inline' }}
                   badgeSuffix={p.is_doc_verified && badgeEnabled ? (
-                    <span title="Verified" style={{ display: 'inline-block', verticalAlign: 'middle', lineHeight: 1 }}><svg viewBox="0 0 24 24" width="13" height="13" fill="#16A34A" style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 4, flexShrink: 0 }}>
+                    <span title="Verified" style={{ display: 'inline-block', verticalAlign: 'middle', lineHeight: 1, position: 'relative', top: '-1px' }}><svg viewBox="0 0 24 24" width="13" height="13" fill="#16A34A" style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 4, flexShrink: 0 }}>
                       <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/>
                     </svg></span>
                   ) : undefined}
