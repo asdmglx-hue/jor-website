@@ -277,7 +277,11 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
               <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
-              <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830' }}>Verification</div>
+              <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830' }}>
+                {(showCandidateCnic && compulsoryCandidateCnic) || (showLatestDegree && compulsoryLatestDegree) || (showParentsCnic && compulsoryParentsCnic)
+                  ? 'Verify Your Profile'
+                  : 'Get Verified Badge'}
+              </div>
             </div>
             <button onClick={onClose} aria-label="Close"
               style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: '#F5F5F5', color: '#6B6893', fontSize: 15, cursor: 'pointer' }}>
