@@ -7,6 +7,7 @@ import "./globals.css";
 import NavbarWrapper from "@/components/NavbarWrapper";
 import NavigationTracker from "@/components/NavigationTracker";
 import ContactSupportButton from "@/components/ContactSupportButton";
+import PausedToast from "@/components/PausedToast";
 import { supabase } from "@/lib/supabase";
 
 const inter = { className: '' };
@@ -108,6 +109,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </main>
         <div style={{ position: 'relative', height: 0 }}>
           <ContactSupportButton />
+        <PausedToast />
         </div>
         <footer className="site-footer" style={{ background: '#1A1830', color: '#B0ADCB', padding: '28px 48px 40px', marginTop: 48, position: 'relative', overflow: 'hidden' }}>
           {/* Background wedding image at very low opacity */}
