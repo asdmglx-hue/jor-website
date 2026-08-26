@@ -842,7 +842,7 @@ export default function MyProposalClient() {
             )}
             {user.proposal_number > 0 && <span style={{ fontSize: 13, color: '#6B6893' }}>#{user.proposal_number}</span>}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div className="my-account-actions-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             {/* [ROW1] Verify Now / Get Verified Badge — show for pending AND active profiles */}
             {(user.status === 'pending' || user.status === 'active') && user.cnic_verified !== true && (() => {
