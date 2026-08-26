@@ -978,8 +978,8 @@ export default function MyProposalClient() {
           <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#92400E', marginBottom: 2 }}>Profile Under Review</div>
-              <div style={{ fontSize: 13, color: '#B45309', lineHeight: 1.5 }}>Your profile is being reviewed by our team. It may take up to 24 hours to be approved.</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#92400E', marginBottom: 2 }}>Profile Verification Pending</div>
+              <div style={{ fontSize: 13, color: '#B45309', lineHeight: 1.5 }}>Please complete your verification. Your profile will be reviewed within 24 hours.</div>
             </div>
           </div>
         );
