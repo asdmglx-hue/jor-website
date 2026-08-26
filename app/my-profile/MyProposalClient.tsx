@@ -77,10 +77,12 @@ function getStatusLabel(user: Proposal, featuredBoost = false): string {
   if (status === 'paused') return 'Paused';
   // Featured: only when subscription is also active
   if (isSubscriptionActive(user) && (featuredBoost || user.is_boosted || user.subscription_tier === 'featured')) return 'Featured';
+  // doc_pending: approved but contacts locked until compulsory docs submitted
+  if ((status === 'active' || status === 'approved') && (user as any).subscription_status === 'doc_pending') return 'Pending';
   // Active with valid subscription
   if ((status === 'active' || status === 'approved') && isSubscriptionActive(user)) return 'Active';
   // Subscription lapsed
-  if (user.subscription_expiry && new Date(user.subscription_expiry) <= new Date()) return 'Expired';
+  if (user.subscription_expiry && new Date(user.subscription_expiry) <= new Date()) return 'Inactive';
   if (status === 'active' || status === 'approved') return 'Active';
   return 'Inactive';
 }
@@ -98,7 +100,6 @@ function StatusBadge({ user, featuredBoost = false, isAdmin = false }: { user: P
     Pending:  { color: '#92400E', bg: '#FEF3C7' },
     Paused:   { color: '#0F6E56', bg: '#E1F5EE' },
     Inactive: { color: '#6B7280', bg: '#F3F4F6' },
-    Expired:  { color: '#DC2626', bg: '#FEE2E2' },
     Removed:  { color: '#E11D48', bg: '#FFE4E6' },
     Rejected: { color: '#E11D48', bg: '#FFE4E6' },
   };
@@ -836,7 +837,7 @@ export default function MyProposalClient() {
         </div>
         <div className="my-account-right" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
           <div className="hash-desktop" style={{ display: 'flex', alignItems: 'center', gap: 14, alignSelf: 'flex-end', position: 'relative', top: -12 }}>
-            {isSubscriptionActive(user) && user.subscription_expiry && (
+            {isSubscriptionActive(user) && user.subscription_expiry && (user as any).subscription_status !== 'doc_pending' && (
               <span style={{ fontSize: 13, color: '#6B6893' }}>
                 Subscription expires on {new Date(user.subscription_expiry).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}
               </span>
@@ -892,7 +893,7 @@ export default function MyProposalClient() {
               // (nothing to share/toggle/view live while unsubscribed), and
               // get a Renew button — Delete is the only action that stays
               // fully live, since deleting doesn't depend on being subscribed.
-              const isInactive = getStatusLabel(user, hasFeaturedBoost) === 'Inactive' || getStatusLabel(user, hasFeaturedBoost) === 'Expired';
+              const isInactive = getStatusLabel(user, hasFeaturedBoost) === 'Inactive';
               const shareLocked = isAdminAccount || isPendingAccount || isInactive;
               return (<>
             {/* Share */}
@@ -912,7 +913,7 @@ export default function MyProposalClient() {
               <span style={{ fontSize: 10, fontWeight: 700, color: shareLocked ? '#9CA3AF' : '#534AB7' }}>Share</span>
             </button>
             {/* Pause/Resume — shown for active/paused/pending/inactive, disabled for pending/inactive */}
-            {(['Active', 'Featured', 'Paused', 'Pending', 'Rejected', 'Removed', 'Inactive', 'Expired'].includes(getStatusLabel(user, hasFeaturedBoost))) && <button disabled={isAdminAccount || isPendingAccount || isInactive} onClick={async () => {
+            {(['Active', 'Featured', 'Paused', 'Pending', 'Rejected', 'Removed', 'Inactive'].includes(getStatusLabel(user, hasFeaturedBoost))) && <button disabled={isAdminAccount || isPendingAccount || isInactive} onClick={async () => {
                 const isPaused = user.status === 'paused';
                 const msg = isPaused ? 'Resume your profile? It will become visible in the group again.' : 'Pause your profile? It will be hidden from the group. You can resume anytime.';
                 if (!window.confirm(msg)) return;
@@ -927,7 +928,7 @@ export default function MyProposalClient() {
               <span style={{ fontSize: 10, fontWeight: 700, color: (isAdminAccount || isPendingAccount || isInactive) ? '#9CA3AF' : (user.status === 'paused' ? '#16A34A' : '#6B7280') }}>{user.status === 'paused' ? 'Resume' : 'Pause'}</span>
             </button>}
             {/* View */}
-            {(['Active','Featured','Pending','Rejected','Removed','Inactive','Expired'].includes(getStatusLabel(user, hasFeaturedBoost))) && ((isAdminAccount || isPendingAccount || isInactive) ? (
+            {(['Active','Featured','Pending','Rejected','Removed','Inactive'].includes(getStatusLabel(user, hasFeaturedBoost))) && ((isAdminAccount || isPendingAccount || isInactive) ? (
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#F5F5F5', opacity: 0.5, cursor: 'not-allowed' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF' }}>View</span>
@@ -996,12 +997,21 @@ export default function MyProposalClient() {
             </div>
           </div>
         );
-        if (label === 'Expired') return (
-          <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        if (label === 'Pending' && (user as any).subscription_status === 'doc_pending') return (
+          <div style={{ background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#92400E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#991B1B', marginBottom: 2 }}>Subscription Expired</div>
-              <div style={{ fontSize: 13, color: '#DC2626', lineHeight: 1.5 }}>Your subscription has expired. Please renew to keep your profile visible.</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#92400E', marginBottom: 2 }}>Verification Required</div>
+              <div style={{ fontSize: 13, color: '#B45309', lineHeight: 1.5 }}>Your profile is visible in the feed but contacts are locked. Submit your verification documents to unlock your profile completely.</div>
+            </div>
+          </div>
+        );
+        if (label === 'Inactive') return (
+          <div style={{ background: '#F9FAFB', border: '1px solid #D1D5DB', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#374151', marginBottom: 2 }}>Subscription Expired</div>
+              <div style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.5 }}>Your subscription has expired. Please renew to keep your profile visible.</div>
             </div>
           </div>
         );

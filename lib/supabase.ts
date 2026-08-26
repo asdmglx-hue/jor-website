@@ -764,13 +764,10 @@ export const MIN_CATEGORY_PROFILES = 2;
 // broken because of this.
 export async function fetchLiveHomeStats(): Promise<{ total: number; male: number; female: number } | null> {
   try {
-    // Excludes boosted profiles — they show separately in the Featured
-    // carousel and are not counted in the main total, matching the app's
-    // active_proposal_counts() RPC which also excludes is_boosted=true.
     const [{ count: total }, { count: male }, { count: female }] = await Promise.all([
-      supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('is_boosted', false),
-      supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('gender', 'Male').eq('is_boosted', false),
-      supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('gender', 'Female').eq('is_boosted', false),
+      supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()),
+      supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('gender', 'Male'),
+      supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('status', 'active').or(notExpiredFilter()).eq('gender', 'Female'),
     ]);
     return { total: total || 0, male: male || 0, female: female || 0 };
   } catch {
@@ -1227,6 +1224,8 @@ export function isSubscriptionActive(proposal: Proposal): boolean {
   if (proposal.cnic && cachedAdminCnics.has(proposal.cnic)) return true;
   if (proposal.subscription_tier === 'none') return false;
   if (!proposal.subscription_expiry) return false;
+  // doc_pending: approved but compulsory docs missing — contacts locked
+  if ((proposal as any).subscription_status === 'doc_pending') return false;
   return new Date(proposal.subscription_expiry) > new Date();
 }
 
