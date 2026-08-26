@@ -114,7 +114,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
   };
 
   const navContent = (
-    <nav className={sticky ? 'navbar-sticky' : ''} style={{ top: 0, zIndex: 100, background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)' }}>
+    <nav className={sticky ? 'navbar-sticky' : ''} style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
           <img src="/logo.png" alt="Jor" className="logo-full" style={{ height: 36, width: 'auto' }} />
@@ -140,7 +140,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
                 {(user.name || 'Account').split(' ')[0]} ▾
               </button>
               {menuOpen === 'desktop' && (
-                <div style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, padding: '6px', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200 }}>
+                <div style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, padding: '6px', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 1100 }}>
                   <Link href="/my-profile" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '9px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#1A1830', textDecoration: 'none' }}>My Profile</Link>
                   <button onClick={openPasswordModal} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#1A1830', background: 'none', border: 'none', cursor: 'pointer' }}>Change Password</button>
                   <button onClick={handleLogout} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer' }}>Logout</button>
@@ -178,7 +178,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
                 ▾
               </button>
               {menuOpen === 'user' && (
-                <div style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, padding: '6px', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200 }}>
+                <div style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, padding: '6px', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 1100 }}>
                   <Link href="/my-profile" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '9px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#1A1830', textDecoration: 'none' }}>My Profile</Link>
                   <button onClick={openPasswordModal} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#1A1830', background: 'none', border: 'none', cursor: 'pointer' }}>Change Password</button>
                   <button onClick={handleLogout} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer' }}>Logout</button>
@@ -204,7 +204,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
               <span style={{ display: 'block', width: 16, height: 2, background: '#534AB7', borderRadius: 2 }} />
             </button>
             {menuOpen === 'nav' && (
-              <div style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, padding: '6px', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200 }}>
+              <div style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, padding: '6px', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 1100 }}>
                 <Link href="/proposals" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '9px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'none', background: pathname.startsWith('/proposals') ? '#EEEDFE' : 'transparent' }}>Browse Proposals</Link>
                 <Link href="/plans" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '9px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#534AB7', textDecoration: 'none', background: pathname.startsWith('/plans') ? '#EEEDFE' : 'transparent' }}>Plans</Link>
               </div>
