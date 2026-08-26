@@ -19,7 +19,7 @@ export default function PausedToast() {
 
   return (
     <div style={{
-      position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)',
+      position: 'fixed', top: 72, left: '50%', transform: 'translateX(-50%)',
       zIndex: 3000, maxWidth: 480, width: 'calc(100% - 32px)',
       background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 12,
       padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 10,
