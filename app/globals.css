@@ -299,9 +299,11 @@ body {
   .filter-desktop { display: none; }
   .filter-mobile { display: flex; }
   .my-account-right { align-items: center !important; width: 100% !important; }
-  .my-account-actions { gap: 6px !important; justify-content: flex-end !important; width: 100% !important; flex-wrap: wrap !important; }
+  /* Stretch button rows to card edges: cancel 20px card padding, add it back as inner padding */
+  .my-account-actions-wrap { margin-left: -20px !important; margin-right: -20px !important; padding: 0 20px !important; border-top: 1px solid #F0EFF8 !important; padding-top: 10px !important; }
+  .my-account-actions { gap: 6px !important; justify-content: space-between !important; width: 100% !important; flex-wrap: wrap !important; }
   .my-account-actions a, .my-account-actions button { flex: 1 1 auto !important; justify-content: center !important; min-width: 0 !important; }
-  .my-account-actions a, .my-account-actions button { padding: 7px 10px !important; font-size: 10px !important; }
+  .my-account-actions a, .my-account-actions button { padding: 9px 8px !important; font-size: 10px !important; }
   .hash-desktop { display: none !important; }
   .hash-mobile { display: block !important; }
   .credits-badge-desktop { display: none !important; }
