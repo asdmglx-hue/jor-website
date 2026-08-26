@@ -302,8 +302,6 @@ body {
   .my-account-actions { gap: 6px !important; justify-content: flex-end !important; width: 100% !important; flex-wrap: wrap !important; }
   .my-account-actions a, .my-account-actions button { flex: 1 1 auto !important; justify-content: center !important; min-width: 0 !important; }
   .my-account-actions a, .my-account-actions button { padding: 7px 10px !important; font-size: 10px !important; }
-  /* Align button rows with the card content: left edge = avatar width + gap (88px) */
-  .my-account-actions-wrap { padding-left: 88px !important; }
   .hash-desktop { display: none !important; }
   .hash-mobile { display: block !important; }
   .credits-badge-desktop { display: none !important; }
