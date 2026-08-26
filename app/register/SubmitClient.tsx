@@ -595,6 +595,11 @@ export default function SubmitClient() {
   const navigating = useRef(false);
   const [cnicState, setCnicState] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [verifError, setVerifError] = useState(false);
+
+  // When all 3 verification sections are turned off in admin, the
+  // Verification step has no content — hide it entirely so users
+  // don't see an empty step. Computed from the 3 require_* settings.
+  const noVerifSections = !requireCandidateCnic && !requireLatestDegree && !requireParentsCnic;
   const [skipError, setSkipError] = useState('');
   const cnicCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -880,7 +885,7 @@ export default function SubmitClient() {
       const err = await validateStepAsync();
       if (err) { setError(err.msg); setErrorField(err.field); return; }
       setError(''); setErrorField('');
-      setStep(s => { const n = (s + 1) as 1 | 2 | 3 | 4 | 5; setMaxStep(m => Math.max(m, n)); return n; });
+      setStep(s => { const n = (noVerifSections && s === 3 ? 5 : s + 1) as 1 | 2 | 3 | 4 | 5; setMaxStep(m => Math.max(m, n)); return n; });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       navigating.current = false;
@@ -910,7 +915,7 @@ export default function SubmitClient() {
 
   const prev = () => {
     setError(''); setErrorField('');
-    setStep(s => (s - 1) as 1 | 2 | 3 | 4 | 5);
+    setStep(s => (noVerifSections && s === 5 ? 3 : s - 1) as 1 | 2 | 3 | 4 | 5);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -1174,8 +1179,12 @@ export default function SubmitClient() {
     </div>
   );
 
-  const steps = ['Account Setup', 'Basic Info', 'Additional Info', 'Verification', 'Review'];
-  const stepsMobile = ['Account', 'Basic Info', 'Additional Info', 'Verification', 'Review'];
+  const steps = noVerifSections
+    ? ['Account Setup', 'Basic Info', 'Additional Info', 'Review']
+    : ['Account Setup', 'Basic Info', 'Additional Info', 'Verification', 'Review'];
+  const stepsMobile = noVerifSections
+    ? ['Account', 'Basic Info', 'Additional Info', 'Review']
+    : ['Account', 'Basic Info', 'Additional Info', 'Verification', 'Review'];
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px 20px' }}>
@@ -1655,8 +1664,8 @@ export default function SubmitClient() {
           </div>
         )}
 
-        {/* ── Step 4: Verification ──────────────────────────────────────────── */}
-        {step === 4 && (
+        {/* ── Step 4: Verification — hidden when all 3 sections are turned off ── */}
+        {step === 4 && !noVerifSections && (
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
