@@ -600,6 +600,15 @@ export default function SubmitClient() {
   // Verification step has no content — hide it entirely so users
   // don't see an empty step. Computed from the 3 require_* settings.
   const noVerifSections = !requireCandidateCnic && !requireLatestDegree && !requireParentsCnic;
+  // If settings loaded AFTER the user already navigated to step 4 (Verification),
+  // redirect them to step 5 (Review/Submit). This happens when all 3 sections
+  // are off and the user clicks through quickly before the async fetch finishes.
+  useEffect(() => {
+    if (noVerifSections && step === 4) {
+      setStep(5);
+      setMaxStep(m => Math.max(m, 5));
+    }
+  }, [noVerifSections, step]);
   const [skipError, setSkipError] = useState('');
   const cnicCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -1180,11 +1189,11 @@ export default function SubmitClient() {
   );
 
   const steps = noVerifSections
-    ? ['Account Setup', 'Basic Info', 'Additional Info', 'Review']
-    : ['Account Setup', 'Basic Info', 'Additional Info', 'Verification', 'Review'];
+    ? ['Account Setup', 'Basic Info', 'Additional Info', 'Submit']
+    : ['Account Setup', 'Basic Info', 'Additional Info', 'Verification', 'Submit'];
   const stepsMobile = noVerifSections
-    ? ['Account', 'Basic Info', 'Additional Info', 'Review']
-    : ['Account', 'Basic Info', 'Additional Info', 'Verification', 'Review'];
+    ? ['Account', 'Basic Info', 'Additional Info', 'Submit']
+    : ['Account', 'Basic Info', 'Additional Info', 'Verification', 'Submit'];
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px 20px' }}>
