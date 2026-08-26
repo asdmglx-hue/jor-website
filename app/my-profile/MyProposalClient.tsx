@@ -842,7 +842,7 @@ export default function MyProposalClient() {
             )}
             {user.proposal_number > 0 && <span style={{ fontSize: 13, color: '#6B6893' }}>#{user.proposal_number}</span>}
           </div>
-          <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', alignItems: 'center' }}>
+          <div className="my-account-actions" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             {(() => {
               // Expired accounts keep Share/Pause/View visible but disabled
               // (nothing to share/toggle/view live while unsubscribed), and

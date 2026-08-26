@@ -299,9 +299,9 @@ body {
   .filter-desktop { display: none; }
   .filter-mobile { display: flex; }
   .my-account-right { align-items: center !important; width: 100% !important; }
-  .my-account-actions { gap: 8px !important; justify-content: center !important; width: 100% !important; }
-  .my-account-actions a, .my-account-actions button { flex: 1 !important; justify-content: center !important; }
-  .my-account-actions a, .my-account-actions button { padding: 6px 8px !important; }
+  .my-account-actions { gap: 6px !important; justify-content: flex-start !important; width: 100% !important; flex-wrap: wrap !important; }
+  .my-account-actions a, .my-account-actions button { flex: 0 1 auto !important; justify-content: center !important; min-width: 0 !important; }
+  .my-account-actions a, .my-account-actions button { padding: 6px 10px !important; font-size: 10px !important; }
   .hash-desktop { display: none !important; }
   .hash-mobile { display: block !important; }
   .credits-badge-desktop { display: none !important; }
