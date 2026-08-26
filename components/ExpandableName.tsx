@@ -29,6 +29,8 @@ export default function ExpandableName({ name, style, className, badgeSuffix }: 
       style={{
         ...style,
         cursor: 'pointer',
+        display: 'inline-flex',
+        alignItems: 'center',
         ...(expanded
           ? { whiteSpace: 'normal', overflow: 'visible', textOverflow: 'clip', wordBreak: 'break-word', minWidth: 0, flex: '1 1 auto' }
           : { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: '1 1 auto' }),
