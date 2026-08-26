@@ -545,3 +545,7 @@ body {
   top: 0;
   z-index: 100;
 }
+
+/* desktop-only: hidden on mobile, flex on desktop */
+.desktop-only { display: none !important; }
+@media (min-width: 769px) { .desktop-only { display: flex !important; } }

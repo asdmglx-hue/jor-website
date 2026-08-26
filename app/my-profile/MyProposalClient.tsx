@@ -843,48 +843,7 @@ export default function MyProposalClient() {
             {user.proposal_number > 0 && <span style={{ fontSize: 13, color: '#6B6893' }}>#{user.proposal_number}</span>}
           </div>
           <div className="my-account-actions-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            {/* [ROW1] Verify Now / Get Verified Badge — show for pending AND active profiles */}
-            {(user.status === 'pending' || user.status === 'active') && user.cnic_verified !== true && (() => {
-              const dv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
-              const anyRejected = Object.values(dv).some((v: string) => v === 'rejected');
-              if (anyRejected) {
-                return (
-                  <button onClick={() => setVerifyModalOpen(true)}
-                    style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>Verify Now</span>
-                  </button>
-                );
-              }
-              if (user.is_doc_verified) return null;
-              const hasCnic    = !!(user.cnic_front_url && user.cnic_back_url);
-              const hasDegree  = !!user.education_document_url;
-              const hasParents = !!(user.guardian_cnic_front_url && user.guardian_cnic_back_url);
-              const showCnic    = verifyNowSettings['verify_now_candidate_cnic'] !== 'false';
-              const showDegree  = verifyNowSettings['verify_now_latest_degree']  !== 'false';
-              const showParents = verifyNowSettings['verify_now_parents_cnic']   !== 'false';
-              const shouldShow  = (showCnic && !hasCnic) || (showDegree && !hasDegree) || (showParents && !hasParents);
-              if (!shouldShow) return null;
-              const cnicCompulsory    = verifyNowSettings['verify_now_candidate_cnic_compulsory'] !== 'false';
-              const degreeCompulsory  = verifyNowSettings['verify_now_latest_degree_compulsory']  === 'true';
-              const parentsCompulsory = verifyNowSettings['verify_now_parents_cnic_compulsory']   !== 'false';
-              const missingCompulsory =
-                (showCnic    && cnicCompulsory    && !hasCnic) ||
-                (showDegree  && degreeCompulsory  && !hasDegree) ||
-                (showParents && parentsCompulsory && !hasParents);
-              // Matches the app: with badges switched off there is no badge to
-              // offer, so the button never reads "Get Verified Badge".
-              const label = !badgeEnabled || missingCompulsory ? 'Verify Now' : 'Get Verified Badge';
-              return (
-                <button onClick={() => setVerifyModalOpen(true)}
-                  style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>{label}</span>
-                </button>
-              );
-            })()}
-          </div>
+
           <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end' }}>
           {(() => {
               // Expired accounts keep Share/Pause/View visible but disabled
@@ -944,6 +903,44 @@ export default function MyProposalClient() {
                 value in requiring the full flow) — but deliberately NOT
                 locked for Rejected/Removed, where someone should always be
                 able to finish deleting their own already-rejected account. */}
+            {/* Verify Now / Get Verified Badge — desktop only, next to Delete */}
+            {(user.status === 'pending' || user.status === 'active') && user.cnic_verified !== true && (() => {
+              const dv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
+              const anyRejected = Object.values(dv).some((v: string) => v === 'rejected');
+              if (anyRejected) {
+                return (
+                  <button className="desktop-only" onClick={() => setVerifyModalOpen(true)}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>Verify Now</span>
+                  </button>
+                );
+              }
+              if (user.is_doc_verified) return null;
+              const hasCnic    = !!(user.cnic_front_url && user.cnic_back_url);
+              const hasDegree  = !!user.education_document_url;
+              const hasParents = !!(user.guardian_cnic_front_url && user.guardian_cnic_back_url);
+              const showCnic    = verifyNowSettings['verify_now_candidate_cnic'] !== 'false';
+              const showDegree  = verifyNowSettings['verify_now_latest_degree']  !== 'false';
+              const showParents = verifyNowSettings['verify_now_parents_cnic']   !== 'false';
+              const shouldShow  = (showCnic && !hasCnic) || (showDegree && !hasDegree) || (showParents && !hasParents);
+              if (!shouldShow) return null;
+              const cnicCompulsory    = verifyNowSettings['verify_now_candidate_cnic_compulsory'] !== 'false';
+              const degreeCompulsory  = verifyNowSettings['verify_now_latest_degree_compulsory']  === 'true';
+              const parentsCompulsory = verifyNowSettings['verify_now_parents_cnic_compulsory']   !== 'false';
+              const missingCompulsory =
+                (showCnic    && cnicCompulsory    && !hasCnic) ||
+                (showDegree  && degreeCompulsory  && !hasDegree) ||
+                (showParents && parentsCompulsory && !hasParents);
+              const label = !badgeEnabled || missingCompulsory ? 'Verify Now' : 'Get Verified Badge';
+              return (
+                <button className="desktop-only" onClick={() => setVerifyModalOpen(true)}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>{label}</span>
+                </button>
+              );
+            })()}
             <button disabled={user.status === 'pending'} onClick={() => { setDeleteReason(''); setDeleteOtherReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep((isAdminAccount || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed') ? 'password' : 'reason'); }}
               style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FEE2E2', background: user.status === 'pending' ? '#F5F5F5' : '#FEF2F2', cursor: user.status === 'pending' ? 'not-allowed' : 'pointer', opacity: user.status === 'pending' ? 0.5 : 1 }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={user.status === 'pending' ? '#9CA3AF' : '#DC2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
