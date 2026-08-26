@@ -1180,7 +1180,7 @@ export default function SubmitClient() {
       </div>
       <h2 className="submit-success-heading" style={{ fontSize: 24, fontWeight: 900, color: '#1A1830', marginBottom: 8 }}>Profile Submitted!</h2>
       <p style={{ color: '#6B6893', marginBottom: 24, lineHeight: 1.6 }}>
-        Thank you for submitting your profile! Please allow up to 24 hours for review.
+        Thank you for submitting your profile. Please log in to your account and complete the verification process.
       </p>
       <Link href="/login" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: 12, background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>
         Login
