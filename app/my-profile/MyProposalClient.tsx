@@ -1821,8 +1821,10 @@ export default function MyProposalClient() {
                       });
                       ok = data as boolean | null;
                     } else {
-                      const { data } = await deleteOwnProposalAction({
+                      // Voluntary self-delete: hard delete + save reason to deletion_reasons
+                      const { data, error } = await supabase.rpc('self_delete_proposal', {
                         p_id: user.id,
+                        p_cnic: session?.cnic ?? '',
                         p_password: deletePassword.trim(),
                         p_reason: effectiveDeleteReason,
                       });
