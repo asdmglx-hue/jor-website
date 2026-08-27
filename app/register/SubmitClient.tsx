@@ -567,6 +567,7 @@ export default function SubmitClient() {
   }, []);
   const [maxStep, setMaxStep] = useState<number>(1);
   const [form, setForm] = useState<FormData>(EMPTY);
+  const [submitterType, setSubmitterType] = useState<'self' | 'guardian' | null>(null);
   const [showPhone2, setShowPhone2] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState('');
@@ -892,6 +893,11 @@ export default function SubmitClient() {
   };
 
   const next = async () => {
+    // On the last step, require submitter type selection
+    if (step === maxStep && submitterType === null) {
+      setError('Please select one of the options above before submitting.');
+      return;
+    }
     if (navigating.current) return;
     navigating.current = true;
     try {
@@ -2037,8 +2043,20 @@ export default function SubmitClient() {
                 )}
               </div>
 
-              <div style={{ marginTop: 16, background: '#EEEDFE', border: '1px solid #534AB733', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-                Once you submit your proposal, it will be reviewed and published within 24 hours.
+              <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {([
+                  { value: 'self' as const, label: 'I am submitting this profile for myself to find a suitable marriage proposal.' },
+                  { value: 'guardian' as const, label: 'I am a parent/guardian submitting this profile to find a suitable marriage proposal for my son/daughter.' },
+                ] as { value: 'self' | 'guardian'; label: string }[]).map(opt => (
+                  <div key={opt.value}
+                    onClick={() => setSubmitterType(opt.value)}
+                    style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', borderRadius: 12, border: `1.5px solid ${submitterType === opt.value ? '#534AB7' : '#E8E6F5'}`, background: submitterType === opt.value ? '#EEEDFE' : '#fff', cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${submitterType === opt.value ? '#534AB7' : '#C4C2D4'}`, background: submitterType === opt.value ? '#534AB7' : '#fff', flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {submitterType === opt.value && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff' }} />}
+                    </div>
+                    <span style={{ fontSize: 13, color: submitterType === opt.value ? '#534AB7' : '#4B4869', lineHeight: 1.6, fontWeight: submitterType === opt.value ? 600 : 400 }}>{opt.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           );
