@@ -885,6 +885,7 @@ export default function SubmitClient() {
       const { data: existingStatus } = await supabase.rpc('get_cnic_profile_status', { p_cnic: digits });
       if (existingStatus === 'pending') return { msg: 'Your profile is already submitted. Please log in to check the status.', field: 'cnic' };
       if (existingStatus === 'rejected') return { msg: 'This CNIC has a rejected profile. Please log in and delete your account first to register again.', field: 'cnic' };
+      if (existingStatus === 'removed') return { msg: 'This CNIC has a removed profile. Please log in and delete your account first to register again.', field: 'cnic' };
       if (existingStatus) return { msg: 'This CNIC is already registered. Please login instead.', field: 'cnic' };
     }
     return null;
