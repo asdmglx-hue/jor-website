@@ -1199,7 +1199,7 @@ export default function SubmitClient() {
       education_document_url: educationDocumentUrl,
       affiliate_code: appliedAffiliateCode || undefined,
       applied_coupon_code: appliedCouponCode || undefined,
-      admin_notes: submitterType === 'self' ? 'Profile submitted for self' : submitterType === 'guardian' ? 'Profile submitted by parent/guardian' : undefined,
+      ...(submitterType ? { admin_notes: submitterType === 'self' ? 'Profile submitted for self' : 'Profile submitted by parent/guardian' } as any : {}),
     });
 
     setSubmitting(false);
