@@ -532,6 +532,58 @@ const COUPON_KEY = 'jor_submit_coupon';
 const AFFILIATE_APPLIED_KEY = 'jor_submit_affiliate_applied';
 
 // ── Main Component ─────────────────────────────────────────────────────────────
+// ── Coupon & Referral collapsible dropdown ─────────────────────────────────
+function CodesDropdown({ open, onToggle, hasApplied, couponCode, setCouponCode, applyCoupon, validatingCoupon, couponMessage, couponIsError, affiliate, onAffiliateChange, applyAffiliateCode, validatingAffiliate, affiliateMessage, affiliateIsError }: {
+  open: boolean; onToggle: () => void; hasApplied: boolean;
+  couponCode: string; setCouponCode: (v: string) => void; applyCoupon: () => void; validatingCoupon: boolean; couponMessage: string | null; couponIsError: boolean;
+  affiliate: string; onAffiliateChange: (v: string) => void; applyAffiliateCode: () => void; validatingAffiliate: boolean; affiliateMessage: string | null; affiliateIsError: boolean;
+}) {
+  return (
+    <div style={{ border: '1px solid #E8E6F5', borderRadius: 12, overflow: 'hidden', marginBottom: 16 }}>
+      {/* Header toggle */}
+      <div onClick={onToggle} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#F9F8FF', cursor: 'pointer', userSelect: 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L4 3a1 1 0 0 0-1 1l.24 5.59a2 2 0 0 0 .59 1.41l9.58 9.59a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#534AB7' }}>Have a Coupon or Referral Code?</span>
+          {hasApplied && <span style={{ fontSize: 11, fontWeight: 700, color: '#16A34A', background: '#DCFCE7', borderRadius: 6, padding: '2px 8px' }}>Applied ✓</span>}
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s' }}><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      {/* Content */}
+      {open && (
+        <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+          {/* Coupon */}
+          <div style={{ padding: 12, background: '#FEEDE3', border: '1px solid #E8620A66', borderRadius: 10 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#E8620A', marginBottom: 8 }}>Coupon Code</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input value={couponCode} onChange={e => setCouponCode(e.target.value.toUpperCase())} placeholder="e.g. EID2026"
+                style={{ flex: 1, padding: '9px 12px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 700, color: '#E8620A', letterSpacing: 2, outline: 'none', background: '#fff', boxSizing: 'border-box' }} />
+              <button type="button" onClick={() => applyCoupon()} disabled={validatingCoupon || !couponCode.trim()}
+                style={{ padding: '0 16px', borderRadius: 8, border: 'none', flexShrink: 0, background: validatingCoupon || !couponCode.trim() ? '#F5D9C4' : '#E8620A', color: validatingCoupon || !couponCode.trim() ? '#B98254' : '#fff', fontWeight: 700, fontSize: 13, cursor: validatingCoupon || !couponCode.trim() ? 'default' : 'pointer' }}>
+                {validatingCoupon ? '...' : 'Apply'}
+              </button>
+            </div>
+            {couponMessage && <div style={{ fontSize: 12, marginTop: 6, fontWeight: 600, color: couponIsError ? '#DC2626' : '#16A34A' }}>{couponMessage}</div>}
+          </div>
+          {/* Referral */}
+          <div style={{ padding: 12, background: '#EEEDFE', border: '1px solid #D4D1F7', borderRadius: 10 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#534AB7', marginBottom: 8 }}>Referral Code</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input value={affiliate} onChange={e => onAffiliateChange(e.target.value.toUpperCase())} placeholder="e.g. A3K9BZ"
+                style={{ flex: 1, padding: '9px 12px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 700, color: '#534AB7', letterSpacing: 2, outline: 'none', background: '#fff', boxSizing: 'border-box' }} />
+              <button type="button" onClick={() => applyAffiliateCode()} disabled={validatingAffiliate || !affiliate.trim()}
+                style={{ padding: '0 16px', borderRadius: 8, border: 'none', flexShrink: 0, background: validatingAffiliate || !affiliate.trim() ? '#D4D1F7' : '#534AB7', color: validatingAffiliate || !affiliate.trim() ? '#8F8AC7' : '#fff', fontWeight: 700, fontSize: 13, cursor: validatingAffiliate || !affiliate.trim() ? 'default' : 'pointer' }}>
+                {validatingAffiliate ? '...' : 'Apply'}
+              </button>
+            </div>
+            {affiliateMessage && <div style={{ fontSize: 12, marginTop: 6, fontWeight: 600, color: affiliateIsError ? '#DC2626' : '#16A34A' }}>{affiliateMessage}</div>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SubmitClient() {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [cityGroups, setCityGroups] = useState<Record<string, string[]>>({});
@@ -568,6 +620,7 @@ export default function SubmitClient() {
   const [maxStep, setMaxStep] = useState<number>(1);
   const [form, setForm] = useState<FormData>(EMPTY);
   const [submitterType, setSubmitterType] = useState<'self' | 'guardian' | null>(null);
+  const [codesOpen, setCodesOpen] = useState(false);
   const [showPhone2, setShowPhone2] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState('');
@@ -1955,93 +2008,24 @@ export default function SubmitClient() {
                 </>
               )}
 
-              {/* Coupon Code — mirrors the mobile app's boxed card exactly
-                  (same kAmber/kAmberLight colors from theme.dart). Entered
-                  here at submission; the admin re-checks it's still valid
-                  and not expired at approval time before applying it. */}
-              <div style={{ padding: 14, background: '#FEEDE3', border: '1px solid #E8620A66', borderRadius: 12, marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8620A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L4 3a1 1 0 0 0-1 1l.24 5.59a2 2 0 0 0 .59 1.41l9.58 9.59a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83Z"/>
-                    <circle cx="7.5" cy="7.5" r="1.5"/>
-                  </svg>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#E8620A' }}>Have a Coupon Code?</span>
-                </div>
-                <div style={{ fontSize: 11, color: '#6B6893', marginTop: 4, lineHeight: 1.5 }}>
-                  Get a discount or free days on your subscription — it&apos;s checked when your profile is approved.
-                </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                  <input
-                    value={couponCode}
-                    onChange={e => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="e.g. EID2026"
-                    style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 700, color: '#E8620A', letterSpacing: 2, outline: 'none', background: '#fff', boxSizing: 'border-box' }}
+              {/* Coupon & Referral — collapsible dropdown */}
+              {(() => {
+                const hasApplied = appliedCouponCode || appliedAffiliateCode;
+                return (
+                  <CodesDropdown
+                    open={codesOpen || !!hasApplied}
+                    onToggle={() => setCodesOpen(o => !o)}
+                    hasApplied={!!hasApplied}
+                    couponCode={couponCode} setCouponCode={setCouponCode}
+                    applyCoupon={applyCoupon} validatingCoupon={validatingCoupon}
+                    couponMessage={couponMessage} couponIsError={couponIsError}
+                    affiliate={form.affiliate}
+                    onAffiliateChange={v => { set('affiliate', v); setAppliedAffiliateCode(null); setAffiliateMessage(null); }}
+                    applyAffiliateCode={applyAffiliateCode} validatingAffiliate={validatingAffiliate}
+                    affiliateMessage={affiliateMessage} affiliateIsError={affiliateIsError}
                   />
-                  <button
-                    type="button"
-                    onClick={() => applyCoupon()}
-                    disabled={validatingCoupon || !couponCode.trim()}
-                    style={{
-                      padding: '0 18px', borderRadius: 8, border: 'none', flexShrink: 0,
-                      background: validatingCoupon || !couponCode.trim() ? '#F5D9C4' : '#E8620A',
-                      color: validatingCoupon || !couponCode.trim() ? '#B98254' : '#fff',
-                      fontWeight: 700, fontSize: 13, cursor: validatingCoupon || !couponCode.trim() ? 'default' : 'pointer',
-                    }}>
-                    {validatingCoupon ? '...' : 'Apply'}
-                  </button>
-                </div>
-                {couponMessage && (
-                  <div style={{ fontSize: 12, marginTop: 8, fontWeight: 600, color: couponIsError ? '#DC2626' : '#16A34A' }}>
-                    {couponMessage}
-                  </div>
-                )}
-              </div>
-
-              {/* Referral Code — mirrors the mobile app's boxed card exactly
-                  (same kPurple/kPurpleLight colors from theme.dart). */}
-              <div style={{ padding: 14, background: '#EEEDFE', border: '1px solid #D4D1F7', borderRadius: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                  </svg>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#534AB7' }}>Have a Referral Code?</span>
-                </div>
-                <div style={{ fontSize: 11, color: '#6B6893', marginTop: 4, lineHeight: 1.5 }}>
-                  If someone referred you to Jor, enter their code to support them.
-                </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                  <input
-                    value={form.affiliate}
-                    onChange={e => {
-                      set('affiliate', e.target.value.toUpperCase());
-                      setAppliedAffiliateCode(null);
-                      setAffiliateMessage(null);
-                    }}
-                    placeholder="e.g. A3K9BZ"
-                    style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 700, color: '#534AB7', letterSpacing: 2, outline: 'none', background: '#fff', boxSizing: 'border-box' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => applyAffiliateCode()}
-                    disabled={validatingAffiliate || !form.affiliate.trim()}
-                    style={{
-                      padding: '0 18px', borderRadius: 8, border: 'none', flexShrink: 0,
-                      background: validatingAffiliate || !form.affiliate.trim() ? '#D4D1F7' : '#534AB7',
-                      color: validatingAffiliate || !form.affiliate.trim() ? '#8F8AC7' : '#fff',
-                      fontWeight: 700, fontSize: 13, cursor: validatingAffiliate || !form.affiliate.trim() ? 'default' : 'pointer',
-                    }}>
-                    {validatingAffiliate ? '...' : 'Apply'}
-                  </button>
-                </div>
-                {affiliateMessage && (
-                  <div style={{ fontSize: 12, marginTop: 8, fontWeight: 600, color: affiliateIsError ? '#DC2626' : '#16A34A' }}>
-                    {affiliateMessage}
-                  </div>
-                )}
-              </div>
+                );
+              })()}
 
               <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {([
