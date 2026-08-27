@@ -549,3 +549,7 @@ body {
 /* desktop-only: hidden on mobile, flex on desktop */
 .desktop-only { display: none !important; }
 @media (min-width: 769px) { .desktop-only { display: flex !important; } }
+
+/* mobile-only: visible on mobile, hidden on desktop */
+.mobile-only { display: flex !important; }
+@media (min-width: 769px) { .mobile-only { display: none !important; } }

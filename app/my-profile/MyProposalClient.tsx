@@ -846,6 +846,36 @@ export default function MyProposalClient() {
             {user.proposal_number > 0 && <span style={{ fontSize: 13, color: '#6B6893' }}>#{user.proposal_number}</span>}
           </div>
           <div className="my-account-actions-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {/* [ROW1] Verify Now — mobile only (desktop shows it next to Delete) */}
+            {(user.status === 'pending' || user.status === 'active') && !isRejected && user.cnic_verified !== true && (() => {
+              const dv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
+              const anyRejected = Object.values(dv).some((v: string) => v === 'rejected');
+              const hasCnic    = !!(user.cnic_front_url && user.cnic_back_url);
+              const hasDegree  = !!user.education_document_url;
+              const hasParents = !!(user.guardian_cnic_front_url && user.guardian_cnic_back_url);
+              const showCnic    = verifyNowSettings['verify_now_candidate_cnic'] !== 'false';
+              const showDegree  = verifyNowSettings['verify_now_latest_degree']  !== 'false';
+              const showParents = verifyNowSettings['verify_now_parents_cnic']   !== 'false';
+              const shouldShow  = anyRejected || (!user.is_doc_verified && ((showCnic && !hasCnic) || (showDegree && !hasDegree) || (showParents && !hasParents)));
+              if (!shouldShow) return null;
+              const cnicCompulsory    = verifyNowSettings['verify_now_candidate_cnic_compulsory'] !== 'false';
+              const degreeCompulsory  = verifyNowSettings['verify_now_latest_degree_compulsory']  === 'true';
+              const parentsCompulsory = verifyNowSettings['verify_now_parents_cnic_compulsory']   !== 'false';
+              const missingCompulsory =
+                (showCnic    && cnicCompulsory    && !hasCnic) ||
+                (showDegree  && degreeCompulsory  && !hasDegree) ||
+                (showParents && parentsCompulsory && !hasParents);
+              const label = !badgeEnabled || missingCompulsory ? 'Verify Now' : 'Get Verified Badge';
+              return (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
+                  <button className="mobile-only" onClick={() => setVerifyModalOpen(true)}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>{label}</span>
+                  </button>
+                </div>
+              );
+            })()}
 
           <div className="my-account-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end' }}>
           {(() => {
