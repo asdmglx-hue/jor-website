@@ -947,7 +947,7 @@ export default function SubmitClient() {
 
   const next = async () => {
     // On the last step, require submitter type selection
-    if (step === maxStep && submitterType === null) {
+    if (step === 5 && submitterType === null) {
       setError('Please select one of the options above before submitting.');
       return;
     }
