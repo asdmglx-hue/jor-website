@@ -994,6 +994,7 @@ export default function SubmitClient() {
   const handleSubmit = async () => {
     const { msg: err, field } = validateStep();
     if (err) { setError(err); setErrorField(field); return; }
+    if (submitterType === null) { setError('Please select one of the options above before submitting.'); return; }
     setSubmitting(true); setError(''); setErrorField('');
 
     const totalInches = (+form.height_feet * 12) + (+form.height_inches_extra || 0);
