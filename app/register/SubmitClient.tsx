@@ -1211,6 +1211,10 @@ export default function SubmitClient() {
       localStorage.removeItem(AFFILIATE_APPLIED_KEY);
       setSubmitted(true);
       trackEvent('register_complete');
+      if ((window as any).fbq) {
+        (window as any).fbq('track', 'CompleteRegistration');
+        (window as any).fbq('track', 'Lead');
+      }
     } else setError(apiErr || 'Something went wrong. Please try again.');
   };
 
