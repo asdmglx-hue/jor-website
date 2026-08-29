@@ -1316,7 +1316,7 @@ export default function SubmitClient() {
               Your CNIC and password are used to login and manage your profile.
             </div>
 
-            <Field label="CNIC Number" required>
+            <Field label="CNIC: Parent/Guardian/Marriage Applicant" required>
               <div style={{ position: 'relative' }}>
                 <input value={form.cnic} style={{ ...inp, paddingRight: 40,
                   ...(cnicState === 'taken' ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : err('cnic'))
@@ -1769,7 +1769,7 @@ export default function SubmitClient() {
 
             {requireCandidateCnic && (
               <>
-                <SecHeader title="FOR MARRIAGE-SEEKING PERSON" />
+                <SecHeader title="Parent/Guardian/Marriage Applicant" />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <CnicUploadBox label="CNIC Front" fieldKey="cnicFront" errorField={errorField}
                     file={cnicFront} preview={cnicFrontPreview} compressing={compressingCnicFront}
