@@ -288,9 +288,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
           </div>
 
           <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginTop: 14, marginBottom: 6, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-            {(showCandidateCnic && compulsoryCandidateCnic) || (showLatestDegree && compulsoryLatestDegree) || (showParentsCnic && compulsoryParentsCnic)
-              ? 'The following documents are required to verify your identity.'
-              : 'Submit the following documents to get your verified badge.'}
+            Your documents stay private and are only visible to our review team, never shown on your profile. Verification helps keep our community secure.
           </div>
 
           {showCandidateCnic && (<>
