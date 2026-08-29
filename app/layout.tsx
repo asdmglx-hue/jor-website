@@ -13,7 +13,7 @@ import { supabase } from "@/lib/supabase";
 const inter = { className: '' };
 
 export const metadata: Metadata = {
-  title: "Jor – Pakistan's Trusted Matrimonial Platform",
+  title: "Jor - Post Your Rishta",
   description: "Browse thousands of verified rishta proposals across Pakistan. Find your perfect match by city, caste, profession and more. Free to join.",
   keywords: "rishta, matrimonial, Pakistan, shaadi, marriage, proposals, nikah, brides, grooms",
   icons: {
@@ -30,17 +30,17 @@ export const metadata: Metadata = {
   },
   manifest: '/site.webmanifest',
   openGraph: {
-    title: "Jor – Pakistan's Trusted Matrimonial Platform",
+    title: "Jor - Post Your Rishta",
     description: "Browse verified rishta proposals across Pakistan. Filter by city, caste, profession and more.",
     type: "website",
     url: "https://joronline.com",
     siteName: "Jor",
     locale: "en_PK",
-    images: [{ url: 'https://joronline.com/hero-wedding.jpg', width: 1200, height: 630, alt: "Jor – Pakistan's Trusted Matrimonial Platform" }],
+    images: [{ url: 'https://joronline.com/hero-wedding.jpg', width: 1200, height: 630, alt: "Jor - Post Your Rishta" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Jor – Pakistan's Trusted Matrimonial Platform",
+    title: "Jor - Post Your Rishta",
     description: "Browse verified rishta proposals across Pakistan. Filter by city, caste, profession and more.",
     images: ["https://joronline.com/hero-wedding.jpg"],
   },
