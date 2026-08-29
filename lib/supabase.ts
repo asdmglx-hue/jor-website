@@ -350,7 +350,7 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
     ? query.or(orGroups[0])
     : query.or(`and(${orGroups.map(g => `or(${g})`).join(',')})`);
 
-  query = query.order('posted_at', { ascending: false }).limit(max);
+  query = query.order('feed_rank', { ascending: false }).limit(max);
 
   const { data } = await query;
   return (data || []) as Proposal[];
@@ -419,12 +419,12 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   if (isGeneralView) {
     // Already shown in the Featured carousel above — avoid the confusing
     // duplicate of seeing the same person twice on the same page.
-    query = query.eq('is_boosted', false).order('posted_at', { ascending: false });
+    query = query.eq('is_boosted', false).order('feed_rank', { ascending: false });
   } else {
     query = query
       .order('is_boosted', { ascending: false })
       .order('subscription_tier', { ascending: false })
-      .order('posted_at', { ascending: false });
+      .order('feed_rank', { ascending: false });
   }
   query = query.range(page * pageSize, (page + 1) * pageSize - 1);
 
@@ -495,7 +495,7 @@ export async function fetchRecentProposalAt(offset: number): Promise<Proposal | 
     .select(CARD_COLS)
     .eq('status', 'active')
     .or(notExpiredFilter())
-    .order('posted_at', { ascending: false })
+    .order('feed_rank', { ascending: false })
     .range(offset, offset);
   return (data && data[0]) ? (data[0] as Proposal) : null;
 }

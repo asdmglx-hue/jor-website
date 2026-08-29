@@ -87,7 +87,7 @@ async function getFeatured(): Promise<Proposal[]> {
     // can't just chain a second .or() here since the boosted/featured check
     // already uses one; this is the documented way to combine both inside it.
     .or(`and(is_boosted.eq.true,or(${notExpired})),and(subscription_tier.eq.featured,or(${notExpired}))`)
-    .order('posted_at', { ascending: false })
+    .order('feed_rank', { ascending: false })
     .limit(6);
 
   // Also pull active boosts from featured_boosts table (used by mobile app)
@@ -120,7 +120,7 @@ async function getRecent(): Promise<Proposal[]> {
     .select(CARD_COLS)
     .eq('status', 'active')
     .or(notExpiredFilter())
-    .order('posted_at', { ascending: false })
+    .order('feed_rank', { ascending: false })
     .limit(9);
   return (data || []) as Proposal[];
 }
