@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Submit your rishta profile on Jor and connect with Muslim families across Pakistan and overseas. Simple, secure, and trusted for finding the right rishta.',
   alternates: { canonical: 'https://joronline.com/register' },
   openGraph: {
-    title: 'Jor - Post Your Rishta',
+    title: 'Jor - Find the Right Rishta Easily',
     description: 'Submit your rishta profile on Jor and connect with Muslim families across Pakistan and overseas. Simple, secure, and trusted for finding the right rishta.',
     url: 'https://joronline.com/register',
     siteName: 'Jor',
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Jor - Post Your Rishta',
+    title: 'Jor - Find the Right Rishta Easily',
     description: 'Submit your rishta profile on Jor and connect with Muslim families across Pakistan and overseas.',
     images: ['https://joronline.com/hero-wedding.jpg'],
   },
