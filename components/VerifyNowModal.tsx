@@ -88,9 +88,9 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
     dv['guardian_cnic_front'] !== 'rejected' && dv['guardian_cnic_back'] !== 'rejected');
   const degreeAlreadyDone        = !!(user.education_document_url && dv['education_document'] !== 'rejected');
 
-  const [showCandidateCnic, setShowCandidateCnic] = useState(!candidateCnicAlreadyDone);
-  const [showLatestDegree,  setShowLatestDegree]  = useState(!degreeAlreadyDone);
-  const [showParentsCnic,   setShowParentsCnic]   = useState(!parentsCnicAlreadyDone);
+  const [showCandidateCnic, setShowCandidateCnic] = useState(false);
+  const [showLatestDegree,  setShowLatestDegree]  = useState(false);
+  const [showParentsCnic,   setShowParentsCnic]   = useState(false);
 
   const [compulsoryCandidateCnic, setCompulsoryCandidateCnic] = useState(true);
   const [compulsoryLatestDegree,  setCompulsoryLatestDegree]  = useState(false);
@@ -100,9 +100,9 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
     supabase.from('app_settings').select('key, value').then(({ data }) => {
       if (!data) return;
       const map = Object.fromEntries(data.map(r => [r.key, r.value]));
-      if (!candidateCnicAlreadyDone && map['verify_now_candidate_cnic'] === 'false') setShowCandidateCnic(false);
-      if (!degreeAlreadyDone        && map['verify_now_latest_degree']  === 'false') setShowLatestDegree(false);
-      if (!parentsCnicAlreadyDone   && map['verify_now_parents_cnic']   === 'false') setShowParentsCnic(false);
+      if (!candidateCnicAlreadyDone && map['verify_now_candidate_cnic'] !== 'false') setShowCandidateCnic(true);
+      if (!degreeAlreadyDone        && map['verify_now_latest_degree']  !== 'false') setShowLatestDegree(true);
+      if (!parentsCnicAlreadyDone   && map['verify_now_parents_cnic']   !== 'false') setShowParentsCnic(true);
       if (map['verify_now_candidate_cnic_compulsory'] === 'false') setCompulsoryCandidateCnic(false);
       if (map['verify_now_latest_degree_compulsory']  === 'true')  setCompulsoryLatestDegree(true);
       if (map['verify_now_parents_cnic_compulsory']   === 'false') setCompulsoryParentsCnic(false);
