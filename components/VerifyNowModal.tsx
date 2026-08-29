@@ -294,7 +294,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
           </div>
 
           {showCandidateCnic && (<>
-          <SecHeader title="FOR MARRIAGE-SEEKING PERSON" />
+          <SecHeader title="PARENT / GUARDIAN / CANDIDATE" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <UploadBox label={`CNIC Front${showCandidateCnic && compulsoryCandidateCnic ? " *" : ""}`} file={cnicFront} preview={cnicFrontPreview} compressing={compressingCnicFront}
               onFileSelected={async raw => {
@@ -316,7 +316,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
           </>)}
 
           {showLatestDegree && (<>
-          {!showCandidateCnic && <SecHeader title="MARRIAGE-SEEKING CANDIDATE" />}
+          {!showCandidateCnic && <SecHeader title="PARENT / GUARDIAN / CANDIDATE" />}
           <UploadBox label={`Recent Education Document${showLatestDegree && compulsoryLatestDegree ? " *" : ""}`} file={educationDocument} preview={educationDocumentPreview} compressing={compressingEducationDocument}
             onFileSelected={async raw => {
               setCompressingEducationDocument(true);
