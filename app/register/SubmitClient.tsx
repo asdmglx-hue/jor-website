@@ -1316,7 +1316,7 @@ export default function SubmitClient() {
               Your CNIC and password are used to login and manage your profile.
             </div>
 
-            <Field label="CNIC" required labelExtra={<span style={{ fontSize: 12, fontWeight: 600, color: '#8F8AC7' }}>&nbsp; — &nbsp;Parent / Guardian / Candidate</span>}>
+            <Field label="CNIC" required labelExtra={<><span style={{ fontSize: 12, fontWeight: 600, color: '#8F8AC7' }}>&nbsp; — &nbsp;Parent / Guardian / Candidate</span><InfoPopover text="Your Privacy Matters — Your CNIC details are kept private and will only be used later to verify your profile, helping us keep our community secure." /></>}>
               <div style={{ position: 'relative' }}>
                 <input value={form.cnic} style={{ ...inp, paddingRight: 40,
                   ...(cnicState === 'taken' ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : err('cnic'))
