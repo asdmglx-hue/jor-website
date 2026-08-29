@@ -1312,11 +1312,12 @@ export default function SubmitClient() {
               </div>
             </div>
 
-            <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-              Your CNIC and password are used to login and manage your profile.
+            <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#534AB7', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <svg style={{ flexShrink: 0, marginTop: 1 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Your CNIC details are kept private and will only be used later to verify your profile, helping us keep our community secure.
             </div>
 
-            <Field label="CNIC" required labelExtra={<><span style={{ fontSize: 12, fontWeight: 600, color: '#8F8AC7' }}>&nbsp; — &nbsp;Parent / Guardian / Candidate</span><InfoPopover text="Your Privacy Matters — Your CNIC details are kept private and will only be used later to verify your profile, helping us keep our community secure." /></>}>
+            <Field label="CNIC" required labelExtra={<span style={{ fontSize: 12, fontWeight: 600, color: '#8F8AC7' }}>&nbsp; — &nbsp;Parent / Guardian / Candidate</span>}>
               <div style={{ position: 'relative' }}>
                 <input value={form.cnic} style={{ ...inp, paddingRight: 40,
                   ...(cnicState === 'taken' ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : err('cnic'))
