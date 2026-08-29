@@ -1313,7 +1313,7 @@ export default function SubmitClient() {
             </div>
 
             <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-              Your CNIC details are kept private and will only be used later to verify your profile, helping us keep our community secure.
+              Your CNIC is kept private and is only used to verify your profile, helping us keep our community secure.
             </div>
 
             <Field label="CNIC" required labelExtra={<span style={{ fontSize: 12, fontWeight: 600, color: '#8F8AC7' }}>&nbsp; — &nbsp;Parent / Guardian / Candidate</span>}>
