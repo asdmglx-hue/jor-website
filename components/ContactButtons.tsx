@@ -134,10 +134,10 @@ export default function ContactButtons({
         {!hasTwo && contacts[0].person && (
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 4,
-            background: '#F5F4FC', color: '#9990B8', border: '1px solid #E8E6F5',
+            background: '#EEEDFE', color: '#534AB7', border: '1px solid #C4C2D8',
             fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20,
           }}>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9990B8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             {contacts[0].person}
           </span>
         )}
