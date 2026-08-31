@@ -128,41 +128,40 @@ export default function ContactButtons({
         </div>
       )}
 
-      {/* Heading — updates with toggle */}
-      <div style={{ fontSize: 15, fontWeight: 800, color: '#1A1830', marginBottom: 14 }}>
-        {headingLabel}
+      {/* Heading + single contact person inline */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: '#1A1830' }}>{headingLabel}</div>
+        {!hasTwo && contacts[0].person && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: '#F5F4FC', color: '#9990B8', border: '1px solid #E8E6F5',
+            fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20,
+          }}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9990B8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            {contacts[0].person}
+          </span>
+        )}
       </div>
 
-      {/* Toggle — 2 numbers; single label — 1 number with contact person */}
-      {hasTwo ? (
+      {/* Toggle — only when 2 numbers */}
+      {hasTwo && (
         <div style={{
           display: 'flex', background: '#F5F5F8', border: '1px solid #E8E6F5',
-          borderRadius: 10, padding: 3, marginBottom: 14, gap: 3,
+          borderRadius: 8, padding: 3, marginBottom: 12, gap: 2,
         }}>
           {contacts.map((c, i) => (
             <button key={i} onClick={() => setActiveIdx(i)} style={{
-              flex: 1, padding: '8px 6px', borderRadius: 7, border: 'none', cursor: 'pointer',
+              flex: 1, padding: '5px 4px', borderRadius: 6, border: 'none', cursor: 'pointer',
               background: activeIdx === i ? '#534AB7' : 'transparent',
-              color: activeIdx === i ? '#fff' : '#68629C',
-              fontWeight: 700, fontSize: 12, lineHeight: 1.35, textAlign: 'center',
+              color: activeIdx === i ? '#fff' : '#9990B8',
+              fontWeight: 600, fontSize: 11, textAlign: 'center',
               transition: 'all .18s',
             }}>
               {c.person || `Number ${i + 1}`}
             </button>
           ))}
         </div>
-      ) : contacts[0].person ? (
-        <div style={{ marginBottom: 12 }}>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5,
-            background: '#EEEDFE', color: '#534AB7',
-            fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20,
-          }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            {contacts[0].person}
-          </span>
-        </div>
-      ) : null}
+      )}
 
       {/* Reveal / Call button */}
       {!revealed ? (
