@@ -276,33 +276,7 @@ export default function PhoneInput({ value, onChange, dialCode, onDialChange, re
     onChange(parts.join(' '));
   };
 
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handlePhoneChangeWithCursor = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target;
-    // cursorPos is where the cursor is AFTER the keystroke in the raw DOM value
-    const cursorPos = input.selectionStart ?? input.value.length;
-    const rawVal = e.target.value; // what user actually typed/deleted
-    handlePhoneChange(rawVal);
-    // Restore cursor position after React re-renders the formatted value
-    requestAnimationFrame(() => {
-      if (!inputRef.current) return;
-      const newVal = inputRef.current.value;
-      // Count digits before cursor in the raw (unformatted) input value
-      const digitsBeforeCursor = rawVal.slice(0, cursorPos).replace(/\D/g, '').length;
-      // Find where that many digits land in the newly formatted string
-      let newCursor = newVal.length;
-      let digitsSeen = 0;
-      for (let i = 0; i < newVal.length; i++) {
-        if (/\d/.test(newVal[i])) {
-          digitsSeen++;
-          if (digitsSeen === digitsBeforeCursor) { newCursor = i + 1; break; }
-        }
-      }
-      if (digitsBeforeCursor === 0) newCursor = 0;
-      inputRef.current.setSelectionRange(newCursor, newCursor);
-    });
-  };
 
   return (
     <div style={{ display: 'flex', gap: 6 }}>
@@ -334,7 +308,7 @@ export default function PhoneInput({ value, onChange, dialCode, onDialChange, re
           </div>
         )}
       </div>
-      <input ref={inputRef} value={value} onChange={handlePhoneChangeWithCursor} style={{ ...inp, flex: 1, ...(hasError ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : {}) }} placeholder={placeholder} type="tel" />
+      <input value={value} onChange={e => handlePhoneChange(e.target.value)} style={{ ...inp, flex: 1, ...(hasError ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : {}) }} placeholder={placeholder} type="tel" />
     </div>
   );
 }
