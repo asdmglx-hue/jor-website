@@ -1325,7 +1325,7 @@ export default function MyProposalClient() {
               </span>
             );
 
-            const Field = ({ label, fieldKey, type = 'text', options, grouped, info, maxLength }: { label: string; fieldKey: string; type?: string; options?: string[]; grouped?: Record<string, string[]>; info?: string; maxLength?: number }) => {
+            const Field = ({ label, fieldKey, type = 'text', options, grouped, info, maxLength, labelExtra }: { label: string; fieldKey: string; type?: string; options?: string[]; grouped?: Record<string, string[]>; info?: string; maxLength?: number; labelExtra?: React.ReactNode }) => {
               const hasPending = Object.prototype.hasOwnProperty.call(pendingChanges, fieldKey);
               // Shows the submitted (not-yet-live) text instead of the
               // live value while a change is pending — reverts to
@@ -1342,7 +1342,10 @@ export default function MyProposalClient() {
                 : rawDisplayVal;
               return (
                 <div style={{ marginBottom: 14 }}>
-                  {lbl(label, hasPending ? clockIcon : (ALWAYS_LOCKED.includes(fieldKey) ? lockIcon : (info ? <InfoPopover text={info} /> : undefined)))}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {lbl(label, hasPending ? clockIcon : (ALWAYS_LOCKED.includes(fieldKey) ? lockIcon : (info ? <InfoPopover text={info} /> : undefined)))}
+                    {labelExtra}
+                  </div>
                   {isEditing ? (
                     <>
                       {options
@@ -1704,7 +1707,16 @@ export default function MyProposalClient() {
                 {sec('Contact', grid(<>
                   <Field label="Primary Phone" fieldKey="contact_phone" type="tel" />
                   <Field label="Contact Person" fieldKey="contact_person" options={['Mother','Father','Sister','Brother','Self','Other']} />
-                  <Field label="Secondary Phone" fieldKey="contact_phone_2" type="tel" />
+                  <Field label="Secondary Phone" fieldKey="contact_phone_2" type="tel"
+                    labelExtra={
+                      (user.contact_phone_2 || pendingChanges['contact_phone_2']) && inlineKey !== 'contact_phone_2' ? (
+                        <button onClick={() => saveInline('contact_phone_2', null)} disabled={inlineSaving}
+                          style={{ marginLeft: 6, background: 'none', border: 'none', padding: 0, color: '#EF4444', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                          ✕ Remove
+                        </button>
+                      ) : undefined
+                    }
+                  />
                   {(user.contact_phone_2 || pendingChanges['contact_phone_2']) && (
                     <Field label="Contact Person (2nd)" fieldKey="contact_person_2" options={['Mother','Father','Sister','Brother','Self','Other']} />
                   )}

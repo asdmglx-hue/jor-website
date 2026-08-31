@@ -280,23 +280,26 @@ export default function PhoneInput({ value, onChange, dialCode, onDialChange, re
 
   const handlePhoneChangeWithCursor = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
+    // cursorPos is where the cursor is AFTER the keystroke in the raw DOM value
     const cursorPos = input.selectionStart ?? input.value.length;
-    const oldVal = input.value;
-    handlePhoneChange(oldVal);
-    // Restore cursor after React re-render
+    const rawVal = e.target.value; // what user actually typed/deleted
+    handlePhoneChange(rawVal);
+    // Restore cursor position after React re-renders the formatted value
     requestAnimationFrame(() => {
       if (!inputRef.current) return;
       const newVal = inputRef.current.value;
-      // Count how many spaces were added before cursor position
-      const digitsBeforeCursor = oldVal.slice(0, cursorPos).replace(/\D/g, '').length;
-      let newCursor = 0;
+      // Count digits before cursor in the raw (unformatted) input value
+      const digitsBeforeCursor = rawVal.slice(0, cursorPos).replace(/\D/g, '').length;
+      // Find where that many digits land in the newly formatted string
+      let newCursor = newVal.length;
       let digitsSeen = 0;
       for (let i = 0; i < newVal.length; i++) {
-        if (/\d/.test(newVal[i])) digitsSeen++;
-        if (digitsSeen === digitsBeforeCursor) { newCursor = i + 1; break; }
-        if (digitsSeen > digitsBeforeCursor) { newCursor = i; break; }
+        if (/\d/.test(newVal[i])) {
+          digitsSeen++;
+          if (digitsSeen === digitsBeforeCursor) { newCursor = i + 1; break; }
+        }
       }
-      if (digitsSeen < digitsBeforeCursor) newCursor = newVal.length;
+      if (digitsBeforeCursor === 0) newCursor = 0;
       inputRef.current.setSelectionRange(newCursor, newCursor);
     });
   };
