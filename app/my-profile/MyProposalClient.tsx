@@ -967,7 +967,7 @@ export default function MyProposalClient() {
             </button>
             {/* Pay Now — hidden when plan is free (free_mode=true) or settings not yet loaded */}
             {user.status === 'pending' && freeMode === false && (
-              <Link href="/plans?plan=rishta-profile"
+              <Link href="/plans?plan=rishta-profile&pay=1"
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', textDecoration: 'none' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>Pay Now</span>
@@ -976,7 +976,7 @@ export default function MyProposalClient() {
 
             {/* Renew — only when the subscription has actually expired */}
             {isInactive && (
-              <Link href="/plans?plan=rishta-profile"
+              <Link href="/plans?plan=rishta-profile&pay=1"
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #D1FAE5', background: '#ECFDF5', textDecoration: 'none' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#16A34A' }}>Renew</span>
@@ -1089,7 +1089,7 @@ export default function MyProposalClient() {
                         Schedule Featured Post
                       </button>
                     ) : (
-                      <Link href="/plans?plan=featured" style={{ display: 'inline-block', textAlign: 'center', padding: '9px 20px', borderRadius: 10, background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>
+                      <Link href="/plans?plan=featured&pay=1" style={{ display: 'inline-block', textAlign: 'center', padding: '9px 20px', borderRadius: 10, background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>
                         Buy Credits
                       </Link>
                     )}
@@ -1122,7 +1122,7 @@ export default function MyProposalClient() {
                     Schedule Post
                   </button>
                 ) : (
-                  <button onClick={() => router.push('/plans?plan=featured')} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '9px 0', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer', minHeight: 38 }}>
+                  <button onClick={() => router.push('/plans?plan=featured&pay=1')} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '9px 0', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer', minHeight: 38 }}>
                     Buy Credits
                   </button>
                 )}
