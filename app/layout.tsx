@@ -13,7 +13,7 @@ import { supabase } from "@/lib/supabase";
 const inter = { className: '' };
 
 export const metadata: Metadata = {
-  title: "Jor - Post Your Rishta",
+  title: "Jor - Find the Right Rishta Easily",
   description: "Browse thousands of verified rishta proposals across Pakistan. Find your perfect match by city, caste, profession and more. Free to join.",
   keywords: "rishta, matrimonial, Pakistan, shaadi, marriage, proposals, nikah, brides, grooms",
   icons: {
