@@ -795,6 +795,8 @@ export default function SubmitClient() {
         const required = digits.startsWith('0') ? 11 : 10;
         if (digits.length !== required) return fail(`Enter a valid Pakistani number (${required} digits)`, 'phone');
       }
+      if (!form.contact_person) return fail('Please select who to contact for this number', 'contact_person');
+      if (form.phone2.trim() && !form.contact_person_2) return fail('Please select who to contact for the second number', 'contact_person_2');
       if (!form.height_feet) return fail('Height is required', 'height_feet');
       if (!form.city) return fail('City is required', 'city');
       if (!form.caste) return fail('Caste is required', 'caste');
@@ -1258,13 +1260,13 @@ export default function SubmitClient() {
 
             <Field label="Phone Number" required labelRight={<span style={{ fontSize: 11.5, fontWeight: 500, color: '#9990B8', textAlign: 'right' }}>(This number will be used for future verification)</span>}>
               <PhoneInput value={form.phone} onChange={v => set('phone', v)} dialCode={form.phone_dial_code} onDialChange={v => set('phone_dial_code', v)} required hasError={errorField === 'phone'} inputStyle={inp} />
-              <div style={{ marginTop: 8 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#6B6893', display: 'block', marginBottom: 5 }}>Contact Person</label>
-                <select value={form.contact_person} onChange={e => set('contact_person', e.target.value)} style={{...sel, fontSize: 13}}>
-                  <option value="">Select contact person</option>
-                  {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </div>
+            </Field>
+            <Field label="Contact Person" required>
+              <select value={form.contact_person} onChange={e => set('contact_person', e.target.value)}
+                style={{ ...sel, ...(errorField === 'contact_person' ? { border: '1.5px solid #DC2626' } : {}) }}>
+                <option value="">Select contact person</option>
+                {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
             </Field>
             {showPhone2 ? (
               <>
@@ -1276,13 +1278,13 @@ export default function SubmitClient() {
                 </button>
               }>
                 <PhoneInput value={form.phone2} onChange={v => set('phone2', v)} dialCode={form.phone2_dial_code} onDialChange={v => set('phone2_dial_code', v)} inputStyle={inp} />
-                <div style={{ marginTop: 8 }}>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#6B6893', display: 'block', marginBottom: 5 }}>Contact Person (2nd number)</label>
-                  <select value={form.contact_person_2} onChange={e => set('contact_person_2', e.target.value)} style={{...sel, fontSize: 13}}>
-                    <option value="">Select contact person</option>
-                    {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
-                </div>
+              </Field>
+              <Field label="Contact Person (2nd number)" required>
+                <select value={form.contact_person_2} onChange={e => set('contact_person_2', e.target.value)}
+                  style={{ ...sel, ...(errorField === 'contact_person_2' ? { border: '1.5px solid #DC2626' } : {}) }}>
+                  <option value="">Select contact person</option>
+                  {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
               </Field>
               </>
             ) : (
