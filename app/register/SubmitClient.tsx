@@ -621,7 +621,7 @@ export default function SubmitClient() {
   }, []);
   const [maxStep, setMaxStep] = useState<number>(1);
   const [form, setForm] = useState<FormData>(EMPTY);
-  const [submitterType, setSubmitterType] = useState<'self' | 'guardian' | null>(null);
+  const [submitterType, setSubmitterType] = useState<'self' | 'guardian' | null>('self');
   const [codesOpen, setCodesOpen] = useState(false);
   const [showPhone2, setShowPhone2] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
@@ -950,11 +950,7 @@ export default function SubmitClient() {
   };
 
   const next = async () => {
-    // On the last step, require submitter type selection
-    if (step === 5 && submitterType === null) {
-      setError('Please select one of the options above before submitting.');
-      return;
-    }
+
     if (navigating.current) return;
     navigating.current = true;
     try {
@@ -998,7 +994,7 @@ export default function SubmitClient() {
   const handleSubmit = async () => {
     const { msg: err, field } = validateStep();
     if (err) { setError(err); setErrorField(field); return; }
-    if (submitterType === null) { setError('Please select one of the options above before submitting.'); return; }
+
     setSubmitting(true); setError(''); setErrorField('');
 
     const totalInches = (+form.height_feet * 12) + (+form.height_inches_extra || 0);
@@ -2055,20 +2051,19 @@ export default function SubmitClient() {
                 );
               })()}
 
-              <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {([
-                  { value: 'self' as const, label: 'I am submitting this profile for myself to find a suitable marriage proposal.' },
-                  { value: 'guardian' as const, label: 'I am a parent/guardian submitting this profile to find a suitable marriage proposal for my son/daughter.' },
-                ] as { value: 'self' | 'guardian'; label: string }[]).map(opt => (
-                  <div key={opt.value}
-                    onClick={() => setSubmitterType(opt.value)}
-                    style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', borderRadius: 12, border: `1.5px solid ${submitterType === opt.value ? '#534AB7' : '#E8E6F5'}`, background: submitterType === opt.value ? '#EEEDFE' : '#fff', cursor: 'pointer', userSelect: 'none' }}>
-                    <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${submitterType === opt.value ? '#534AB7' : '#C4C2D4'}`, background: submitterType === opt.value ? '#534AB7' : '#fff', flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {submitterType === opt.value && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff' }} />}
-                    </div>
-                    <span style={{ fontSize: 13, color: submitterType === opt.value ? '#534AB7' : '#4B4869', lineHeight: 1.6, fontWeight: submitterType === opt.value ? 600 : 400 }}>{opt.label}</span>
+              <div style={{ marginTop: 16 }}>
+                <div
+                  onClick={() => setSubmitterType(submitterType === 'guardian' ? 'self' : 'guardian')}
+                  style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', borderRadius: 12, border: `1.5px solid ${submitterType === 'guardian' ? '#534AB7' : '#E8E6F5'}`, background: submitterType === 'guardian' ? '#EEEDFE' : '#fff', cursor: 'pointer', userSelect: 'none' }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${submitterType === 'guardian' ? '#534AB7' : '#C4C2D4'}`, background: submitterType === 'guardian' ? '#534AB7' : '#fff', flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {submitterType === 'guardian' && (
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    )}
                   </div>
-                ))}
+                  <span style={{ fontSize: 13, color: submitterType === 'guardian' ? '#534AB7' : '#4B4869', lineHeight: 1.6, fontWeight: submitterType === 'guardian' ? 600 : 400 }}>
+                    I confirm that I am the parent/guardian submitting this profile to find a suitable marriage proposal for my son/daughter.
+                  </span>
+                </div>
               </div>
             </div>
           );
