@@ -133,8 +133,8 @@ export default function ContactButtons({
         {headingLabel}
       </div>
 
-      {/* Toggle — only when 2 numbers exist */}
-      {hasTwo && (
+      {/* Toggle — 2 numbers; single label — 1 number with contact person */}
+      {hasTwo ? (
         <div style={{
           display: 'flex', background: '#F5F5F8', border: '1px solid #E8E6F5',
           borderRadius: 10, padding: 3, marginBottom: 14, gap: 3,
@@ -151,7 +151,18 @@ export default function ContactButtons({
             </button>
           ))}
         </div>
-      )}
+      ) : contacts[0].person ? (
+        <div style={{ marginBottom: 12 }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            background: '#EEEDFE', color: '#534AB7',
+            fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20,
+          }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            {contacts[0].person}
+          </span>
+        </div>
+      ) : null}
 
       {/* Reveal / Call button */}
       {!revealed ? (
