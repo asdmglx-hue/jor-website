@@ -993,6 +993,7 @@ export default function SubmitClient() {
   };
 
   const handleSubmit = async () => {
+    if (submitterType === null) { setError('Please tick the confirmation checkbox before submitting.'); return; }
     const { msg: err, field } = validateStep();
     if (err) { setError(err); setErrorField(field); return; }
 
