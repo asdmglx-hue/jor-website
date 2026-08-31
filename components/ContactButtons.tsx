@@ -128,10 +128,23 @@ export default function ContactButtons({
         </div>
       )}
 
-      {/* Heading + single contact person inline */}
+      {/* Heading + contact person pill(s) inline — single pill or 2-pill toggle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div style={{ fontSize: 15, fontWeight: 800, color: '#1A1830' }}>{headingLabel}</div>
-        {!hasTwo && contacts[0].person && (
+        {hasTwo ? (
+          <div style={{ display: 'flex', background: '#EEEDFE', border: '1px solid #C4C2D8', borderRadius: 20, padding: 2, gap: 2 }}>
+            {contacts.map((c, i) => (
+              <button key={i} onClick={() => setActiveIdx(i)} style={{
+                padding: '3px 10px', borderRadius: 20, border: 'none', cursor: 'pointer',
+                background: activeIdx === i ? '#534AB7' : 'transparent',
+                color: activeIdx === i ? '#fff' : '#534AB7',
+                fontWeight: 600, fontSize: 11, transition: 'all .18s', whiteSpace: 'nowrap',
+              }}>
+                {c.person || `#${i + 1}`}
+              </button>
+            ))}
+          </div>
+        ) : contacts[0].person ? (
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 4,
             background: '#EEEDFE', color: '#534AB7', border: '1px solid #C4C2D8',
@@ -140,28 +153,8 @@ export default function ContactButtons({
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             {contacts[0].person}
           </span>
-        )}
+        ) : null}
       </div>
-
-      {/* Toggle — only when 2 numbers */}
-      {hasTwo && (
-        <div style={{
-          display: 'flex', background: '#F5F5F8', border: '1px solid #E8E6F5',
-          borderRadius: 8, padding: 3, marginBottom: 12, gap: 2,
-        }}>
-          {contacts.map((c, i) => (
-            <button key={i} onClick={() => setActiveIdx(i)} style={{
-              flex: 1, padding: '5px 4px', borderRadius: 6, border: 'none', cursor: 'pointer',
-              background: activeIdx === i ? '#534AB7' : 'transparent',
-              color: activeIdx === i ? '#fff' : '#9990B8',
-              fontWeight: 600, fontSize: 11, textAlign: 'center',
-              transition: 'all .18s',
-            }}>
-              {c.person || `Number ${i + 1}`}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Reveal / Call button */}
       {!revealed ? (
