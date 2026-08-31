@@ -1705,7 +1705,9 @@ export default function MyProposalClient() {
                   <Field label="Primary Phone" fieldKey="contact_phone" type="tel" />
                   <Field label="Contact Person" fieldKey="contact_person" options={['Mother','Father','Sister','Brother','Self','Other']} />
                   <Field label="Secondary Phone" fieldKey="contact_phone_2" type="tel" />
-                  <Field label="Contact Person (2nd)" fieldKey="contact_person_2" options={['Mother','Father','Sister','Brother','Self','Other']} />
+                  {(user.contact_phone_2 || pendingChanges['contact_phone_2']) && (
+                    <Field label="Contact Person (2nd)" fieldKey="contact_person_2" options={['Mother','Father','Sister','Brother','Self','Other']} />
+                  )}
                 </>))}
               </>
             );

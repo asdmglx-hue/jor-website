@@ -1258,29 +1258,31 @@ export default function SubmitClient() {
 
             <Field label="Phone Number" required labelRight={<span style={{ fontSize: 11.5, fontWeight: 500, color: '#9990B8', textAlign: 'right' }}>(This number will be used for future verification)</span>}>
               <PhoneInput value={form.phone} onChange={v => set('phone', v)} dialCode={form.phone_dial_code} onDialChange={v => set('phone_dial_code', v)} required hasError={errorField === 'phone'} inputStyle={inp} />
-            </Field>
-            <Field label="Contact Person">
-              <select value={form.contact_person} onChange={e => set('contact_person', e.target.value)} style={{...sel}}>
-                <option value="">Select contact person</option>
-                {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
+              <div style={{ marginTop: 8 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#6B6893', display: 'block', marginBottom: 5 }}>Contact Person</label>
+                <select value={form.contact_person} onChange={e => set('contact_person', e.target.value)} style={{...sel, fontSize: 13}}>
+                  <option value="">Select contact person</option>
+                  {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </div>
             </Field>
             {showPhone2 ? (
               <>
               <Field label="Second Phone Number" labelRight={
-                <button type="button" onClick={() => { setShowPhone2(false); set('phone2', ''); set('phone2_dial_code', '+92'); }}
+                <button type="button" onClick={() => { setShowPhone2(false); set('phone2', ''); set('phone2_dial_code', '+92'); set('contact_person_2', ''); }}
                   aria-label="Remove second phone number"
                   style={{ background: 'none', border: 'none', padding: 0, color: '#9CA3AF', fontSize: 15, fontWeight: 700, lineHeight: 1, cursor: 'pointer' }}>
                   ✕
                 </button>
               }>
                 <PhoneInput value={form.phone2} onChange={v => set('phone2', v)} dialCode={form.phone2_dial_code} onDialChange={v => set('phone2_dial_code', v)} inputStyle={inp} />
-              </Field>
-              <Field label="Contact Person (2nd number)">
-                <select value={form.contact_person_2} onChange={e => set('contact_person_2', e.target.value)} style={{...sel}}>
-                  <option value="">Select contact person</option>
-                  {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
+                <div style={{ marginTop: 8 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#6B6893', display: 'block', marginBottom: 5 }}>Contact Person (2nd number)</label>
+                  <select value={form.contact_person_2} onChange={e => set('contact_person_2', e.target.value)} style={{...sel, fontSize: 13}}>
+                    <option value="">Select contact person</option>
+                    {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
               </Field>
               </>
             ) : (
