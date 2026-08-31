@@ -134,7 +134,7 @@ export default function ContactButtons({
         {hasTwo ? (
           <div style={{ display: 'flex', background: '#EEEDFE', border: '1px solid #C4C2D8', borderRadius: 20, padding: 2, gap: 2 }}>
             {contacts.map((c, i) => (
-              <button key={i} onClick={() => setActiveIdx(i)} style={{
+              <button key={i} onClick={() => { setActiveIdx(i); if (isPaused) { showPausedToast(); } else { setRevealed(true); trackEvent('contact_reveal', { proposal_number: proposalNumber ?? 0 }); } }} style={{
                 padding: '3px 10px', borderRadius: 20, border: 'none', cursor: 'pointer',
                 background: activeIdx === i ? '#534AB7' : 'transparent',
                 color: activeIdx === i ? '#fff' : '#534AB7',
