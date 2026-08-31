@@ -288,9 +288,7 @@ export default async function ProposalDetailPage({ params }: Props) {
         {/* Sidebar: Contact */}
         <div className="proposal-sidebar">
           <div style={{ background: '#fff', border: '1px solid #E8E6F5', borderRadius: 20, padding: '24px', boxShadow: '0 4px 20px rgba(83,74,183,0.1)' }}>
-            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#1A1830', marginBottom: 16 }}>Contact Family</h3>
-
-            <ContactButtons phone={p.contact_phone} phone2={p.contact_phone_2} />
+            <ContactButtons phone={p.contact_phone} phone2={p.contact_phone_2} contactPerson={p.contact_person} contactPerson2={p.contact_person_2} proposalNumber={p.proposal_number} />
 
             <div style={{ fontSize: 11, color: '#68629C', textAlign: 'center', lineHeight: 1.6 }}>
               Contact the family directly.<br />No middlemen, no hidden charges.

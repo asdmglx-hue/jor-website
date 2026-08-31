@@ -469,6 +469,7 @@ type FormData = {
   has_disability: string; disability_details: string;
   lifestyle: string; smoker: string;
   phone_dial_code: string; phone2_dial_code: string;
+  contact_person: string; contact_person_2: string;
   // Step 3
   cnic: string; password: string; confirm_password: string;
   // Step 5 (Review)
@@ -502,6 +503,7 @@ const EMPTY: FormData = {
   has_disability: '', disability_details: '',
   lifestyle: '', smoker: '',
   phone_dial_code: '+92', phone2_dial_code: '+92',
+  contact_person: '', contact_person_2: '',
   cnic: '', password: '', confirm_password: '',
   affiliate: '',
 };
@@ -994,6 +996,8 @@ export default function SubmitClient() {
       age: +form.age,
       contact_phone: formatDialedPhone(form.phone_dial_code, form.phone),
       contact_phone_2: form.phone2.trim() ? formatDialedPhone(form.phone2_dial_code, form.phone2) : undefined,
+      contact_person: form.contact_person || undefined,
+      contact_person_2: form.contact_person_2 || undefined,
       height_inches: totalInches || undefined,
       country: form.country || undefined,
       city: form.city,
@@ -1255,6 +1259,12 @@ export default function SubmitClient() {
             <Field label="Phone Number" required labelRight={<span style={{ fontSize: 11.5, fontWeight: 500, color: '#9990B8', textAlign: 'right' }}>(This number will be used for future verification)</span>}>
               <PhoneInput value={form.phone} onChange={v => set('phone', v)} dialCode={form.phone_dial_code} onDialChange={v => set('phone_dial_code', v)} required hasError={errorField === 'phone'} inputStyle={inp} />
             </Field>
+            <Field label="Contact Person">
+              <select value={form.contact_person} onChange={e => set('contact_person', e.target.value)} style={{...sel}}>
+                <option value="">Select contact person</option>
+                {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </Field>
             {showPhone2 ? (
               <Field label="Second Phone Number" labelRight={
                 <button type="button" onClick={() => { setShowPhone2(false); set('phone2', ''); set('phone2_dial_code', '+92'); }}
@@ -1264,6 +1274,12 @@ export default function SubmitClient() {
                 </button>
               }>
                 <PhoneInput value={form.phone2} onChange={v => set('phone2', v)} dialCode={form.phone2_dial_code} onDialChange={v => set('phone2_dial_code', v)} inputStyle={inp} />
+              </Field>
+              <Field label="Contact Person (2nd number)">
+                <select value={form.contact_person_2} onChange={e => set('contact_person_2', e.target.value)} style={{...sel}}>
+                  <option value="">Select contact person</option>
+                  {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
               </Field>
             ) : (
               <button type="button" onClick={() => setShowPhone2(true)}
@@ -1674,6 +1690,8 @@ export default function SubmitClient() {
               {R('Height', heightDisplay)}
               {R('Phone', form.phone ? formatDialedPhone(form.phone_dial_code, form.phone) : null)}
               {form.phone2 && R('Second Phone', formatDialedPhone(form.phone2_dial_code, form.phone2))}
+              {form.contact_person && R('Contact Person', form.contact_person)}
+              {form.contact_person_2 && R('Contact Person (2nd)', form.contact_person_2)}
               {R('CNIC', form.cnic)}
               {form.country && R('Country', form.country)}
               {R('City', form.city)}
