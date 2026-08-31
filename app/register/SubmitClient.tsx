@@ -1456,13 +1456,13 @@ export default function SubmitClient() {
             <Field label="Phone Number" required labelExtra={<span style={{ fontSize: 11, fontWeight: 500, color: '#9990B8' }}> · (This number will be used for future verification)</span>}>
               <PhoneInput value={form.phone} onChange={v => set('phone', v)} dialCode={form.phone_dial_code} onDialChange={v => set('phone_dial_code', v)} required hasError={errorField === 'phone'} inputStyle={inp} />
             </Field>
-            <Field label="Contact Person" required>
+            <div style={{ marginTop: -8, marginBottom: 14 }}>
               <select value={form.contact_person} onChange={e => set('contact_person', e.target.value)}
-                style={{ ...sel, ...(errorField === 'contact_person' ? { border: '1.5px solid #DC2626' } : {}) }}>
-                <option value="">Select contact person</option>
+                style={{ ...sel, ...(errorField === 'contact_person' ? { border: '1.5px solid #DC2626' } : {}), borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: 'none', background: errorField === 'contact_person' ? '#FFF5F5' : '#FAFAFA', color: form.contact_person ? '#1A1830' : '#9990B8', fontSize: 13 }}>
+                <option value="">Who to contact?</option>
                 {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
               </select>
-            </Field>
+            </div>
             {showPhone2 ? (
               <>
               <Field label="Second Phone Number" labelRight={
@@ -1474,13 +1474,13 @@ export default function SubmitClient() {
               }>
                 <PhoneInput value={form.phone2} onChange={v => set('phone2', v)} dialCode={form.phone2_dial_code} onDialChange={v => set('phone2_dial_code', v)} inputStyle={inp} />
               </Field>
-              <Field label="Contact Person (2nd number)" required>
+              <div style={{ marginTop: -8, marginBottom: 14 }}>
                 <select value={form.contact_person_2} onChange={e => set('contact_person_2', e.target.value)}
-                  style={{ ...sel, ...(errorField === 'contact_person_2' ? { border: '1.5px solid #DC2626' } : {}) }}>
-                  <option value="">Select contact person</option>
+                  style={{ ...sel, ...(errorField === 'contact_person_2' ? { border: '1.5px solid #DC2626' } : {}), borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: 'none', background: errorField === 'contact_person_2' ? '#FFF5F5' : '#FAFAFA', color: form.contact_person_2 ? '#1A1830' : '#9990B8', fontSize: 13 }}>
+                  <option value="">Who to contact?</option>
                   {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
-              </Field>
+              </div>
               </>
             ) : (
               <button type="button" onClick={() => setShowPhone2(true)}
