@@ -1265,7 +1265,7 @@ export default function SubmitClient() {
               <select value={form.contact_person} onChange={e => set('contact_person', e.target.value)}
                 style={{ ...sel, ...(errorField === 'contact_person' ? { border: '1.5px solid #DC2626' } : {}) }}>
                 <option value="">Select contact person</option>
-                {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+                {['Father','Mother','Brother','Sister','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             </Field>
             {showPhone2 ? (
@@ -1283,7 +1283,7 @@ export default function SubmitClient() {
                 <select value={form.contact_person_2} onChange={e => set('contact_person_2', e.target.value)}
                   style={{ ...sel, ...(errorField === 'contact_person_2' ? { border: '1.5px solid #DC2626' } : {}) }}>
                   <option value="">Select contact person</option>
-                  {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+                  {['Father','Mother','Brother','Sister','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </Field>
               </>

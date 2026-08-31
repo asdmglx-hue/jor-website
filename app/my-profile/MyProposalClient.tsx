@@ -443,10 +443,12 @@ export default function MyProposalClient() {
           p_proposal_id: session.id,
         }).then(({ data: events }) => {
           if (!events) return;
+          const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
           const pending: Record<string, unknown> = {};
           for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string }[]) {
             if (ev.status === 'applied') {
               for (const k of Object.keys(ev.changes)) {
+                if (INSTANT_FIELDS.has(k)) continue; // always instant, never pending
                 if (ev.changes[k] === ev.old_values[k]) {
                   delete pending[k]; // explicit approval confirmation
                 } else {
@@ -726,10 +728,12 @@ export default function MyProposalClient() {
             p_proposal_id: user.id,
           }).then(({ data: events }) => {
             if (!events) return;
+            const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
             const pending: Record<string, unknown> = {};
             for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string }[]) {
               if (ev.status === 'applied') {
                 for (const k of Object.keys(ev.changes)) {
+                  if (INSTANT_FIELDS.has(k)) continue;
                   if (ev.changes[k] === ev.old_values[k]) {
                     delete pending[k];
                   } else {
@@ -1709,10 +1713,10 @@ export default function MyProposalClient() {
 
                 {sec('Contact', grid(<>
                   <Field label="Primary Phone" fieldKey="contact_phone" type="tel" />
-                  <Field label="Contact Person" fieldKey="contact_person" options={['Mother','Father','Sister','Brother','Self','Other']} />
+                  <Field label="Contact Person" fieldKey="contact_person" options={['Father','Mother','Brother','Sister','Self','Other']} />
                   <Field label="Secondary Phone" fieldKey="contact_phone_2" type="tel" />
                   {(user.contact_phone_2 || pendingChanges['contact_phone_2']) && (
-                    <Field label="Contact Person (2nd)" fieldKey="contact_person_2" options={['Mother','Father','Sister','Brother','Self','Other']} />
+                    <Field label="Contact Person (2nd)" fieldKey="contact_person_2" options={['Father','Mother','Brother','Sister','Self','Other']} />
                   )}
                 </>))}
               </>
