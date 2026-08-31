@@ -71,7 +71,7 @@ export default function ContactButtons({
   ];
 
   const active = contacts[activeIdx];
-  const headingLabel = active.person ? `Contact: ${active.person}` : 'Contact Family';
+  const headingLabel = 'Contact Family';
 
   function showPausedToast() {
     setPausedToast(true);
@@ -92,7 +92,6 @@ export default function ContactButtons({
           }}>
             {LOCK_SVG}
             {c.display.slice(0, 4)} •••• {c.display.slice(-3)}
-            {c.person && <span style={{ fontSize: 12, fontWeight: 500, color: '#9990B8', marginLeft: 6 }}>· {c.person}</span>}
           </div>
         ))}
         {/* Locked WhatsApp */}
@@ -148,8 +147,7 @@ export default function ContactButtons({
               fontWeight: 700, fontSize: 12, lineHeight: 1.35, textAlign: 'center',
               transition: 'all .18s',
             }}>
-              {c.person || `Number ${i + 1}`}<br />
-              <span style={{ fontWeight: 500, opacity: .85, fontSize: 11 }}>{c.display}</span>
+              {c.person || `Number ${i + 1}`}
             </button>
           ))}
         </div>
