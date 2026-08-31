@@ -1458,9 +1458,9 @@ export default function SubmitClient() {
             </Field>
             <div style={{ marginTop: -8, marginBottom: 14 }}>
               <select value={form.contact_person} onChange={e => set('contact_person', e.target.value)}
-                style={{ ...sel, ...(errorField === 'contact_person' ? { border: '1.5px solid #DC2626' } : {}), borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: 'none', background: errorField === 'contact_person' ? '#FFF5F5' : '#FAFAFA', color: form.contact_person ? '#1A1830' : '#9990B8', fontSize: 13 }}>
-                <option value="">Who to contact?</option>
-                {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+                style={{ ...sel, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: errorField === 'contact_person' ? '1.5px solid #DC2626' : 'none', ...(errorField === 'contact_person' ? { border: '1.5px solid #DC2626' } : {}) }}>
+                <option value="">Contact Person</option>
+                {['Father','Mother','Brother','Sister','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
             {showPhone2 ? (
@@ -1476,9 +1476,9 @@ export default function SubmitClient() {
               </Field>
               <div style={{ marginTop: -8, marginBottom: 14 }}>
                 <select value={form.contact_person_2} onChange={e => set('contact_person_2', e.target.value)}
-                  style={{ ...sel, ...(errorField === 'contact_person_2' ? { border: '1.5px solid #DC2626' } : {}), borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: 'none', background: errorField === 'contact_person_2' ? '#FFF5F5' : '#FAFAFA', color: form.contact_person_2 ? '#1A1830' : '#9990B8', fontSize: 13 }}>
-                  <option value="">Who to contact?</option>
-                  {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+                  style={{ ...sel, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: errorField === 'contact_person_2' ? '1.5px solid #DC2626' : 'none', ...(errorField === 'contact_person_2' ? { border: '1.5px solid #DC2626' } : {}) }}>
+                  <option value="">Contact Person</option>
+                  {['Father','Mother','Brother','Sister','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
               </>
