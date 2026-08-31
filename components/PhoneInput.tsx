@@ -276,6 +276,31 @@ export default function PhoneInput({ value, onChange, dialCode, onDialChange, re
     onChange(parts.join(' '));
   };
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhoneChangeWithCursor = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const cursorPos = input.selectionStart ?? input.value.length;
+    const oldVal = input.value;
+    handlePhoneChange(oldVal);
+    // Restore cursor after React re-render
+    requestAnimationFrame(() => {
+      if (!inputRef.current) return;
+      const newVal = inputRef.current.value;
+      // Count how many spaces were added before cursor position
+      const digitsBeforeCursor = oldVal.slice(0, cursorPos).replace(/\D/g, '').length;
+      let newCursor = 0;
+      let digitsSeen = 0;
+      for (let i = 0; i < newVal.length; i++) {
+        if (/\d/.test(newVal[i])) digitsSeen++;
+        if (digitsSeen === digitsBeforeCursor) { newCursor = i + 1; break; }
+        if (digitsSeen > digitsBeforeCursor) { newCursor = i; break; }
+      }
+      if (digitsSeen < digitsBeforeCursor) newCursor = newVal.length;
+      inputRef.current.setSelectionRange(newCursor, newCursor);
+    });
+  };
+
   return (
     <div style={{ display: 'flex', gap: 6 }}>
       <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
@@ -306,7 +331,7 @@ export default function PhoneInput({ value, onChange, dialCode, onDialChange, re
           </div>
         )}
       </div>
-      <input value={value} onChange={e => handlePhoneChange(e.target.value)} style={{ ...inp, flex: 1, ...(hasError ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : {}) }} placeholder={placeholder} type="tel" />
+      <input ref={inputRef} value={value} onChange={handlePhoneChangeWithCursor} style={{ ...inp, flex: 1, ...(hasError ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : {}) }} placeholder={placeholder} type="tel" />
     </div>
   );
 }
