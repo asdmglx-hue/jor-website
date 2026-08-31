@@ -1376,7 +1376,7 @@ export default function MyProposalClient() {
                               {options.map(o => <option key={o} value={o}>{o}</option>)}
                             </select>
                         : type === 'tel'
-                          ? <PhoneInput value={inlineVal} onChange={setInlineVal} dialCode={inlineDialCode} onDialChange={setInlineDialCode} inputStyle={fieldStyle} />
+                          ? <PhoneInput value={inlineVal} onChange={setInlineVal} dialCode={inlineDialCode} onDialChange={setInlineDialCode} inputStyle={fieldStyle} autoFocus />
                           : <input type={type} value={inlineVal} maxLength={maxLength}
                               onChange={e => setInlineVal(maxLength ? e.target.value.slice(0, maxLength) : e.target.value)}
                               style={fieldStyle} autoFocus />

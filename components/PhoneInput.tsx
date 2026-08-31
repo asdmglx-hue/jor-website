@@ -207,7 +207,7 @@ export type { DialCode };
 
 const defaultInputStyle: React.CSSProperties = { width: '100%', padding: '11px 13px', borderRadius: 11, border: '1.5px solid #E8E6F5', fontSize: 14, outline: 'none', color: '#1A1830', background: '#fff', boxSizing: 'border-box' };
 
-export default function PhoneInput({ value, onChange, dialCode, onDialChange, required, hasError, inputStyle }: { value: string; onChange: (v: string) => void; dialCode: string; onDialChange: (v: string) => void; required?: boolean; hasError?: boolean; inputStyle?: React.CSSProperties }) {
+export default function PhoneInput({ value, onChange, dialCode, onDialChange, required, hasError, inputStyle, autoFocus }: { value: string; onChange: (v: string) => void; dialCode: string; onDialChange: (v: string) => void; required?: boolean; hasError?: boolean; inputStyle?: React.CSSProperties; autoFocus?: boolean }) {
   const inp = inputStyle ?? defaultInputStyle;
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -308,7 +308,7 @@ export default function PhoneInput({ value, onChange, dialCode, onDialChange, re
           </div>
         )}
       </div>
-      <input value={value} onChange={e => handlePhoneChange(e.target.value)} style={{ ...inp, flex: 1, ...(hasError ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : {}) }} placeholder={placeholder} type="tel" />
+      <input value={value} onChange={e => handlePhoneChange(e.target.value)} style={{ ...inp, flex: 1, ...(hasError ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : {}) }} placeholder={placeholder} type="tel" autoFocus={autoFocus} />
     </div>
   );
 }
