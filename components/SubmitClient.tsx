@@ -1266,6 +1266,7 @@ export default function SubmitClient() {
               </select>
             </Field>
             {showPhone2 ? (
+              <>
               <Field label="Second Phone Number" labelRight={
                 <button type="button" onClick={() => { setShowPhone2(false); set('phone2', ''); set('phone2_dial_code', '+92'); }}
                   aria-label="Remove second phone number"
@@ -1281,6 +1282,7 @@ export default function SubmitClient() {
                   {['Mother','Father','Sister','Brother','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </Field>
+              </>
             ) : (
               <button type="button" onClick={() => setShowPhone2(true)}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 24, background: 'none', border: 'none', padding: 0, color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
