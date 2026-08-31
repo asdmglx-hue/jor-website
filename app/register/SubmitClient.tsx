@@ -621,7 +621,7 @@ export default function SubmitClient() {
   }, []);
   const [maxStep, setMaxStep] = useState<number>(1);
   const [form, setForm] = useState<FormData>(EMPTY);
-  const [submitterType, setSubmitterType] = useState<'self' | 'guardian' | null>('self');
+  const [submitterType, setSubmitterType] = useState<'self' | 'guardian' | null>(null);
   const [codesOpen, setCodesOpen] = useState(false);
   const [showPhone2, setShowPhone2] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
@@ -890,8 +890,8 @@ export default function SubmitClient() {
         const required = digits.startsWith('0') ? 11 : 10;
         if (digits.length !== required) return fail(`Enter a valid Pakistani number (${required} digits)`, 'phone');
       }
-      if (!form.contact_person) return fail('Please select who to contact for this number', 'contact_person');
-      if (form.phone2.trim() && !form.contact_person_2) return fail('Please select who to contact for the second number', 'contact_person_2');
+      if (!form.contact_person) return fail('Please select contact person for this number', 'contact_person');
+      if (form.phone2.trim() && !form.contact_person_2) return fail('Please select contact person for the second number', 'contact_person_2');
       if (!form.height_feet) return fail('Height is required', 'height_feet');
       if (!form.city) return fail('City is required', 'city');
       if (!form.caste) return fail('Caste is required', 'caste');
@@ -951,6 +951,7 @@ export default function SubmitClient() {
 
   const next = async () => {
 
+    if (step === 5 && submitterType === null) { setError('Please tick the confirmation checkbox before submitting.'); return; }
     if (navigating.current) return;
     navigating.current = true;
     try {
