@@ -1212,6 +1212,9 @@ export default function MyProposalClient() {
 
           {(() => {
             const fieldStyle = { width: '100%', padding: '9px 12px', borderRadius: 10, border: '1.5px solid #534AB7', fontSize: 14, outline: 'none', boxSizing: 'border-box' as const };
+            // Fields that cannot be cleared (either required or identity fields)
+            const NON_CLEARABLE = ['name', 'age', 'city', 'marital_status', 'caste', 'sect', 'profession', 'home_type', 'gender', 'cnic', 'contact_phone', 'height_inches', 'languages'];
+
             const inlineButtons = (key: string, val: unknown) => (
               <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
                 <button onClick={() => saveInline(key, val)} disabled={inlineSaving}
@@ -1222,6 +1225,12 @@ export default function MyProposalClient() {
                   style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
                   Cancel
                 </button>
+                {!NON_CLEARABLE.includes(key) && (
+                  <button onClick={() => saveInline(key, null)} disabled={inlineSaving}
+                    style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid #FCA5A5', background: '#FFF5F5', color: '#DC2626', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                    Clear
+                  </button>
+                )}
               </div>
             );
             // Admin sessions can only edit their name — every other field
