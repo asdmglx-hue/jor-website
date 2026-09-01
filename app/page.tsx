@@ -21,8 +21,8 @@ import type { Metadata } from 'next';
 export const revalidate = false;
 
 export const metadata: Metadata = {
-  title: "Jor - Find the Right Rishta Easily",
-  description: "Browse thousands of verified rishta proposals from Pakistan and overseas. Filter by city, caste, sect, profession & more. Also available on Play Store & App Store.",
+  title: "Jor – Pakistan's Trusted Matrimonial Platform",
+  description: "Browse thousands of verified rishta proposals from Pakistan and abroad — including UK, USA, Canada and UAE. Filter by city, caste, sect, profession & more. Available on Android.",
   alternates: { canonical: 'https://joronline.com' },
 };
 
@@ -87,7 +87,7 @@ async function getFeatured(): Promise<Proposal[]> {
     // can't just chain a second .or() here since the boosted/featured check
     // already uses one; this is the documented way to combine both inside it.
     .or(`and(is_boosted.eq.true,or(${notExpired})),and(subscription_tier.eq.featured,or(${notExpired}))`)
-    .order('feed_rank', { ascending: false })
+    .order('posted_at', { ascending: false })
     .limit(6);
 
   // Also pull active boosts from featured_boosts table (used by mobile app)
@@ -120,7 +120,7 @@ async function getRecent(): Promise<Proposal[]> {
     .select(CARD_COLS)
     .eq('status', 'active')
     .or(notExpiredFilter())
-    .order('feed_rank', { ascending: false })
+    .order('posted_at', { ascending: false })
     .limit(9);
   return (data || []) as Proposal[];
 }
