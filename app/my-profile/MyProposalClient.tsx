@@ -1586,7 +1586,7 @@ export default function MyProposalClient() {
                 </>))}
 
                 {sec('Family', grid(<>
-                  <Field label="Family Type" fieldKey="family_type" options={['Joint family','Separated Family']} />
+                  <Field label="Family Type" fieldKey="family_type" options={['Joint family','Separate Family']} />
                   <BoolField label="Father Alive" fieldKey="father_alive" />
                   <BoolField label="Mother Alive" fieldKey="mother_alive" />
                   <Field label="Father Occupation" fieldKey="father_occupation" options={professionList} grouped={professionGroups} />

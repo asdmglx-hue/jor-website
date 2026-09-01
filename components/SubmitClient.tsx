@@ -65,7 +65,7 @@ const MONTHLY_INCOMES = ['Under 30K','30K – 60K','60K – 100K','100K – 200K
 const HOME_TYPES = ['Own House','Rented House'];
 const HIJAB_OPTIONS = ['Yes','No','Sometimes'];
 const BEARD_OPTIONS = ['Yes','No','Light'];
-const FAMILY_TYPE_OPTIONS = ['Joint family','Separated Family'];
+const FAMILY_TYPE_OPTIONS = ['Joint family','Separate Family'];
 
 const LIFESTYLE_OPTIONS = ['Active Living','Sedentary Living','Moderately Active'];
 const PROPERTY_TYPES = ['Residential','Commercial','Land','Multiple'];
