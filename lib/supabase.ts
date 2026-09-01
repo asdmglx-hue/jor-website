@@ -90,6 +90,8 @@ export type Proposal = {
   languages?: string[];
   contact_phone: string;
   contact_phone_2?: string;
+  contact_person?: string;
+  contact_person_2?: string;
   phone_verified: boolean;
   email_verified?: boolean;
   cnic_verified?: boolean;

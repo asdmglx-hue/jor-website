@@ -46,6 +46,36 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(cleanUrl, 301);
   }
 
+  // Return 410 Gone for permanently deleted profile pages.
+  // 410 is stronger than 404 — it tells Google the URL is intentionally
+  // gone and should be removed from the index immediately, not just
+  // treated as a temporary error.
+  const profileMatch = pathname.match(/^\/profile\/(\d+)$/);
+  if (profileMatch) {
+    const num = profileMatch[1];
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (supabaseUrl && supabaseKey) {
+        const res = await fetch(
+          ,
+          { headers: { apikey: supabaseKey, Authorization:  }, next: { revalidate: 3600 } }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            return new NextResponse(null, {
+              status: 410,
+              headers: { 'Cache-Control': 'public, max-age=86400' },
+            });
+          }
+        }
+      }
+    } catch {
+      // Never break navigation over SEO signals
+    }
+  }
+
   return NextResponse.next();
 }
 
