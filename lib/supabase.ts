@@ -90,8 +90,6 @@ export type Proposal = {
   languages?: string[];
   contact_phone: string;
   contact_phone_2?: string;
-  contact_person?: string;
-  contact_person_2?: string;
   phone_verified: boolean;
   email_verified?: boolean;
   cnic_verified?: boolean;
@@ -165,7 +163,7 @@ export type FilterState = {
 // internal tracking fields). This mirrors exactly what the 'anon' role
 // is now granted at the database level, so a query here can never
 // silently start requesting something the database will refuse anyway.
-export const PROFILE_DETAIL_COLS = 'id,proposal_number,name,age,gender,city,country,caste,sect,education,institute,degree_title,degree_certificate_url,degree_title_2,degree_title_3,institute_2,institute_3,degree_certificate_2_url,degree_certificate_3_url,profession,employment_type,salary_start,salary_end,monthly_income,height_inches,weight_kg,complexion,marital_status,marriage_number,boys,girls,total_kids,has_kids,practice_level,hijab,beard,father_alive,mother_alive,father_occupation,mother_occupation,sisters,brothers,total_siblings,has_siblings,family_type,home_type,house_size,has_car,car_name,has_generator,has_solar,has_servant,other_property,has_other_property,looking_for,about,languages,smokes,drinks,physically_active,has_disability,disability_details,contact_phone,contact_phone_2,contact_person,contact_person_2,phone_verified,profile_photo_url,posted_at,updated_at,status,subscription_tier,subscription_expiry,subscription_start,subscription_status,is_boosted,location,featured_credits_purchased,featured_credits_used,deleted_from,deletion_reason,cnic_front_url,cnic_back_url,guardian_cnic_front_url,guardian_cnic_back_url,education_document_url,doc_verification,is_doc_verified,cnic_verified';
+export const PROFILE_DETAIL_COLS = 'id,proposal_number,name,age,gender,city,country,caste,sect,education,institute,degree_title,degree_certificate_url,degree_title_2,degree_title_3,institute_2,institute_3,degree_certificate_2_url,degree_certificate_3_url,profession,employment_type,salary_start,salary_end,monthly_income,height_inches,weight_kg,complexion,marital_status,marriage_number,boys,girls,total_kids,has_kids,practice_level,hijab,beard,father_alive,mother_alive,father_occupation,mother_occupation,sisters,brothers,total_siblings,has_siblings,family_type,home_type,house_size,has_car,car_name,has_generator,has_solar,has_servant,other_property,has_other_property,looking_for,about,languages,smokes,drinks,physically_active,has_disability,disability_details,contact_phone,contact_phone_2,phone_verified,profile_photo_url,posted_at,updated_at,status,subscription_tier,subscription_expiry,subscription_start,subscription_status,is_boosted,location,featured_credits_purchased,featured_credits_used,deleted_from,deletion_reason,cnic_front_url,cnic_back_url,guardian_cnic_front_url,guardian_cnic_back_url,education_document_url,doc_verification,is_doc_verified,cnic_verified';
 // so nothing is lost — this just stops sending them on every card, on
 // every browse/category/homepage load, where they were never used.
 export const CARD_COLS ='id,proposal_number,name,age,gender,city,country,profession,caste,sect,marital_status,height_inches,about,looking_for,profile_photo_url,posted_at,subscription_tier,is_boosted,contact_phone,status,cnic_verified,is_doc_verified';
@@ -352,7 +350,7 @@ async function fetchFeaturedForCarouselInner(filters: FilterState = {}): Promise
     ? query.or(orGroups[0])
     : query.or(`and(${orGroups.map(g => `or(${g})`).join(',')})`);
 
-  query = query.order('feed_rank', { ascending: false }).limit(max);
+  query = query.order('posted_at', { ascending: false }).limit(max);
 
   const { data } = await query;
   return (data || []) as Proposal[];
@@ -421,12 +419,12 @@ export async function fetchProposals(filters: FilterState = {}, page = 0, pageSi
   if (isGeneralView) {
     // Already shown in the Featured carousel above — avoid the confusing
     // duplicate of seeing the same person twice on the same page.
-    query = query.eq('is_boosted', false).order('feed_rank', { ascending: false });
+    query = query.eq('is_boosted', false).order('posted_at', { ascending: false });
   } else {
     query = query
       .order('is_boosted', { ascending: false })
       .order('subscription_tier', { ascending: false })
-      .order('feed_rank', { ascending: false });
+      .order('posted_at', { ascending: false });
   }
   query = query.range(page * pageSize, (page + 1) * pageSize - 1);
 
@@ -497,7 +495,7 @@ export async function fetchRecentProposalAt(offset: number): Promise<Proposal | 
     .select(CARD_COLS)
     .eq('status', 'active')
     .or(notExpiredFilter())
-    .order('feed_rank', { ascending: false })
+    .order('posted_at', { ascending: false })
     .range(offset, offset);
   return (data && data[0]) ? (data[0] as Proposal) : null;
 }
@@ -738,8 +736,16 @@ export async function fetchProposalByNumber(proposalNumber: number): Promise<Pro
 // build time (required for output: 'export'). Must fetch ALL of them, not
 // just the first 1000 — see fetchAllRows above for why this matters.
 export async function fetchAllProposalNumbers(): Promise<number[]> {
+  // Excludes AI-imported profiles from the sitemap — they have thin content
+  // (no real user, no unique bio) and waste Google's crawl budget. Real user
+  // profiles submitted via the website or app are included.
   const data = await fetchAllRows<{ proposal_number: number }>((from, to) =>
-    supabase.from('proposals').select('proposal_number').in('status', ['active', 'paused']).range(from, to)
+    supabase.from('proposals')
+      .select('proposal_number,updated_at')
+      .in('status', ['active', 'paused'])
+      .neq('admin_notes', 'AI_IMPORTED')
+      .neq('submission_source', 'ai_batch')
+      .range(from, to)
   );
   return data.map(r => r.proposal_number);
 }
@@ -1226,8 +1232,6 @@ export function isSubscriptionActive(proposal: Proposal): boolean {
   if (proposal.cnic && cachedAdminCnics.has(proposal.cnic)) return true;
   if (proposal.subscription_tier === 'none') return false;
   if (!proposal.subscription_expiry) return false;
-  // doc_pending: approved but compulsory docs missing — contacts locked
-  if ((proposal as any).subscription_status === 'doc_pending') return false;
   return new Date(proposal.subscription_expiry) > new Date();
 }
 

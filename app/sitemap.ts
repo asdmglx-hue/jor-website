@@ -74,7 +74,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  // Individual profile pages — names are kept out of the static HTML
+  // Individual profile pages — AI-imported profiles excluded from sitemap
+  // (thin content, no real user behind them, wastes crawl budget)
+  // Only include profiles that were submitted by real users (not AI_IMPORTED)
   // (fetched client-side instead), so these are safe to index for their
   // genuinely unique long-tail content (age, city, profession, bio)
   // without making anyone's name itself Google-searchable.

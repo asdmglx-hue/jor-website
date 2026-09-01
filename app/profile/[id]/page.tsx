@@ -81,6 +81,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${label} Profile – ${p.age} yrs, ${p.city} | Jor`,
     description: `${p.profession}, ${p.education}, ${p.caste} from ${p.city}. ${maskNameInText(p.about, p.name, label)}`.slice(0, 160),
     alternates: { canonical: `https://joronline.com/profile/${p.proposal_number}` },
+    // AI-imported profiles are excluded from sitemap; if Google finds them
+    // anyway via a link, tell it not to index them — thin content with no
+    // real user behind them adds noise rather than value.
+    robots: (p as any).admin_notes === 'AI_IMPORTED' || (p as any).submission_source === 'ai_batch'
+      ? { index: false, follow: false }
+      : { index: true, follow: true },
     openGraph: {
       title: `Rishta Proposal – ${p.age} yrs, ${p.city}`,
       description: `${p.profession} from ${p.city}. ${p.caste}, ${p.sect}.`,
@@ -288,7 +294,9 @@ export default async function ProposalDetailPage({ params }: Props) {
         {/* Sidebar: Contact */}
         <div className="proposal-sidebar">
           <div style={{ background: '#fff', border: '1px solid #E8E6F5', borderRadius: 20, padding: '24px', boxShadow: '0 4px 20px rgba(83,74,183,0.1)' }}>
-            <ContactButtons phone={p.contact_phone} phone2={p.contact_phone_2} contactPerson={p.contact_person} contactPerson2={p.contact_person_2} proposalNumber={p.proposal_number} />
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#1A1830', marginBottom: 16 }}>Contact Family</h3>
+
+            <ContactButtons phone={p.contact_phone} phone2={p.contact_phone_2} />
 
             <div style={{ fontSize: 11, color: '#68629C', textAlign: 'center', lineHeight: 1.6 }}>
               Contact the family directly.<br />No middlemen, no hidden charges.

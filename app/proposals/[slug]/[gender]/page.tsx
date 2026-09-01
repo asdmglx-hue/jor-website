@@ -45,6 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ? `Browse verified ${label.toLowerCase()} ${entry.value} caste rishta profiles and connect directly with families on Jor, Pakistan's trusted matrimonial platform.`
       : `Browse verified ${label.toLowerCase()} ${entry.value} rishta profiles and connect directly with families on Jor, Pakistan's trusted matrimonial platform.`,
     alternates: { canonical: `https://joronline.com/proposals/${entry.slug}/${gender}` },
+    robots: { index: true, follow: true },
   };
 }
 
