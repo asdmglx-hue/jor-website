@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import ExpandableName from './ExpandableName';
+import { trackEvent } from '@/lib/analytics';
 
 // Module-level cache so we only fetch the badge setting once per page load
 let _badgeEnabled: boolean | null = null;
@@ -122,6 +123,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
     const isSaved = ids.includes(p.id);
     setSaved(isSaved);
     onSavedChange?.(p.id, isSaved);
+    trackEvent(isSaved ? 'profile_saved' : 'profile_unsaved', { proposal_number: p.proposal_number });
   };
 
   const handleNotInterested = (e: React.MouseEvent) => {
@@ -138,6 +140,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
+    trackEvent('profile_shared', { proposal_number: p.proposal_number });
     const session = getSession();
     const showFullPhone = !!session && isSubscriptionActive(session);
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -153,7 +156,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
 
   return (
     <>
-      <Link href={`/profile/${p.proposal_number}`} draggable={false} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Link href={`/profile/${p.proposal_number}`} draggable={false} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }} onClick={() => trackEvent('profile_view', { proposal_number: p.proposal_number, gender: p.gender ?? '' })}>
       <div className="card-hover" style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%', borderRadius: 20 }}>
       <div style={{ background: cardBg, borderRadius: 20, padding: '14px', cursor: 'pointer', position: 'relative', boxShadow: `0 0 0 1px ${cardBorder}, 0 2px 8px rgba(0,0,0,0.05)`, display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
         {/* Header */}
@@ -228,6 +231,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
             showPhone ? (
               <a
                 href={`https://wa.me/${phoneDisplay(p.contact_phone).replace(/\D/g, '')}`}
+                onClick={() => trackEvent('contact_unlocked', { proposal_number: p.proposal_number, method: 'whatsapp' })}
                 target="_blank" rel="noopener noreferrer"
                 onClick={e => e.stopPropagation()}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#EEEDFE', borderRadius: 20, padding: '6px 12px', textDecoration: 'none' }}>

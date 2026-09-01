@@ -366,6 +366,7 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
       .map(([k]) => k)
       .join(',');
     if (activeFilters) trackEvent('filter_applied', { filters: activeFilters });
+    if (filters.search) trackEvent('search_used', { query_length: filters.search.length });
     setFilters(next);
   };
 
