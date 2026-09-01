@@ -1454,10 +1454,11 @@ export default function SubmitClient() {
             <Field label="Phone Number" required labelExtra={<span style={{ fontSize: 11, fontWeight: 500, color: '#9990B8' }}> · (This number will be used for future verification)</span>}>
               <PhoneInput value={form.phone} onChange={v => set('phone', v)} dialCode={form.phone_dial_code} onDialChange={v => set('phone_dial_code', v)} required hasError={errorField === 'phone'} inputStyle={inp} />
             </Field>
-            <div style={{ marginTop: -8, marginBottom: 14 }}>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>Contact Person <span style={{ color: '#E11D48' }}>*</span></label>
               <select value={form.contact_person} onChange={e => set('contact_person', e.target.value)}
-                style={{ ...sel, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: errorField === 'contact_person' ? '1.5px solid #DC2626' : 'none', ...(errorField === 'contact_person' ? { border: '1.5px solid #DC2626' } : {}) }}>
-                <option value="">Contact Person</option>
+                style={{ ...sel, ...(errorField === 'contact_person' ? { border: '1.5px solid #DC2626' } : {}) }}>
+                <option value="" disabled hidden>Contact Person</option>
                 {['Father','Mother','Brother','Sister','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
@@ -1472,10 +1473,11 @@ export default function SubmitClient() {
               }>
                 <PhoneInput value={form.phone2} onChange={v => set('phone2', v)} dialCode={form.phone2_dial_code} onDialChange={v => set('phone2_dial_code', v)} inputStyle={inp} />
               </Field>
-              <div style={{ marginTop: -8, marginBottom: 14 }}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>Contact Person (2nd number) <span style={{ color: '#E11D48' }}>*</span></label>
                 <select value={form.contact_person_2} onChange={e => set('contact_person_2', e.target.value)}
-                  style={{ ...sel, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: errorField === 'contact_person_2' ? '1.5px solid #DC2626' : 'none', ...(errorField === 'contact_person_2' ? { border: '1.5px solid #DC2626' } : {}) }}>
-                  <option value="">Contact Person</option>
+                  style={{ ...sel, ...(errorField === 'contact_person_2' ? { border: '1.5px solid #DC2626' } : {}) }}>
+                  <option value="" disabled hidden>Contact Person</option>
                   {['Father','Mother','Brother','Sister','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
@@ -2063,7 +2065,7 @@ export default function SubmitClient() {
                     )}
                   </div>
                   <span style={{ fontSize: 13, color: submitterType === 'guardian' ? '#534AB7' : '#4B4869', lineHeight: 1.6, fontWeight: submitterType === 'guardian' ? 600 : 400 }}>
-                    I confirm that I am the parent/guardian submitting this profile to find a suitable marriage proposal for my son/daughter.
+                    I confirm this profile is created by a parent/guardian (or created on their behalf), and all family-to-family communications will be handled directly by the parent/guardian.
                   </span>
                 </div>
               </div>
