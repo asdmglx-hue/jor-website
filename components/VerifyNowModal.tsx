@@ -96,6 +96,8 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
   const [compulsoryLatestDegree,  setCompulsoryLatestDegree]  = useState(false);
   const [compulsoryParentsCnic,   setCompulsoryParentsCnic]   = useState(true);
   const [sectionLabel, setSectionLabel] = useState('PARENT / GUARDIAN / CANDIDATE');
+  const [educationLabel, setEducationLabel] = useState('Education Document');
+  const [parentsLabel, setParentsLabel] = useState('Parents / Guardian CNIC');
 
   useEffect(() => {
     supabase.from('app_settings').select('key, value').then(({ data }) => {
@@ -107,7 +109,9 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
       if (map['verify_now_candidate_cnic_compulsory'] === 'false') setCompulsoryCandidateCnic(false);
       if (map['verify_now_latest_degree_compulsory']  === 'true')  setCompulsoryLatestDegree(true);
       if (map['verify_now_parents_cnic_compulsory']   === 'false') setCompulsoryParentsCnic(false);
-      if (map['verify_now_section_label']) setSectionLabel(map['verify_now_section_label']);
+      if (map['verify_now_section_label'])   setSectionLabel(map['verify_now_section_label']);
+      if (map['verify_now_education_label'])  setEducationLabel(map['verify_now_education_label']);
+      if (map['verify_now_parents_label'])    setParentsLabel(map['verify_now_parents_label']);
     });
   }, []);
 
@@ -328,7 +332,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
           </>)}
 
           {showParentsCnic && (<>
-          <SecHeader title="PARENT / GUARDIAN" />
+          <SecHeader title={parentsLabel} />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <UploadBox label={`CNIC Front${showParentsCnic && compulsoryParentsCnic ? " *" : ""}`} file={guardianCnicFront} preview={guardianCnicFrontPreview} compressing={compressingGuardianCnicFront}
               onFileSelected={async raw => {
