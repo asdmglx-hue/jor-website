@@ -449,12 +449,10 @@ export default function MyProposalClient() {
           for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string }[]) {
             if (ev.status === 'applied') {
               for (const k of Object.keys(ev.changes)) {
-                if (INSTANT_FIELDS.has(k)) continue; // always instant, never pending
-                if (ev.changes[k] === ev.old_values[k]) {
-                  delete pending[k]; // explicit approval confirmation
-                } else {
-                  pending[k] = ev.changes[k]; // genuine submission
-                }
+                if (INSTANT_FIELDS.has(k)) continue;
+                // Change is already applied to DB — remove from pending entirely.
+                // The fresh DB fetch already has the updated value in `user`.
+                delete pending[k];
               }
             } else if (ev.status === 'reverted') {
               for (const k of Object.keys(ev.changes)) {
@@ -735,11 +733,7 @@ export default function MyProposalClient() {
               if (ev.status === 'applied') {
                 for (const k of Object.keys(ev.changes)) {
                   if (INSTANT_FIELDS.has(k)) continue;
-                  if (ev.changes[k] === ev.old_values[k]) {
-                    delete pending[k];
-                  } else {
-                    pending[k] = ev.changes[k];
-                  }
+                  delete pending[k];
                 }
               } else if (ev.status === 'reverted') {
                 for (const k of Object.keys(ev.changes)) {
