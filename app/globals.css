@@ -313,6 +313,7 @@ body {
   /* Register step tabs: Additional Info must fit */
   .step-tab-label { font-size: 9px !important; }
   .my-account-left { width: 100% !important; min-width: 0 !important; overflow: hidden !important; }
+  .my-account-name { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; max-width: 130px !important; }
   .saved-btn-header { display: none !important; }
   .proposals-br { display: block; }
   .plans-grid { grid-template-columns: 1fr !important; }
