@@ -103,7 +103,7 @@ export default function LoginClient() {
 
       localStorage.setItem('jor_login_time', Date.now().toString());
       saveSession(proposal);
-      trackEvent('login_success', { method: 'cnic' });
+      trackEvent('login_success');
       window.location.href = '/my-profile';
     } catch {
       setError('Something went wrong. Please check your connection and try again.');

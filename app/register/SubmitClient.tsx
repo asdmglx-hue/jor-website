@@ -65,7 +65,7 @@ const MONTHLY_INCOMES = ['Under 30K','30K – 60K','60K – 100K','100K – 200K
 const HOME_TYPES = ['Own House','Rented House'];
 const HIJAB_OPTIONS = ['Yes','No','Sometimes'];
 const BEARD_OPTIONS = ['Yes','No','Light'];
-const FAMILY_TYPE_OPTIONS = ['Joint family','Separated Family'];
+const FAMILY_TYPE_OPTIONS = ['Joint family','Separate Family'];
 
 const LIFESTYLE_OPTIONS = ['Active Living','Sedentary Living','Moderately Active'];
 const PROPERTY_TYPES = ['Residential','Commercial','Land','Multiple'];
@@ -489,6 +489,7 @@ type FormData = {
   has_disability: string; disability_details: string;
   lifestyle: string; smoker: string;
   phone_dial_code: string; phone2_dial_code: string;
+  contact_person: string; contact_person_2: string;
   // Step 3
   cnic: string; password: string; confirm_password: string;
   // Step 5 (Review)
@@ -522,6 +523,7 @@ const EMPTY: FormData = {
   has_disability: '', disability_details: '',
   lifestyle: '', smoker: '',
   phone_dial_code: '+92', phone2_dial_code: '+92',
+  contact_person: '', contact_person_2: '',
   cnic: '', password: '', confirm_password: '',
   affiliate: '',
 };
@@ -540,6 +542,7 @@ function CodesDropdown({ open, onToggle, hasApplied, couponCode, setCouponCode, 
 }) {
   return (
     <div style={{ border: '1px solid #E8E6F5', borderRadius: 12, overflow: 'hidden', marginBottom: 16 }}>
+      {/* Header toggle */}
       <div onClick={onToggle} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#F9F8FF', cursor: 'pointer', userSelect: 'none' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L4 3a1 1 0 0 0-1 1l.24 5.59a2 2 0 0 0 .59 1.41l9.58 9.59a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
@@ -548,8 +551,10 @@ function CodesDropdown({ open, onToggle, hasApplied, couponCode, setCouponCode, 
         </div>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s' }}><polyline points="6 9 12 15 18 9"/></svg>
       </div>
+      {/* Content */}
       {open && (
         <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+          {/* Coupon */}
           <div style={{ padding: 12, background: '#FEEDE3', border: '1px solid #E8620A66', borderRadius: 10 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#E8620A', marginBottom: 8 }}>Coupon Code</div>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -562,6 +567,7 @@ function CodesDropdown({ open, onToggle, hasApplied, couponCode, setCouponCode, 
             </div>
             {couponMessage && <div style={{ fontSize: 12, marginTop: 6, fontWeight: 600, color: couponIsError ? '#DC2626' : '#16A34A' }}>{couponMessage}</div>}
           </div>
+          {/* Referral */}
           <div style={{ padding: 12, background: '#EEEDFE', border: '1px solid #D4D1F7', borderRadius: 10 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#534AB7', marginBottom: 8 }}>Referral Code</div>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -615,6 +621,8 @@ export default function SubmitClient() {
   }, []);
   const [maxStep, setMaxStep] = useState<number>(1);
   const [form, setForm] = useState<FormData>(EMPTY);
+  const [submitterType, setSubmitterType] = useState<'self' | 'guardian' | null>(null);
+  const [codesOpen, setCodesOpen] = useState(false);
   const [showPhone2, setShowPhone2] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState('');
@@ -882,6 +890,8 @@ export default function SubmitClient() {
         const required = digits.startsWith('0') ? 11 : 10;
         if (digits.length !== required) return fail(`Enter a valid Pakistani number (${required} digits)`, 'phone');
       }
+      if (!form.contact_person) return fail('Please select contact person for this number', 'contact_person');
+      if (form.phone2.trim() && !form.contact_person_2) return fail('Please select contact person for the second number', 'contact_person_2');
       if (!form.height_feet) return fail('Height is required', 'height_feet');
       if (!form.city) return fail('City is required', 'city');
       if (!form.caste) return fail('Caste is required', 'caste');
@@ -932,12 +942,16 @@ export default function SubmitClient() {
       const digits = form.cnic.replace(/-/g, '').trim();
       const { data: existingStatus } = await supabase.rpc('get_cnic_profile_status', { p_cnic: digits });
       if (existingStatus === 'pending') return { msg: 'Your profile is already submitted. Please log in to check the status.', field: 'cnic' };
+      if (existingStatus === 'rejected') return { msg: 'This CNIC has a rejected profile. Please log in and delete your account first to register again.', field: 'cnic' };
+      if (existingStatus === 'removed') return { msg: 'This CNIC has a removed profile. Please log in and delete your account first to register again.', field: 'cnic' };
       if (existingStatus) return { msg: 'This CNIC is already registered. Please login instead.', field: 'cnic' };
     }
     return null;
   };
 
   const next = async () => {
+
+    if (step === 5 && submitterType === null) { setError('Please tick the confirmation checkbox before submitting.'); return; }
     if (navigating.current) return;
     navigating.current = true;
     try {
@@ -979,8 +993,10 @@ export default function SubmitClient() {
   };
 
   const handleSubmit = async () => {
+    if (submitterType === null) { setError('Please tick the confirmation checkbox before submitting.'); return; }
     const { msg: err, field } = validateStep();
     if (err) { setError(err); setErrorField(field); return; }
+
     setSubmitting(true); setError(''); setErrorField('');
 
     const totalInches = (+form.height_feet * 12) + (+form.height_inches_extra || 0);
@@ -1125,6 +1141,8 @@ export default function SubmitClient() {
       age: +form.age,
       contact_phone: formatDialedPhone(form.phone_dial_code, form.phone),
       contact_phone_2: form.phone2.trim() ? formatDialedPhone(form.phone2_dial_code, form.phone2) : undefined,
+      contact_person: form.contact_person || undefined,
+      contact_person_2: form.contact_person_2 || undefined,
       height_inches: totalInches || undefined,
       country: form.country || undefined,
       city: form.city,
@@ -1196,8 +1214,11 @@ export default function SubmitClient() {
       localStorage.removeItem(COUPON_KEY);
       localStorage.removeItem(AFFILIATE_APPLIED_KEY);
       setSubmitted(true);
-      trackEvent('register_complete', { method: 'cnic' });
-      trackEvent('conversion', { event_category: 'engagement', value: 1 });
+      trackEvent('register_complete');
+      if ((window as any).fbq) {
+        (window as any).fbq('track', 'CompleteRegistration');
+        (window as any).fbq('track', 'Lead');
+      }
     } else setError(apiErr || 'Something went wrong. Please try again.');
   };
 
@@ -1296,10 +1317,10 @@ export default function SubmitClient() {
             </div>
 
             <div style={{ background: '#EEEDFE', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#534AB7', lineHeight: 1.6 }}>
-              Your CNIC and password are used to login and manage your profile.
+              Your CNIC is kept private and is only used to verify your profile, helping us keep our community secure.
             </div>
 
-            <Field label="CNIC Number" required>
+            <Field label="CNIC" required labelExtra={<span style={{ fontSize: 12, fontWeight: 600, color: '#8F8AC7' }}>&nbsp; — &nbsp;Parent / Guardian / Candidate</span>}>
               <div style={{ position: 'relative' }}>
                 <input value={form.cnic} style={{ ...inp, paddingRight: 40,
                   ...(cnicState === 'taken' ? { border: '1.5px solid #DC2626', boxShadow: '0 0 0 2px rgba(220,38,38,0.12)' } : err('cnic'))
@@ -1433,9 +1454,18 @@ export default function SubmitClient() {
             <Field label="Phone Number" required labelExtra={<span style={{ fontSize: 11, fontWeight: 500, color: '#9990B8' }}> · (This number will be used for future verification)</span>}>
               <PhoneInput value={form.phone} onChange={v => set('phone', v)} dialCode={form.phone_dial_code} onDialChange={v => set('phone_dial_code', v)} required hasError={errorField === 'phone'} inputStyle={inp} />
             </Field>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>Contact Person <span style={{ color: '#E11D48' }}>*</span></label>
+              <select value={form.contact_person} onChange={e => set('contact_person', e.target.value)}
+                style={{ ...sel, ...(errorField === 'contact_person' ? { border: '1.5px solid #DC2626' } : {}) }}>
+                <option value="" disabled hidden>Contact Person</option>
+                {['Father','Mother','Brother','Sister','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
             {showPhone2 ? (
+              <>
               <Field label="Second Phone Number" labelRight={
-                <button type="button" onClick={() => { setShowPhone2(false); set('phone2', ''); set('phone2_dial_code', '+92'); }}
+                <button type="button" onClick={() => { setShowPhone2(false); set('phone2', ''); set('phone2_dial_code', '+92'); set('contact_person_2', ''); }}
                   aria-label="Remove second phone number"
                   style={{ background: 'none', border: 'none', padding: 0, color: '#9CA3AF', fontSize: 15, fontWeight: 700, lineHeight: 1, cursor: 'pointer' }}>
                   ✕
@@ -1443,6 +1473,15 @@ export default function SubmitClient() {
               }>
                 <PhoneInput value={form.phone2} onChange={v => set('phone2', v)} dialCode={form.phone2_dial_code} onDialChange={v => set('phone2_dial_code', v)} inputStyle={inp} />
               </Field>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#6B6893', marginBottom: 5 }}>Contact Person (2nd number) <span style={{ color: '#E11D48' }}>*</span></label>
+                <select value={form.contact_person_2} onChange={e => set('contact_person_2', e.target.value)}
+                  style={{ ...sel, ...(errorField === 'contact_person_2' ? { border: '1.5px solid #DC2626' } : {}) }}>
+                  <option value="" disabled hidden>Contact Person</option>
+                  {['Father','Mother','Brother','Sister','Self','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </div>
+              </>
             ) : (
               <button type="button" onClick={() => setShowPhone2(true)}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 24, background: 'none', border: 'none', padding: 0, color: '#534AB7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
@@ -1752,7 +1791,7 @@ export default function SubmitClient() {
 
             {requireCandidateCnic && (
               <>
-                <SecHeader title="FOR MARRIAGE-SEEKING PERSON" />
+                <SecHeader title="PARENT / GUARDIAN / CANDIDATE" />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <CnicUploadBox label="CNIC Front" fieldKey="cnicFront" errorField={errorField}
                     file={cnicFront} preview={cnicFrontPreview} compressing={compressingCnicFront}
@@ -2016,7 +2055,6 @@ export default function SubmitClient() {
                 );
               })()}
 
-              {/* Guardian / self confirmation checkbox */}
               <div style={{ marginTop: 16 }}>
                 <div
                   onClick={() => setSubmitterType(submitterType === 'guardian' ? 'self' : 'guardian')}
@@ -2027,7 +2065,7 @@ export default function SubmitClient() {
                     )}
                   </div>
                   <span style={{ fontSize: 13, color: submitterType === 'guardian' ? '#534AB7' : '#4B4869', lineHeight: 1.6, fontWeight: submitterType === 'guardian' ? 600 : 400 }}>
-                    I confirm that I am the parent/guardian submitting this profile to find a suitable marriage proposal for my son/daughter.
+                    I confirm this profile is created by a parent/guardian (or created on their behalf), and all family-to-family communications will be handled directly by the parent/guardian.
                   </span>
                 </div>
               </div>

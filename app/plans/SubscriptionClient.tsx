@@ -89,6 +89,13 @@ export default function SubscriptionClient() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('plan') === 'featured') setSelected(1);
     if (params.get('plan') === 'rishta-profile') setSelected(0);
+    // Auto-open payment popup if ?pay=1 — used by Pay Now / Buy Featured Credits
+    if (params.get('pay') === '1') {
+      const planIdx = params.get('plan') === 'featured' ? 1 : 0;
+      setSelected(planIdx);
+      // Delay so settings load first
+      setTimeout(() => setShowPayModal(true), 300);
+    }
     (async () => {
       try {
         const { data } = await supabase.from('app_settings').select('key, value');
@@ -190,7 +197,7 @@ export default function SubscriptionClient() {
       {/* Plans */}
       <div className="plans-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 24 }}>
         {plans.map((plan, i) => (
-          <PlanCard key={plan.name} plan={plan} selected={selected === i} onSelect={() => { const newSel = selected === i ? -1 : i; setSelected(newSel); if (newSel >= 0) trackEvent('plan_selected', { plan_name: plan.name, plan_price: plan.priceDisplay }); }} />
+          <PlanCard key={plan.name} plan={plan} selected={selected === i} onSelect={() => { const ns = selected === i ? -1 : i; setSelected(ns); if (ns >= 0) trackEvent('plan_selected', { plan_name: plan.name }); }} />
         ))}
       </div>
 
@@ -208,14 +215,14 @@ export default function SubscriptionClient() {
           </div>
         ) : (
           <button onClick={() => {
+            if (!user) {
+              // Not logged in: Rishta Profile → register, Featured → login
+              router.push(selected === 0 ? '/register' : '/login');
+              return;
+            }
             if (selected === 0 && isFreeMode) {
               router.push('/register');
             } else if ((settings['payment_mode'] ?? 'auto') === 'manual') {
-              // Manual Payment instructions only make sense to show while
-              // that mode is actually on. When it's off, this is reserved
-              // for a future automated payment API — nothing to show yet,
-              // so the click intentionally does nothing rather than
-              // displaying manual wallet/bank details that don't apply.
               setShowPayModal(true);
             }
           }} style={{

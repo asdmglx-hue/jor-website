@@ -18,7 +18,6 @@ import VerifyNowModal from '@/components/VerifyNowModal';
 // listing/profile pages instead of waiting on the 5-minute timer — see
 // lib/actions/revalidate-write.ts for the full explanation.
 import { updateOwnProposalAction, deleteOwnProposalAction } from '@/lib/actions/proposal-actions';
-import { trackEvent } from '@/lib/analytics';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 
@@ -444,10 +443,12 @@ export default function MyProposalClient() {
           p_proposal_id: session.id,
         }).then(({ data: events }) => {
           if (!events) return;
+          const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
           const pending: Record<string, unknown> = {};
           for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string }[]) {
             if (ev.status === 'applied') {
               for (const k of Object.keys(ev.changes)) {
+                if (INSTANT_FIELDS.has(k)) continue; // always instant, never pending
                 if (ev.changes[k] === ev.old_values[k]) {
                   delete pending[k]; // explicit approval confirmation
                 } else {
@@ -727,10 +728,12 @@ export default function MyProposalClient() {
             p_proposal_id: user.id,
           }).then(({ data: events }) => {
             if (!events) return;
+            const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
             const pending: Record<string, unknown> = {};
             for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string }[]) {
               if (ev.status === 'applied') {
                 for (const k of Object.keys(ev.changes)) {
+                  if (INSTANT_FIELDS.has(k)) continue;
                   if (ev.changes[k] === ev.old_values[k]) {
                     delete pending[k];
                   } else {
@@ -869,7 +872,7 @@ export default function MyProposalClient() {
               const label = !badgeEnabled || missingCompulsory ? 'Verify Now' : 'Get Verified Badge';
               return (
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
-                  <button className="mobile-only" onClick={() => { setVerifyModalOpen(true); trackEvent('verify_now_click', { source: 'mobile_row' }); }}
+                  <button className="mobile-only" onClick={() => setVerifyModalOpen(true)}
                     style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>{label}</span>
@@ -950,7 +953,7 @@ export default function MyProposalClient() {
               const shouldShow  = anyRejected || (!user.is_doc_verified && ((showCnic && !hasCnic) || (showDegree && !hasDegree) || (showParents && !hasParents)));
               if (!shouldShow) return null;
               return (
-                <button className="desktop-only" onClick={() => { setVerifyModalOpen(true); trackEvent('verify_now_click', { source: 'desktop_row' }); }}
+                <button className="desktop-only" onClick={() => setVerifyModalOpen(true)}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                   <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>Verify Now</span>
@@ -964,7 +967,7 @@ export default function MyProposalClient() {
             </button>
             {/* Pay Now — hidden when plan is free (free_mode=true) or settings not yet loaded */}
             {user.status === 'pending' && freeMode === false && (
-              <Link href="/plans?plan=rishta-profile"
+              <Link href="/plans?plan=rishta-profile&pay=1"
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', textDecoration: 'none' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>Pay Now</span>
@@ -973,7 +976,7 @@ export default function MyProposalClient() {
 
             {/* Renew — only when the subscription has actually expired */}
             {isInactive && (
-              <Link href="/plans?plan=rishta-profile"
+              <Link href="/plans?plan=rishta-profile&pay=1"
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #D1FAE5', background: '#ECFDF5', textDecoration: 'none' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#16A34A' }}>Renew</span>
@@ -1086,7 +1089,7 @@ export default function MyProposalClient() {
                         Schedule Featured Post
                       </button>
                     ) : (
-                      <Link href="/plans?plan=featured" style={{ display: 'inline-block', textAlign: 'center', padding: '9px 20px', borderRadius: 10, background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>
+                      <Link href="/plans?plan=featured&pay=1" style={{ display: 'inline-block', textAlign: 'center', padding: '9px 20px', borderRadius: 10, background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>
                         Buy Credits
                       </Link>
                     )}
@@ -1119,7 +1122,7 @@ export default function MyProposalClient() {
                     Schedule Post
                   </button>
                 ) : (
-                  <button onClick={() => router.push('/plans?plan=featured')} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '9px 0', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer', minHeight: 38 }}>
+                  <button onClick={() => router.push('/plans?plan=featured&pay=1')} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '9px 0', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer', minHeight: 38 }}>
                     Buy Credits
                   </button>
                 )}
@@ -1223,6 +1226,12 @@ export default function MyProposalClient() {
                   style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
                   Cancel
                 </button>
+                {key === 'contact_phone_2' && (
+                  <button onClick={() => saveInline(key, null)} disabled={inlineSaving}
+                    style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid #FCA5A5', background: '#FFF5F5', color: '#DC2626', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                    Remove
+                  </button>
+                )}
               </div>
             );
             // Admin sessions can only edit their name — every other field
@@ -1371,7 +1380,7 @@ export default function MyProposalClient() {
                               {options.map(o => <option key={o} value={o}>{o}</option>)}
                             </select>
                         : type === 'tel'
-                          ? <PhoneInput value={inlineVal} onChange={setInlineVal} dialCode={inlineDialCode} onDialChange={setInlineDialCode} inputStyle={fieldStyle} />
+                          ? <PhoneInput value={inlineVal} onChange={setInlineVal} dialCode={inlineDialCode} onDialChange={setInlineDialCode} inputStyle={fieldStyle} autoFocus />
                           : <input type={type} value={inlineVal} maxLength={maxLength}
                               onChange={e => setInlineVal(maxLength ? e.target.value.slice(0, maxLength) : e.target.value)}
                               style={fieldStyle} autoFocus />
@@ -1577,7 +1586,7 @@ export default function MyProposalClient() {
                 </>))}
 
                 {sec('Family', grid(<>
-                  <Field label="Family Type" fieldKey="family_type" options={['Joint family','Separated Family']} />
+                  <Field label="Family Type" fieldKey="family_type" options={['Joint family','Separate Family']} />
                   <BoolField label="Father Alive" fieldKey="father_alive" />
                   <BoolField label="Mother Alive" fieldKey="mother_alive" />
                   <Field label="Father Occupation" fieldKey="father_occupation" options={professionList} grouped={professionGroups} />
@@ -1704,7 +1713,11 @@ export default function MyProposalClient() {
 
                 {sec('Contact', grid(<>
                   <Field label="Primary Phone" fieldKey="contact_phone" type="tel" />
+                  <Field label="Contact Person" fieldKey="contact_person" options={['Father','Mother','Brother','Sister','Self','Other']} />
                   <Field label="Secondary Phone" fieldKey="contact_phone_2" type="tel" />
+                  {(user.contact_phone_2 || pendingChanges['contact_phone_2']) && (
+                    <Field label="Contact Person (2nd)" fieldKey="contact_person_2" options={['Father','Mother','Brother','Sister','Self','Other']} />
+                  )}
                 </>))}
               </>
             );
