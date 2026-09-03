@@ -249,6 +249,13 @@ export default function MyProposalClient() {
   const [bookModalOpen, setBookModalOpen] = useState(false);
   const [manageModalOpen, setManageModalOpen] = useState(false);
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
   const [hasPendingVerification, setHasPendingVerification] = useState(false);
   const [freeMode, setFreeMode] = useState<boolean | null>(null); // null = settings not yet loaded
   const [badgeEnabled, setBadgeEnabled] = useState(true);
@@ -882,6 +889,7 @@ export default function MyProposalClient() {
               const showParents = verifyNowSettings['verify_now_parents_cnic']   !== 'false';
               const shouldShow  = anyRejected || (!user.is_doc_verified && ((showCnic && !hasCnic) || (showDegree && !hasDegree) || (showParents && !hasParents)));
               if (!shouldShow) return null;
+              if (isMobile) return null; // shown full-width above banner instead
               const cnicCompulsory    = verifyNowSettings['verify_now_candidate_cnic_compulsory'] !== 'false';
               const degreeCompulsory  = verifyNowSettings['verify_now_latest_degree_compulsory']  === 'true';
               const parentsCompulsory = verifyNowSettings['verify_now_parents_cnic_compulsory']   !== 'false';
@@ -1014,7 +1022,7 @@ export default function MyProposalClient() {
       {!isAdminAccount && (() => {
         const label = getStatusLabel(user);
         // Mobile-only full-width Verify Now button — shown above the pending banner
-        const verifyNowMobileBtn = (user.status === 'pending' || user.status === 'active') && !isRejected && user.cnic_verified !== true && (() => {
+        const verifyNowMobileBtn = isMobile && (user.status === 'pending' || user.status === 'active') && !isRejected && user.cnic_verified !== true && (() => {
           const dv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
           const anyRejected = Object.values(dv).some((v: string) => v === 'rejected');
           const hasCnic    = !!(user.cnic_front_url && user.cnic_back_url);
@@ -1034,7 +1042,7 @@ export default function MyProposalClient() {
             (showParents && parentsCompulsory && !hasParents);
           const btnLabel = !badgeEnabled || missingCompulsory ? 'Verify Now' : 'Get Verified Badge';
           return (
-            <button className="mobile-only verify-now-mobile-full" onClick={() => { setVerifyModalOpen(true); trackEvent('verify_now_click', { source: 'mobile_banner' }); }}
+            <button onClick={() => { setVerifyModalOpen(true); trackEvent('verify_now_click', { source: 'mobile_banner' }); }}
               style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 12, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer', marginBottom: 12 }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#7C3AED' }}>{btnLabel}</span>
