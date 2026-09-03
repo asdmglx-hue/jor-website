@@ -128,9 +128,8 @@ export default function ContactButtons({
         </div>
       )}
 
-      {/* Heading + contact person pill(s) inline — single pill or 2-pill toggle */}
+      {/* Contact person pill(s) inline — single pill or 2-pill toggle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: '#1A1830' }}>{headingLabel}</div>
         {hasTwo ? (
           <div style={{ display: 'flex', background: '#EEEDFE', border: '1px solid #C4C2D8', borderRadius: 20, padding: 2, gap: 2 }}>
             {contacts.map((c, i) => (
