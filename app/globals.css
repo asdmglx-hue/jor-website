@@ -312,7 +312,7 @@ body {
   .coupon-apply-btn, .referral-apply-btn { white-space: nowrap !important; min-width: 64px !important; padding: 9px 12px !important; flex-shrink: 0 !important; }
   /* Register step tabs: Additional Info must fit */
   .step-tab-label { font-size: 9px !important; }
-  .my-account-left { width: 100% !important; }
+  .my-account-left { width: 100% !important; min-width: 0 !important; overflow: hidden !important; }
   .saved-btn-header { display: none !important; }
   .proposals-br { display: block; }
   .plans-grid { grid-template-columns: 1fr !important; }
