@@ -554,7 +554,8 @@ body {
 /* mobile-only: visible on mobile, hidden on desktop */
 .mobile-only { display: flex !important; }
 @media (min-width: 769px) { .mobile-only { display: none !important; } }
-/* Verify Now in card: hidden on mobile (shown full-width above banner instead) */
+/* Verify Now in card: hidden on mobile (full-width button shown above banner instead) */
 @media (max-width: 768px) { .verify-now-card-btn { display: none !important; } }
-/* Full-width Verify Now above banner: hidden on desktop */
-@media (min-width: 769px) { .verify-now-mobile-full { display: none !important; } }
+/* Full-width Verify Now above banner: hidden on desktop, shown on mobile */
+.verify-now-mobile-full { display: none !important; }
+@media (max-width: 768px) { .verify-now-mobile-full { display: flex !important; } }

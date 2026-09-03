@@ -892,7 +892,7 @@ export default function MyProposalClient() {
               const label = !badgeEnabled || missingCompulsory ? 'Verify Now' : 'Get Verified Badge';
               return (
                 <div className="verify-now-card-btn" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
-                  <button className="mobile-only" onClick={() => { setVerifyModalOpen(true); trackEvent('verify_now_click', { source: 'mobile' }); }}
+                  <button onClick={() => { setVerifyModalOpen(true); trackEvent('verify_now_click', { source: 'mobile' }); }}
                     style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>{label}</span>
