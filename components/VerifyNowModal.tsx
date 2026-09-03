@@ -95,6 +95,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
   const [compulsoryCandidateCnic, setCompulsoryCandidateCnic] = useState(true);
   const [compulsoryLatestDegree,  setCompulsoryLatestDegree]  = useState(false);
   const [compulsoryParentsCnic,   setCompulsoryParentsCnic]   = useState(true);
+  const [sectionLabel, setSectionLabel] = useState('PARENT / GUARDIAN / CANDIDATE');
 
   useEffect(() => {
     supabase.from('app_settings').select('key, value').then(({ data }) => {
@@ -106,6 +107,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
       if (map['verify_now_candidate_cnic_compulsory'] === 'false') setCompulsoryCandidateCnic(false);
       if (map['verify_now_latest_degree_compulsory']  === 'true')  setCompulsoryLatestDegree(true);
       if (map['verify_now_parents_cnic_compulsory']   === 'false') setCompulsoryParentsCnic(false);
+      if (map['verify_now_section_label']) setSectionLabel(map['verify_now_section_label']);
     });
   }, []);
 
@@ -292,7 +294,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
           </div>
 
           {showCandidateCnic && (<>
-          <SecHeader title="PARENT / GUARDIAN / CANDIDATE" />
+          <SecHeader title={sectionLabel} />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <UploadBox label={`CNIC Front${showCandidateCnic && compulsoryCandidateCnic ? " *" : ""}`} file={cnicFront} preview={cnicFrontPreview} compressing={compressingCnicFront}
               onFileSelected={async raw => {
@@ -314,7 +316,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
           </>)}
 
           {showLatestDegree && (<>
-          {!showCandidateCnic && <SecHeader title="PARENT / GUARDIAN / CANDIDATE" />}
+          {!showCandidateCnic && <SecHeader title={sectionLabel} />}
           <UploadBox label={`Recent Education Document${showLatestDegree && compulsoryLatestDegree ? " *" : ""}`} file={educationDocument} preview={educationDocumentPreview} compressing={compressingEducationDocument}
             onFileSelected={async raw => {
               setCompressingEducationDocument(true);
