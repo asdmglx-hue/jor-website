@@ -233,14 +233,15 @@ export default async function ProposalDetailPage({ params }: Props) {
           {/* Personal Details */}
           {(heightFt || p.weight_kg || p.complexion || p.marital_status ||
             (p.marital_status !== 'Single' && p.marital_status !== 'Never married' && (p.boys || p.girls)) ||
-            p.practice_level ||
+            p.practice_level || p.marriage_number ||
             (p.gender === 'Female' && p.hijab != null) || (p.gender === 'Male' && p.beard != null) ||
-            (p.languages && p.languages.length > 0)) && (
+            (p.languages && p.languages.length > 0) || p.smokes || p.drinks || p.physically_active || p.has_disability) && (
           <Section title="Personal Details">
             <InfoRow icon="" label="Height" value={heightFt} />
             <InfoRow icon="" label="Weight" value={p.weight_kg ? `${p.weight_kg} kg` : null} />
             <InfoRow icon="" label="Complexion" value={p.complexion} />
             <InfoRow icon="" label="Marital Status" value={p.marital_status} />
+            <InfoRow icon="" label="Marriage No." value={p.marital_status !== 'Never married' && p.marital_status !== 'Single' ? p.marriage_number : null} />
             {p.marital_status !== 'Single' && p.marital_status !== 'Never married' && <InfoRow icon="" label="Children (Boys)" value={p.boys ? p.boys : null} />}
             {p.marital_status !== 'Single' && p.marital_status !== 'Never married' && <InfoRow icon="" label="Children (Girls)" value={p.girls ? p.girls : null} />}
 
@@ -248,6 +249,10 @@ export default async function ProposalDetailPage({ params }: Props) {
             {p.gender === 'Female' && <InfoRow icon="" label="Hijab" value={p.hijab} />}
             {p.gender === 'Male' && <InfoRow icon="" label="Beard" value={p.beard} />}
             <InfoRow icon="" label="Languages" value={p.languages?.join(', ')} />
+            <InfoRow icon="" label="Smokes" value={p.smokes} />
+            <InfoRow icon="" label="Drinks" value={p.drinks} />
+            <InfoRow icon="" label="Physically Active" value={p.physically_active} />
+            {p.has_disability && <InfoRow icon="" label="Disability Details" value={p.disability_details} />}
           </Section>
           )}
 
@@ -265,28 +270,33 @@ export default async function ProposalDetailPage({ params }: Props) {
             <InfoRow icon="" label="Occupation" value={p.profession} />
             <InfoRow icon="" label="Employment" value={p.employment_type} />
             <InfoRow icon="" label="Monthly Income" value={p.monthly_income} />
+            <InfoRow icon="" label="Salary Range" value={p.salary_start && p.salary_end ? `PKR ${p.salary_start.toLocaleString()} – ${p.salary_end.toLocaleString()}` : p.salary_start ? `PKR ${p.salary_start.toLocaleString()}+` : null} />
           </Section>
           )}
 
           {/* Family */}
-          {!!(p.family_type || p.father_alive != null || p.mother_alive != null || p.brothers || p.sisters) && (
+          {!!(p.family_type || p.father_alive != null || p.mother_alive != null || p.father_occupation || p.mother_occupation || p.brothers || p.sisters) && (
           <Section title="Family Background">
             {p.family_type && <InfoRow icon="" label="Family Type" value={p.family_type} />}
             <InfoRow icon="" label="Father" value={p.father_alive === true ? 'Alive' : p.father_alive === false ? 'Deceased' : null} />
+            <InfoRow icon="" label="Father's Occupation" value={p.father_occupation} />
             <InfoRow icon="" label="Mother" value={p.mother_alive === true ? 'Alive' : p.mother_alive === false ? 'Deceased' : null} />
+            <InfoRow icon="" label="Mother's Occupation" value={p.mother_occupation} />
             <InfoRow icon="‍" label="Brothers" value={p.brothers ? p.brothers : null} />
             <InfoRow icon="‍" label="Sisters" value={p.sisters ? p.sisters : null} />
           </Section>
           )}
 
           {/* Property */}
-          {!!(p.home_type || p.has_car || p.has_generator != null || p.has_solar != null || p.has_servant != null) && (
+          {!!(p.home_type || p.house_size || p.has_car || p.has_generator != null || p.has_solar != null || p.has_servant != null || p.other_property) && (
           <Section title="Property & Assets">
             <InfoRow icon="" label="Home Type" value={p.home_type} />
+            <InfoRow icon="" label="House Size" value={p.house_size} />
             <InfoRow icon="" label="Car" value={p.has_car === 'yes' ? (p.car_name || 'Yes') : p.has_car === 'no' ? 'No' : p.has_car} />
             <InfoRow icon="" label="Generator" value={p.has_generator} />
             <InfoRow icon="" label="Solar" value={p.has_solar} />
             <InfoRow icon="" label="Servant" value={p.has_servant} />
+            <InfoRow icon="" label="Other Property" value={p.other_property} />
           </Section>
           )}
         </div>
