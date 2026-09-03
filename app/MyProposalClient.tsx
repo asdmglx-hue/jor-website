@@ -424,15 +424,34 @@ export default function MyProposalClient() {
       // row" from "anyone's row" without real Supabase Auth). They're
       // preserved from what login already stored locally instead of
       // being silently wiped out by this refresh.
-      supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle().then(({ data }) => {
-        if (data) {
-          const fresh = { ...session, ...data } as Proposal;
-          setUser(fresh);
-          if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
-          if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
-          import('@/lib/auth').then(m => m.saveSession(fresh));
-        }
-      });
+      // Use fetch_own_proposal RPC — bypasses the RLS status='active' filter
+      // so pending/paused users also get fresh data on page load.
+      if (session.cnic) {
+        supabase.rpc('fetch_own_proposal', {
+          p_id: session.id,
+          p_cnic: session.cnic.replace(/-/g, ''),
+        }).then(({ data: rows }) => {
+          const data = rows?.[0];
+          if (data) {
+            const fresh = { ...session, ...data } as Proposal;
+            setUser(fresh);
+            if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
+            if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
+            import('@/lib/auth').then(m => m.saveSession(fresh));
+          }
+        });
+      } else {
+        // Fallback for accounts without cnic (admin sessions skipped above)
+        supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle().then(({ data }) => {
+          if (data) {
+            const fresh = { ...session, ...data } as Proposal;
+            setUser(fresh);
+            if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
+            if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
+            import('@/lib/auth').then(m => m.saveSession(fresh));
+          }
+        });
+      }
       // profile_edit_requests only has an admin-read RLS policy — a
       // regular user's own client can't query it directly (same issue
       // the app hit). Reusing the same RPC built for the app: verifies
@@ -446,19 +465,18 @@ export default function MyProposalClient() {
           if (!events) return;
           const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
           const pending: Record<string, unknown> = {};
-          for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string }[]) {
-            if (ev.status === 'applied') {
+          for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string; reviewed_at: string | null }[]) {
+            if (ev.status === 'reverted') {
+              // Admin rejected — clear pending, show DB value
+              for (const k of Object.keys(ev.changes)) delete pending[k];
+            } else if (ev.status === 'applied' && ev.reviewed_at != null) {
+              // Admin approved — already in DB, clear pending
+              for (const k of Object.keys(ev.changes)) delete pending[k];
+            } else if (ev.status === 'applied' && ev.reviewed_at == null) {
+              // User submitted, waiting for admin review — show as pending
               for (const k of Object.keys(ev.changes)) {
-                if (INSTANT_FIELDS.has(k)) continue; // always instant, never pending
-                if (ev.changes[k] === ev.old_values[k]) {
-                  delete pending[k]; // explicit approval confirmation
-                } else {
-                  pending[k] = ev.changes[k]; // genuine submission
-                }
-              }
-            } else if (ev.status === 'reverted') {
-              for (const k of Object.keys(ev.changes)) {
-                delete pending[k]; // rejected
+                if (INSTANT_FIELDS.has(k)) continue;
+                pending[k] = ev.changes[k];
               }
             }
           }
@@ -490,8 +508,13 @@ export default function MyProposalClient() {
             }
             setBoostChecked(true);
           });
-        supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle()
-          .then(({ data }) => { if (data) setUser(prev => (prev ? { ...prev, ...data } : (data as Proposal))); });
+        if (session.cnic) {
+          supabase.rpc('fetch_own_proposal', { p_id: session.id, p_cnic: session.cnic.replace(/-/g, '') })
+            .then(({ data: rows }) => { const data = rows?.[0]; if (data) setUser(prev => (prev ? { ...prev, ...data } : (data as Proposal))); });
+        } else {
+          supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle()
+            .then(({ data }) => { if (data) setUser(prev => (prev ? { ...prev, ...data } : (data as Proposal))); });
+        }
       };
       refreshBoosts();
       refreshFeaturedDataRef.current = refreshBoosts;
@@ -731,19 +754,15 @@ export default function MyProposalClient() {
             if (!events) return;
             const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
             const pending: Record<string, unknown> = {};
-            for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string }[]) {
-              if (ev.status === 'applied') {
+            for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string; reviewed_at: string | null }[]) {
+              if (ev.status === 'reverted') {
+                for (const k of Object.keys(ev.changes)) delete pending[k];
+              } else if (ev.status === 'applied' && ev.reviewed_at != null) {
+                for (const k of Object.keys(ev.changes)) delete pending[k];
+              } else if (ev.status === 'applied' && ev.reviewed_at == null) {
                 for (const k of Object.keys(ev.changes)) {
                   if (INSTANT_FIELDS.has(k)) continue;
-                  if (ev.changes[k] === ev.old_values[k]) {
-                    delete pending[k];
-                  } else {
-                    pending[k] = ev.changes[k];
-                  }
-                }
-              } else if (ev.status === 'reverted') {
-                for (const k of Object.keys(ev.changes)) {
-                  delete pending[k];
+                  pending[k] = ev.changes[k];
                 }
               }
             }
@@ -808,9 +827,9 @@ export default function MyProposalClient() {
           <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Name + ACTIVE badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden' }}>
-                <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</div>
+                <div className="my-account-name" style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name && user.name.length > 10 ? user.name.slice(0, 10) + '…' : user.name}</div>
                 {user.is_doc_verified && badgeEnabled && (
                   <span title="Verified" style={{ display: 'inline-block', verticalAlign: 'middle', lineHeight: 1, position: 'relative', top: '-1px' }}><svg viewBox="0 0 24 24" width="18" height="18" fill="#16A34A" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
                     <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/>
@@ -872,7 +891,7 @@ export default function MyProposalClient() {
                 (showParents && parentsCompulsory && !hasParents);
               const label = !badgeEnabled || missingCompulsory ? 'Verify Now' : 'Get Verified Badge';
               return (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
+                <div className="verify-now-card-btn" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
                   <button className="mobile-only" onClick={() => { setVerifyModalOpen(true); trackEvent('verify_now_click', { source: 'mobile' }); }}
                     style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -994,7 +1013,36 @@ export default function MyProposalClient() {
           synthetic session object rather than a real subscription */}
       {!isAdminAccount && (() => {
         const label = getStatusLabel(user);
-        if (label === 'Pending') return (
+        // Mobile-only full-width Verify Now button — shown above the pending banner
+        const verifyNowMobileBtn = (user.status === 'pending' || user.status === 'active') && !isRejected && user.cnic_verified !== true && (() => {
+          const dv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
+          const anyRejected = Object.values(dv).some((v: string) => v === 'rejected');
+          const hasCnic    = !!(user.cnic_front_url && user.cnic_back_url);
+          const hasDegree  = !!user.education_document_url;
+          const hasParents = !!(user.guardian_cnic_front_url && user.guardian_cnic_back_url);
+          const showCnic    = verifyNowSettings['verify_now_candidate_cnic'] !== 'false';
+          const showDegree  = verifyNowSettings['verify_now_latest_degree']  !== 'false';
+          const showParents = verifyNowSettings['verify_now_parents_cnic']   !== 'false';
+          const shouldShow  = anyRejected || (!user.is_doc_verified && ((showCnic && !hasCnic) || (showDegree && !hasDegree) || (showParents && !hasParents)));
+          if (!shouldShow) return null;
+          const cnicCompulsory    = verifyNowSettings['verify_now_candidate_cnic_compulsory'] !== 'false';
+          const degreeCompulsory  = verifyNowSettings['verify_now_latest_degree_compulsory']  === 'true';
+          const parentsCompulsory = verifyNowSettings['verify_now_parents_cnic_compulsory']   !== 'false';
+          const missingCompulsory =
+            (showCnic    && cnicCompulsory    && !hasCnic) ||
+            (showDegree  && degreeCompulsory  && !hasDegree) ||
+            (showParents && parentsCompulsory && !hasParents);
+          const btnLabel = !badgeEnabled || missingCompulsory ? 'Verify Now' : 'Get Verified Badge';
+          return (
+            <button className="mobile-only verify-now-mobile-full" onClick={() => { setVerifyModalOpen(true); trackEvent('verify_now_click', { source: 'mobile_banner' }); }}
+              style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 12, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer', marginBottom: 12 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#7C3AED' }}>{btnLabel}</span>
+            </button>
+          );
+        })();
+        if (label === 'Pending') return (<>
+          {verifyNowMobileBtn}
           <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <div>
@@ -1002,7 +1050,7 @@ export default function MyProposalClient() {
               <div style={{ fontSize: 13, color: '#B45309', lineHeight: 1.5 }}>Please complete your verification. Your profile will be reviewed within 24 hours.</div>
             </div>
           </div>
-        );
+        </>);
         if (label === 'Paused') return (
           <div style={{ background: '#F9FAFB', border: '1px solid #D1D5DB', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
