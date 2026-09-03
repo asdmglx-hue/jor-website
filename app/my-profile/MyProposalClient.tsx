@@ -424,15 +424,34 @@ export default function MyProposalClient() {
       // row" from "anyone's row" without real Supabase Auth). They're
       // preserved from what login already stored locally instead of
       // being silently wiped out by this refresh.
-      supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle().then(({ data }) => {
-        if (data) {
-          const fresh = { ...session, ...data } as Proposal;
-          setUser(fresh);
-          if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
-          if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
-          import('@/lib/auth').then(m => m.saveSession(fresh));
-        }
-      });
+      // Use fetch_own_proposal RPC — bypasses the RLS status='active' filter
+      // so pending/paused users also get fresh data on page load.
+      if (session.cnic) {
+        supabase.rpc('fetch_own_proposal', {
+          p_id: session.id,
+          p_cnic: session.cnic.replace(/-/g, ''),
+        }).then(({ data: rows }) => {
+          const data = rows?.[0];
+          if (data) {
+            const fresh = { ...session, ...data } as Proposal;
+            setUser(fresh);
+            if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
+            if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
+            import('@/lib/auth').then(m => m.saveSession(fresh));
+          }
+        });
+      } else {
+        // Fallback for accounts without cnic (admin sessions skipped above)
+        supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle().then(({ data }) => {
+          if (data) {
+            const fresh = { ...session, ...data } as Proposal;
+            setUser(fresh);
+            if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
+            if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
+            import('@/lib/auth').then(m => m.saveSession(fresh));
+          }
+        });
+      }
       // profile_edit_requests only has an admin-read RLS policy — a
       // regular user's own client can't query it directly (same issue
       // the app hit). Reusing the same RPC built for the app: verifies
@@ -488,8 +507,13 @@ export default function MyProposalClient() {
             }
             setBoostChecked(true);
           });
-        supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle()
-          .then(({ data }) => { if (data) setUser(prev => (prev ? { ...prev, ...data } : (data as Proposal))); });
+        if (session.cnic) {
+          supabase.rpc('fetch_own_proposal', { p_id: session.id, p_cnic: session.cnic.replace(/-/g, '') })
+            .then(({ data: rows }) => { const data = rows?.[0]; if (data) setUser(prev => (prev ? { ...prev, ...data } : (data as Proposal))); });
+        } else {
+          supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle()
+            .then(({ data }) => { if (data) setUser(prev => (prev ? { ...prev, ...data } : (data as Proposal))); });
+        }
       };
       refreshBoosts();
       refreshFeaturedDataRef.current = refreshBoosts;
