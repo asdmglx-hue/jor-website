@@ -465,19 +465,15 @@ export default function MyProposalClient() {
           if (!events) return;
           const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
           const pending: Record<string, unknown> = {};
-          for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string }[]) {
-            if (ev.status === 'applied') {
-              for (const k of Object.keys(ev.changes)) {
-                if (INSTANT_FIELDS.has(k)) continue;
-                // Already applied to DB — remove from pending, fresh fetch has the real value.
-                delete pending[k];
-              }
-            } else if (ev.status === 'reverted') {
-              for (const k of Object.keys(ev.changes)) {
-                delete pending[k]; // rejected — show DB value
-              }
-            } else {
-              // Still waiting for admin approval — show submitted value with "Pending Approval"
+          for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string; reviewed_at: string | null }[]) {
+            if (ev.status === 'reverted') {
+              // Admin rejected — clear pending, show DB value
+              for (const k of Object.keys(ev.changes)) delete pending[k];
+            } else if (ev.status === 'applied' && ev.reviewed_at != null) {
+              // Admin approved — already in DB, clear pending
+              for (const k of Object.keys(ev.changes)) delete pending[k];
+            } else if (ev.status === 'applied' && ev.reviewed_at == null) {
+              // User submitted, waiting for admin review — show as pending
               for (const k of Object.keys(ev.changes)) {
                 if (INSTANT_FIELDS.has(k)) continue;
                 pending[k] = ev.changes[k];
@@ -758,17 +754,12 @@ export default function MyProposalClient() {
             if (!events) return;
             const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
             const pending: Record<string, unknown> = {};
-            for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string }[]) {
-              if (ev.status === 'applied') {
-                for (const k of Object.keys(ev.changes)) {
-                  if (INSTANT_FIELDS.has(k)) continue;
-                  delete pending[k];
-                }
-              } else if (ev.status === 'reverted') {
-                for (const k of Object.keys(ev.changes)) {
-                  delete pending[k];
-                }
-              } else {
+            for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string; reviewed_at: string | null }[]) {
+              if (ev.status === 'reverted') {
+                for (const k of Object.keys(ev.changes)) delete pending[k];
+              } else if (ev.status === 'applied' && ev.reviewed_at != null) {
+                for (const k of Object.keys(ev.changes)) delete pending[k];
+              } else if (ev.status === 'applied' && ev.reviewed_at == null) {
                 for (const k of Object.keys(ev.changes)) {
                   if (INSTANT_FIELDS.has(k)) continue;
                   pending[k] = ev.changes[k];
