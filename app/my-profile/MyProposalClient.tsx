@@ -469,13 +469,18 @@ export default function MyProposalClient() {
             if (ev.status === 'applied') {
               for (const k of Object.keys(ev.changes)) {
                 if (INSTANT_FIELDS.has(k)) continue;
-                // Change is already applied to DB — remove from pending entirely.
-                // The fresh DB fetch already has the updated value in `user`.
+                // Already applied to DB — remove from pending, fresh fetch has the real value.
                 delete pending[k];
               }
             } else if (ev.status === 'reverted') {
               for (const k of Object.keys(ev.changes)) {
-                delete pending[k]; // rejected
+                delete pending[k]; // rejected — show DB value
+              }
+            } else {
+              // Still waiting for admin approval — show submitted value with "Pending Approval"
+              for (const k of Object.keys(ev.changes)) {
+                if (INSTANT_FIELDS.has(k)) continue;
+                pending[k] = ev.changes[k];
               }
             }
           }
@@ -762,6 +767,11 @@ export default function MyProposalClient() {
               } else if (ev.status === 'reverted') {
                 for (const k of Object.keys(ev.changes)) {
                   delete pending[k];
+                }
+              } else {
+                for (const k of Object.keys(ev.changes)) {
+                  if (INSTANT_FIELDS.has(k)) continue;
+                  pending[k] = ev.changes[k];
                 }
               }
             }
