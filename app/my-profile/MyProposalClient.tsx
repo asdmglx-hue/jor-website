@@ -783,7 +783,7 @@ export default function MyProposalClient() {
         border: `1px solid ${user.status === 'paused' ? '#D1D5DB' : user.is_boosted ? '#E8620A44' : '#E8E6F5'}`,
         borderRadius: 20, padding: '20px', marginBottom: 16, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between',
       }}>
-        <div className="my-account-left" style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+        <div className="my-account-left" style={{ display: 'flex', gap: 16, alignItems: 'flex-start', minWidth: 0, overflow: 'hidden', flex: 1 }}>
           <div style={{ position: 'relative', width: 72, height: 72, borderRadius: 36, flexShrink: 0 }}>
             <div onClick={() => photoInputRef.current?.click()} style={{ width: 72, height: 72, borderRadius: 36, background: user.gender === 'Male' ? '#534AB7' : '#E11D48', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, color: '#fff', fontWeight: 900, overflow: 'hidden', cursor: 'pointer' }}>
               {user.profile_photo_url ? <img src={user.profile_photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (user.name || '?').charAt(0)}
@@ -808,9 +808,9 @@ export default function MyProposalClient() {
           <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Name + ACTIVE badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden' }}>
-                <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</div>
+                <div className="my-account-name" style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name && user.name.length > 10 ? user.name.slice(0, 10) + '…' : user.name}</div>
                 {user.is_doc_verified && badgeEnabled && (
                   <span title="Verified" style={{ display: 'inline-block', verticalAlign: 'middle', lineHeight: 1, position: 'relative', top: '-1px' }}><svg viewBox="0 0 24 24" width="18" height="18" fill="#16A34A" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
                     <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/>
