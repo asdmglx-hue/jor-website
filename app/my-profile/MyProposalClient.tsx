@@ -252,6 +252,7 @@ export default function MyProposalClient() {
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
   const [hasPendingVerification, setHasPendingVerification] = useState(false);
   const [freeMode, setFreeMode] = useState<boolean | null>(null); // null = settings not yet loaded
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [showPayProofModal, setShowPayProofModal] = useState(false);
   const [showPayInstructionsModal, setShowPayInstructionsModal] = useState(false);
   const [payInstructionsCopied, setPayInstructionsCopied] = useState<string | null>(null);
@@ -274,6 +275,7 @@ export default function MyProposalClient() {
         if (map['verification_badge_enabled'] === 'false') setBadgeEnabled(false);
         setVerifyNowSettings(map);
         setPayProofSettings(map);
+        setSettingsLoaded(true);
       });
   }, []);
   const [bookingResult, setBookingResult] = useState<{ lines: string[]; allToday: boolean } | null>(null);
@@ -940,7 +942,7 @@ export default function MyProposalClient() {
                 locked for Rejected/Removed, where someone should always be
                 able to finish deleting their own already-rejected account. */}
             {/* Verify Now — desktop only, next to Delete */}
-            {(user.status === 'pending' || user.status === 'active') && !isRejected && user.cnic_verified !== true && (() => {
+            {settingsLoaded && (user.status === 'pending' || user.status === 'active') && !isRejected && user.cnic_verified !== true && (() => {
               const dv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
               const anyRejected = Object.values(dv).some((v: string) => v === 'rejected');
               const hasCnic    = !!(user.cnic_front_url && user.cnic_back_url);
@@ -965,7 +967,7 @@ export default function MyProposalClient() {
               <span style={{ fontSize: 10, fontWeight: 700, color: user.status === 'pending' ? '#9CA3AF' : '#DC2626' }}>Delete</span>
             </button>
             {/* Pay Now — hidden when free mode, or proof already pending/approved */}
-            {user.status === 'pending' && freeMode === false && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
+            {settingsLoaded && user.status === 'pending' && freeMode === false && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
               <button onClick={() => { setPayProofType('new'); setShowPayInstructionsModal(true); }}
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -976,7 +978,7 @@ export default function MyProposalClient() {
             {/* Pay Now proof pending — no pill, user sees it in notification bell */}
 
             {/* Renew — only when subscription expired, and proof not already pending/approved */}
-            {isInactive && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
+            {settingsLoaded && isInactive && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
               <button onClick={() => { setPayProofType('renewal'); setShowPayInstructionsModal(true); }}
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #D1FAE5', background: '#ECFDF5', cursor: 'pointer' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
@@ -999,7 +1001,7 @@ export default function MyProposalClient() {
         if (label === 'Pending') return (
           <>
             {/* Verify Now — full-width, mobile only, above the pending banner */}
-            {user.cnic_verified !== true && !isRejected && (() => {
+            {settingsLoaded && user.cnic_verified !== true && !isRejected && (() => {
               const dv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
               const anyRejected = Object.values(dv).some((v: string) => v === 'rejected');
               const hasCnic    = !!(user.cnic_front_url && user.cnic_back_url);
@@ -1027,7 +1029,7 @@ export default function MyProposalClient() {
               );
             })()}
           {/* Verification pending box — hide when docs submitted/under review or approved */}
-          {!hasPendingVerification && !user.is_doc_verified && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
+          {settingsLoaded && !hasPendingVerification && !user.is_doc_verified && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
           <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <div>
@@ -1037,7 +1039,7 @@ export default function MyProposalClient() {
           </div>
           )}
           {/* Payment pending box — show when no proof or rejected. Hide when submitted or approved */}
-          {freeMode === false && !['pending', 'approved'].includes((user as any).payment_proof_status) && (
+          {settingsLoaded && freeMode === false && !['pending', 'approved'].includes((user as any).payment_proof_status) && (
           <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             <div>
