@@ -70,7 +70,7 @@ export default function NotificationBell() {
         .from('notification_log')
         .select('id, type, title, body, created_at, read_at')
         .eq('proposal_id', proposalId)
-        .in('status', ['sent', 'skipped_no_token'])
+        .in('status', ['sent', 'skipped_no_token', 'local'])
         .order('created_at', { ascending: false })
         .limit(30);
       if (data) setNotifs(data as Notif[]);
