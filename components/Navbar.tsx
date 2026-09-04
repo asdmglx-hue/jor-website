@@ -198,6 +198,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
           {mounted && user && <NotificationBell />}
 
           {/* Hamburger dropdown — Browse & Plans */}
+          <div style={{ position: 'relative' }}>
             <button onClick={() => setMenuOpen(menuOpen === 'nav' ? false : 'nav')} style={{
               display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 5,
               width: 36, height: 36, borderRadius: 10, border: '1.5px solid #E8E6F5',

@@ -969,13 +969,7 @@ export default function MyProposalClient() {
               </button>
             )}
 
-            {/* Pay Now proof pending review pill */}
-            {user.status === 'pending' && freeMode === false && (user as any).payment_proof_status === 'pending' && (user as any).payment_proof_type === 'new' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FDE68A', background: '#FFFBEB' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span style={{ fontSize: 10, fontWeight: 700, color: '#D97706' }}>Payment Proof Pending Review</span>
-              </div>
-            )}
+            {/* Pay Now proof pending — no pill, user sees it in notification bell */}
 
             {/* Renew — only when subscription expired, and proof not already pending/approved */}
             {isInactive && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
@@ -986,13 +980,7 @@ export default function MyProposalClient() {
               </button>
             )}
 
-            {/* Renew proof pending review pill */}
-            {isInactive && (user as any).payment_proof_status === 'pending' && (user as any).payment_proof_type === 'renewal' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FDE68A', background: '#FFFBEB' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span style={{ fontSize: 10, fontWeight: 700, color: '#D97706' }}>Renewal Proof Pending Review</span>
-              </div>
-            )}
+            {/* Renew proof pending — no pill, user sees it in notification bell */}
               </>);
             })()}
           </div>
