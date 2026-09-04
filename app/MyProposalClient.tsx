@@ -958,8 +958,9 @@ export default function MyProposalClient() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={user.status === 'pending' ? '#9CA3AF' : '#DC2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
               <span style={{ fontSize: 10, fontWeight: 700, color: user.status === 'pending' ? '#9CA3AF' : '#DC2626' }}>Delete</span>
             </button>
-            {/* Pay Now — hidden when plan is free (free_mode=true) or settings not yet loaded */}
-            {user.status === 'pending' && freeMode === false && (
+            {/* Pay Now — hidden when plan is free, settings not yet loaded,
+                OR when user already submitted payment proof (pending review) */}
+            {user.status === 'pending' && freeMode === false && (user as any).payment_proof_status !== 'pending' && (
               <Link href="/plans?plan=rishta-profile&pay=1"
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', textDecoration: 'none' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -967,8 +968,16 @@ export default function MyProposalClient() {
               </Link>
             )}
 
-            {/* Renew — only when the subscription has actually expired */}
-            {isInactive && (
+            {/* Payment Pending badge — shown when proof submitted but not yet reviewed */}
+            {(user as any).payment_proof_status === 'pending' && (user.status === 'pending' || isInactive) && (
+              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FDE68A', background: '#FFFBEB' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#B45309' }}>Payment Submitted</span>
+              </div>
+            )}
+
+            {/* Renew — only when subscription expired AND no pending proof */}
+            {isInactive && (user as any).payment_proof_status !== 'pending' && (
               <Link href="/plans?plan=rishta-profile&pay=1"
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #D1FAE5', background: '#ECFDF5', textDecoration: 'none' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
@@ -986,9 +995,34 @@ export default function MyProposalClient() {
           synthetic session object rather than a real subscription */}
       {!isAdminAccount && (() => {
         const label = getStatusLabel(user);
+        // Payment proof state
+        const proofStatus = (user as any).payment_proof_status as string | undefined;
+        const proofRejected = proofStatus === 'rejected';
+        const proofPending  = proofStatus === 'pending';
+
         if (label === 'Pending') return (
           <>
             {(user.status === 'pending' || user.status === 'active') && !isRejected && user.cnic_verified !== true && (() => {
+            {/* Payment Proof Rejected */}
+            {proofRejected && (
+              <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 14, padding: '14px 18px', marginBottom: 12, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#991B1B', marginBottom: 2 }}>Payment Not Verified</div>
+                  <div style={{ fontSize: 13, color: '#DC2626', lineHeight: 1.5 }}>Your payment screenshot was not accepted. Please re-upload a clear receipt using the Pay Now button above.</div>
+                </div>
+              </div>
+            )}
+            {/* Payment Proof Under Review */}
+            {proofPending && (
+              <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 14, padding: '14px 18px', marginBottom: 12, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#92400E', marginBottom: 2 }}>Payment Under Review</div>
+                  <div style={{ fontSize: 13, color: '#B45309', lineHeight: 1.5 }}>Your payment screenshot has been submitted and is being reviewed. Your profile will be activated within 24 hours.</div>
+                </div>
+              </div>
+            )}
               const dv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
               const anyRejected = Object.values(dv).some((v: string) => v === 'rejected');
               const hasCnic    = !!(user.cnic_front_url && user.cnic_back_url);

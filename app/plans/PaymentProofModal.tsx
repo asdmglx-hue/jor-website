@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { compressImage } from '@/lib/compressImage';
 import { supabase, isFeaturedSlotAvailable } from '@/lib/supabase';
+import { getSession } from '@/lib/auth';
 import { trackEvent } from '@/lib/analytics';
 import { CITIES } from '@/lib/constants';
 
@@ -233,6 +234,25 @@ export default function PaymentProofModal({
       const text = `Hello Admin,\n\nMy CNIC: ${cnic}\n\nI have completed the payment and attached the receipt. Kindly verify my payment.${selectionsText}\n\nPayment Receipt: ${url}`;
       window.open(`https://wa.me/${adminWa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
 
+
+      // Save proof URL + status to user's proposals row so admin sees it
+      // in edit-profile, and user sees 'pending review' instead of Pay Now.
+      try {
+        const storedUser = typeof window !== 'undefined' ? localStorage.getItem('er_user') : null;
+        const userId = storedUser ? (JSON.parse(storedUser) as { id?: string }).id : null;
+        if (userId) {
+          await supabase.from('proposals').update({
+            payment_proof_url: url,
+            payment_proof_status: 'pending',
+            payment_proof_plan: isStandard ? 'Rishta Profile' : 'Featured Post',
+          }).eq('id', userId);
+          const parsed = JSON.parse(storedUser!);
+          parsed.payment_proof_url = url;
+          parsed.payment_proof_status = 'pending';
+          parsed.payment_proof_plan = isStandard ? 'Rishta Profile' : 'Featured Post';
+          localStorage.setItem('er_user', JSON.stringify(parsed));
+        }
+      } catch (_) { /* non-blocking */ }
       trackEvent('payment_proof_submitted', { plan_type: isStandard ? 'standard' : 'featured' });
 
       setSubmitting(false);

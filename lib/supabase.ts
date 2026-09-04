@@ -104,6 +104,9 @@ export type Proposal = {
   education_document_url?: string;
   doc_verification?: Record<string, string>;
   is_doc_verified?: boolean;
+  payment_proof_url?: string;
+  payment_proof_status?: string; // null | 'pending' | 'approved' | 'rejected'
+  payment_proof_plan?: string;   // 'Rishta Profile' | 'Featured Post'
   affiliate_code?: string;
   applied_coupon_code?: string;
   coupon_discount_percent?: number;
@@ -165,7 +168,7 @@ export type FilterState = {
 // internal tracking fields). This mirrors exactly what the 'anon' role
 // is now granted at the database level, so a query here can never
 // silently start requesting something the database will refuse anyway.
-export const PROFILE_DETAIL_COLS = 'id,proposal_number,name,age,gender,city,country,caste,sect,education,institute,degree_title,degree_certificate_url,degree_title_2,degree_title_3,institute_2,institute_3,degree_certificate_2_url,degree_certificate_3_url,profession,employment_type,salary_start,salary_end,monthly_income,height_inches,weight_kg,complexion,marital_status,marriage_number,boys,girls,total_kids,has_kids,practice_level,hijab,beard,father_alive,mother_alive,father_occupation,mother_occupation,sisters,brothers,total_siblings,has_siblings,family_type,home_type,house_size,has_car,car_name,has_generator,has_solar,has_servant,other_property,has_other_property,looking_for,about,languages,smokes,drinks,physically_active,has_disability,disability_details,contact_phone,contact_phone_2,phone_verified,profile_photo_url,posted_at,updated_at,status,subscription_tier,subscription_expiry,subscription_start,subscription_status,is_boosted,location,featured_credits_purchased,featured_credits_used,deleted_from,deletion_reason,cnic_front_url,cnic_back_url,guardian_cnic_front_url,guardian_cnic_back_url,education_document_url,doc_verification,is_doc_verified,cnic_verified';
+export const PROFILE_DETAIL_COLS = 'id,proposal_number,name,age,gender,city,country,caste,sect,education,institute,degree_title,degree_certificate_url,degree_title_2,degree_title_3,institute_2,institute_3,degree_certificate_2_url,degree_certificate_3_url,profession,employment_type,salary_start,salary_end,monthly_income,height_inches,weight_kg,complexion,marital_status,marriage_number,boys,girls,total_kids,has_kids,practice_level,hijab,beard,father_alive,mother_alive,father_occupation,mother_occupation,sisters,brothers,total_siblings,has_siblings,family_type,home_type,house_size,has_car,car_name,has_generator,has_solar,has_servant,other_property,has_other_property,looking_for,about,languages,smokes,drinks,physically_active,has_disability,disability_details,contact_phone,contact_phone_2,phone_verified,profile_photo_url,posted_at,updated_at,status,subscription_tier,subscription_expiry,subscription_start,subscription_status,is_boosted,location,featured_credits_purchased,featured_credits_used,deleted_from,deletion_reason,cnic_front_url,cnic_back_url,guardian_cnic_front_url,guardian_cnic_back_url,education_document_url,doc_verification,is_doc_verified,cnic_verified,payment_proof_url,payment_proof_status,payment_proof_plan';
 // so nothing is lost — this just stops sending them on every card, on
 // every browse/category/homepage load, where they were never used.
 export const CARD_COLS ='id,proposal_number,name,age,gender,city,country,profession,caste,sect,marital_status,height_inches,about,looking_for,profile_photo_url,posted_at,subscription_tier,is_boosted,contact_phone,status,cnic_verified,is_doc_verified';
