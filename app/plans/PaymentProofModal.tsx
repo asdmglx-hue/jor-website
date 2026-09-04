@@ -240,15 +240,23 @@ export default function PaymentProofModal({
       // in edit-profile, and user sees 'pending review' instead of Pay Now.
       try {
         const storedUser = typeof window !== 'undefined' ? localStorage.getItem('er_user') : null;
-        const userId = storedUser ? (JSON.parse(storedUser) as { id?: string }).id : null;
-        if (userId) {
-          await supabase.from('proposals').update({
-            payment_proof_url: url,
-            payment_proof_status: 'pending',
-            payment_proof_plan: isStandard ? 'Rishta Profile' : 'Featured Post',
-            payment_proof_type: proofType ?? 'new',
-          }).eq('id', userId);
-          const parsed = JSON.parse(storedUser!);
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser) as { id?: string; cnic?: string };
+          // Try by id first, fall back to cnic (website login stores cnic)
+          const updateQuery = parsed.id
+            ? supabase.from('proposals').update({
+                payment_proof_url: url,
+                payment_proof_status: 'pending',
+                payment_proof_plan: isStandard ? 'Rishta Profile' : 'Featured Post',
+                payment_proof_type: proofType ?? 'new',
+              }).eq('id', parsed.id)
+            : supabase.from('proposals').update({
+                payment_proof_url: url,
+                payment_proof_status: 'pending',
+                payment_proof_plan: isStandard ? 'Rishta Profile' : 'Featured Post',
+                payment_proof_type: proofType ?? 'new',
+              }).eq('cnic', (parsed.cnic ?? '').replace(/\D/g, ''));
+          await updateQuery;
           parsed.payment_proof_url = url;
           parsed.payment_proof_status = 'pending';
           parsed.payment_proof_plan = isStandard ? 'Rishta Profile' : 'Featured Post';
