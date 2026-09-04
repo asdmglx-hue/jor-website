@@ -261,7 +261,7 @@ export default function MyProposalClient() {
       .then(({ data }) => {
         if (!data) return;
         const map = Object.fromEntries(data.map((r: { key: string; value: string }) => [r.key, r.value]));
-        if (map['free_mode'] === 'true') setFreeMode(true);
+        setFreeMode(map['free_mode'] === 'true');
         if (map['verification_badge_enabled'] === 'false') setBadgeEnabled(false);
         setVerifyNowSettings(map);
       });
