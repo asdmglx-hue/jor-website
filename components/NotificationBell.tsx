@@ -65,7 +65,7 @@ export default function NotificationBell() {
   // Fetch notifications
   useEffect(() => {
     if (!proposalId) return;
-    const fetch = async () => {
+    const fetchNotifs = async () => {
       const { data } = await supabase
         .from('notification_log')
         .select('id, type, title, body, created_at, read_at')
@@ -75,10 +75,16 @@ export default function NotificationBell() {
         .limit(30);
       if (data) setNotifs(data as Notif[]);
     };
-    fetch();
+    fetchNotifs();
     // Poll every 60s for new notifications
-    const interval = setInterval(fetch, 60000);
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchNotifs, 60000);
+    // Also refresh immediately when a local action fires the event
+    const onRefresh = () => fetchNotifs();
+    window.addEventListener('jor:notify', onRefresh);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('jor:notify', onRefresh);
+    };
   }, [proposalId]);
 
   // Close on outside click

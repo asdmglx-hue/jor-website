@@ -266,6 +266,8 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
       supabase.functions.invoke('notify-status-change', {
         body: { type: 'verification_submitted', proposal_id: user.id },
       }).catch(() => {});
+      // Tell the bell to refresh immediately
+      window.dispatchEvent(new Event('jor:notify'));
 
       onSaved(updates);
       onClose();

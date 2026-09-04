@@ -262,6 +262,8 @@ export default function PaymentProofModal({
           parsed.payment_proof_plan   = isStandard ? 'Rishta Profile' : 'Featured Post';
           parsed.payment_proof_type   = proofType ?? 'new';
           localStorage.setItem('er_user', JSON.stringify(parsed));
+          // Tell the bell to refresh immediately
+          window.dispatchEvent(new Event('jor:notify'));
         }
       } catch (_) { /* non-blocking */ }
       trackEvent('payment_proof_submitted', { plan_type: isStandard ? 'standard' : 'featured' });
