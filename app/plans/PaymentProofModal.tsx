@@ -95,7 +95,7 @@ function maxDateStr(): string {
 }
 
 export default function PaymentProofModal({
-  open, onClose, planName, isStandard, initialCnic, ftPriceInt, maxFeaturedPerCity, adminWa,
+  open, onClose, planName, isStandard, initialCnic, ftPriceInt, maxFeaturedPerCity, adminWa, proofType,
 }: {
   open: boolean;
   onClose: () => void;
@@ -105,6 +105,7 @@ export default function PaymentProofModal({
   ftPriceInt: number;
   maxFeaturedPerCity: number;
   adminWa: string;
+  proofType?: 'new' | 'renewal'; // 'new' = Pay Now, 'renewal' = Renew
 }) {
   const [cnic, setCnic] = useState('');
   const [receipt, setReceipt] = useState<File | null>(null);
@@ -245,11 +246,13 @@ export default function PaymentProofModal({
             payment_proof_url: url,
             payment_proof_status: 'pending',
             payment_proof_plan: isStandard ? 'Rishta Profile' : 'Featured Post',
+            payment_proof_type: proofType ?? 'new',
           }).eq('id', userId);
           const parsed = JSON.parse(storedUser!);
           parsed.payment_proof_url = url;
           parsed.payment_proof_status = 'pending';
           parsed.payment_proof_plan = isStandard ? 'Rishta Profile' : 'Featured Post';
+          parsed.payment_proof_type = proofType ?? 'new';
           localStorage.setItem('er_user', JSON.stringify(parsed));
         }
       } catch (_) { /* non-blocking */ }

@@ -14,6 +14,7 @@ import PasswordInput from '@/components/PasswordInput';
 import FeaturedBookModal from '@/components/FeaturedBookModal';
 import FeaturedManageModal from '@/components/FeaturedManageModal';
 import VerifyNowModal from '@/components/VerifyNowModal';
+import PaymentProofModal from '@/app/plans/PaymentProofModal';
 // Moved server-side so a real profile change can instantly refresh cached
 // listing/profile pages instead of waiting on the 5-minute timer — see
 // lib/actions/revalidate-write.ts for the full explanation.
@@ -251,19 +252,24 @@ export default function MyProposalClient() {
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
   const [hasPendingVerification, setHasPendingVerification] = useState(false);
   const [freeMode, setFreeMode] = useState<boolean | null>(null); // null = settings not yet loaded
+  const [showPayProofModal, setShowPayProofModal] = useState(false);
+  const [payProofType, setPayProofType] = useState<'new' | 'renewal'>('new'); // which button opened the modal
+  const [payProofSettings, setPayProofSettings] = useState<Record<string, string>>({});
   const [badgeEnabled, setBadgeEnabled] = useState(true);
   const [verifyNowSettings, setVerifyNowSettings] = useState<Record<string, string>>({});
   useEffect(() => {
     supabase.from('app_settings').select('key, value')
       .in('key', ['free_mode', 'verification_badge_enabled',
                   'verify_now_candidate_cnic', 'verify_now_latest_degree', 'verify_now_parents_cnic',
-                  'verify_now_candidate_cnic_compulsory', 'verify_now_latest_degree_compulsory', 'verify_now_parents_cnic_compulsory'])
+                  'verify_now_candidate_cnic_compulsory', 'verify_now_latest_degree_compulsory', 'verify_now_parents_cnic_compulsory',
+                  'whatsapp_number', 'featured_post_price', 'max_featured_per_city'])
       .then(({ data }) => {
         if (!data) return;
         const map = Object.fromEntries(data.map((r: { key: string; value: string }) => [r.key, r.value]));
         setFreeMode(map['free_mode'] === 'true');
         if (map['verification_badge_enabled'] === 'false') setBadgeEnabled(false);
         setVerifyNowSettings(map);
+        setPayProofSettings(map);
       });
   }, []);
   const [bookingResult, setBookingResult] = useState<{ lines: string[]; allToday: boolean } | null>(null);
@@ -954,22 +960,38 @@ export default function MyProposalClient() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={user.status === 'pending' ? '#9CA3AF' : '#DC2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
               <span style={{ fontSize: 10, fontWeight: 700, color: user.status === 'pending' ? '#9CA3AF' : '#DC2626' }}>Delete</span>
             </button>
-            {/* Pay Now — hidden when plan is free (free_mode=true) or settings not yet loaded */}
-            {user.status === 'pending' && freeMode === false && (
-              <Link href="/plans?plan=rishta-profile&pay=1"
-                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', textDecoration: 'none' }}>
+            {/* Pay Now — hidden when free mode, or proof already pending/approved */}
+            {user.status === 'pending' && freeMode === false && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
+              <button onClick={() => { setPayProofType('new'); setShowPayProofModal(true); }}
+                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>Pay Now</span>
-              </Link>
+              </button>
             )}
 
-            {/* Renew — only when the subscription has actually expired */}
-            {isInactive && (
-              <Link href="/plans?plan=rishta-profile&pay=1"
-                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #D1FAE5', background: '#ECFDF5', textDecoration: 'none' }}>
+            {/* Pay Now proof pending review pill */}
+            {user.status === 'pending' && freeMode === false && (user as any).payment_proof_status === 'pending' && (user as any).payment_proof_type === 'new' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FDE68A', background: '#FFFBEB' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#D97706' }}>Payment Proof Pending Review</span>
+              </div>
+            )}
+
+            {/* Renew — only when subscription expired, and proof not already pending/approved */}
+            {isInactive && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
+              <button onClick={() => { setPayProofType('renewal'); setShowPayProofModal(true); }}
+                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #D1FAE5', background: '#ECFDF5', cursor: 'pointer' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#16A34A' }}>Renew</span>
-              </Link>
+              </button>
+            )}
+
+            {/* Renew proof pending review pill */}
+            {isInactive && (user as any).payment_proof_status === 'pending' && (user as any).payment_proof_type === 'renewal' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FDE68A', background: '#FFFBEB' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#D97706' }}>Renewal Proof Pending Review</span>
+              </div>
             )}
               </>);
             })()}
@@ -1184,6 +1206,28 @@ export default function MyProposalClient() {
           }}
         />
       )}
+      {/* Payment Proof Upload Modal — opened by Pay Now or Renew button */}
+      <PaymentProofModal
+        open={showPayProofModal}
+        onClose={() => {
+          setShowPayProofModal(false);
+          // Re-fetch user so pending pill shows immediately
+          const storedUser = typeof window !== 'undefined' ? localStorage.getItem('er_user') : null;
+          if (storedUser) {
+            try {
+              const parsed = JSON.parse(storedUser);
+              setUser((prev: any) => ({ ...prev, ...parsed }));
+            } catch (_) {}
+          }
+        }}
+        planName="Rishta Profile"
+        isStandard={true}
+        initialCnic={(user as any).cnic}
+        ftPriceInt={Number((payProofSettings['featured_post_price'] || '200').replace(/,/g, '')) || 200}
+        maxFeaturedPerCity={Number(payProofSettings['max_featured_per_city']) || 5}
+        adminWa={payProofSettings['whatsapp_number'] || '923000000000'}
+        proofType={payProofType}
+      />
       {bookingResult && (
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1250, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
