@@ -145,7 +145,7 @@ export async function submitProposalAction(
   // than next/server's after(), which has a known open bug on this exact
   // adapter — see opennextjs/opennextjs-cloudflare#912). It keeps this
   // work alive for up to 30s after the response is sent, without making
-  // the submitting user wait for it.
+  // Notify admin of new order
   try {
     const { ctx } = await getCloudflareContext({ async: true });
     ctx.waitUntil(
@@ -153,12 +153,18 @@ export async function submitProposalAction(
         body: { type: 'new_order', proposal_id: result.id, name: data.name, city: data.city },
       }).catch(() => {})
     );
+    // Notify user their profile was submitted
+    ctx.waitUntil(
+      supabase.functions.invoke('notify-status-change', {
+        body: { type: 'proposal_submitted', proposal_id: result.id },
+      }).catch(() => {})
+    );
   } catch {
-    // getCloudflareContext isn't available in every environment (e.g. some
-    // local/dev setups) — fall back to the original fire-and-forget call
-    // rather than breaking the submission entirely.
     supabase.functions.invoke('notify-status-change', {
       body: { type: 'new_order', proposal_id: result.id, name: data.name, city: data.city },
+    }).catch(() => {});
+    supabase.functions.invoke('notify-status-change', {
+      body: { type: 'proposal_submitted', proposal_id: result.id },
     }).catch(() => {});
   }
 
