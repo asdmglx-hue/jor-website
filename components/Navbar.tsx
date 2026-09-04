@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { getSession, clearSession, saveSession, syncSavedFromServer, syncNotInterestedFromServer } from '@/lib/auth';
 import { updateProposal, supabase } from '@/lib/supabase';
 import PasswordInput from '@/components/PasswordInput';
+import NotificationBell from '@/components/NotificationBell';
 import { useRouter, usePathname } from 'next/navigation';
 
 export default function Navbar({ sticky = false }: { sticky?: boolean }) {
@@ -126,6 +127,8 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
           <Link href="/proposals" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: pathname.startsWith('/proposals') ? '#EEEDFE' : 'transparent', color: '#534AB7' }}>Browse Proposals</Link>
           <Link href="/plans" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: pathname.startsWith('/plans') ? '#EEEDFE' : 'transparent', color: '#534AB7' }}>Plans</Link>
 
+          {mounted && user && <NotificationBell />}
+
           {mounted && (user ? (
             <div style={{ position: 'relative' }}>
               <button onClick={() => setMenuOpen(menuOpen === 'desktop' ? false : 'desktop')} style={{
@@ -192,8 +195,9 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
             </>
           ))}
 
+          {mounted && user && <NotificationBell />}
+
           {/* Hamburger dropdown — Browse & Plans */}
-          <div style={{ position: 'relative' }}>
             <button onClick={() => setMenuOpen(menuOpen === 'nav' ? false : 'nav')} style={{
               display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 5,
               width: 36, height: 36, borderRadius: 10, border: '1.5px solid #E8E6F5',
