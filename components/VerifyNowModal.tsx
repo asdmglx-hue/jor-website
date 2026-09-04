@@ -262,10 +262,10 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
       updates.doc_verification = nextDocVerification;
       updates.is_doc_verified = false;
 
-      // Notify user their verification was submitted
-      fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notify-status-change`, {
+      // Notify user their verification was submitted (via server route)
+      fetch('/api/notify-user', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'verification_submitted', proposal_id: user.id }),
       }).catch(() => {});
 

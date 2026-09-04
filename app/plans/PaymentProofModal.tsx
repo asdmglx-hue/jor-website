@@ -238,41 +238,30 @@ export default function PaymentProofModal({
       }
 
 
-      // Save proof URL + status to user's proposals row so admin sees it
-      // in edit-profile, and user sees 'pending review' instead of Pay Now.
+      // Save proof to DB via server route (service_role key, bypasses RLS)
       try {
         const storedUser = typeof window !== 'undefined' ? localStorage.getItem('er_user') : null;
         if (storedUser) {
           const parsed = JSON.parse(storedUser) as { id?: string; cnic?: string; [key: string]: unknown };
-          // Try by id first, fall back to cnic (website login stores cnic)
-          const updateQuery = parsed.id
-            ? supabase.from('proposals').update({
-                payment_proof_url: url,
-                payment_proof_status: 'pending',
-                payment_proof_plan: isStandard ? 'Rishta Profile' : 'Featured Post',
-                payment_proof_type: proofType ?? 'new',
-              }).eq('id', parsed.id)
-            : supabase.from('proposals').update({
-                payment_proof_url: url,
-                payment_proof_status: 'pending',
-                payment_proof_plan: isStandard ? 'Rishta Profile' : 'Featured Post',
-                payment_proof_type: proofType ?? 'new',
-              }).eq('cnic', (parsed.cnic ?? '').replace(/\D/g, ''));
-          await updateQuery;
+          const proposalId = parsed.id as string | undefined;
+          if (proposalId) {
+            await fetch('/api/save-payment-proof', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                proposal_id: proposalId,
+                url,
+                plan: isStandard ? 'Rishta Profile' : 'Featured Post',
+                proof_type: proofType ?? 'new',
+              }),
+            });
+          }
+          // Update localStorage so UI reflects pending state immediately
           parsed.payment_proof_url = url;
           parsed.payment_proof_status = 'pending';
           parsed.payment_proof_plan = isStandard ? 'Rishta Profile' : 'Featured Post';
           parsed.payment_proof_type = proofType ?? 'new';
           localStorage.setItem('er_user', JSON.stringify(parsed));
-          // Notify user their payment proof was submitted
-          const proposalId = parsed.id as string | undefined;
-          if (proposalId) {
-            fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notify-status-change`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` },
-              body: JSON.stringify({ type: 'payment_proof_submitted', proposal_id: proposalId }),
-            }).catch(() => {});
-          }
         }
       } catch (_) { /* non-blocking */ }
       trackEvent('payment_proof_submitted', { plan_type: isStandard ? 'standard' : 'featured' });
