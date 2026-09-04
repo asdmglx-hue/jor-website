@@ -264,6 +264,15 @@ export default function PaymentProofModal({
           parsed.payment_proof_plan = isStandard ? 'Rishta Profile' : 'Featured Post';
           parsed.payment_proof_type = proofType ?? 'new';
           localStorage.setItem('er_user', JSON.stringify(parsed));
+          // Notify user their payment proof was submitted
+          const proposalId = parsed.id as string | undefined;
+          if (proposalId) {
+            fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notify-status-change`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` },
+              body: JSON.stringify({ type: 'payment_proof_submitted', proposal_id: proposalId }),
+            }).catch(() => {});
+          }
         }
       } catch (_) { /* non-blocking */ }
       trackEvent('payment_proof_submitted', { plan_type: isStandard ? 'standard' : 'featured' });

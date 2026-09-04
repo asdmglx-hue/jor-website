@@ -14,20 +14,23 @@ type Notif = {
 };
 
 const TYPE_ICON: Record<string, string> = {
-  profile_approved:       '🎉',
-  profile_rejected:       '❌',
-  profile_paused:         '⏸️',
-  profile_resumed:        '👀',
-  expiry_warning_7d:      '⚠️',
-  expiry_warning_1d:      '⚠️',
-  subscription_expired:   '🔴',
-  subscription_renewed:   '✨',
-  profile_verified:       '✅',
-  profile_featured:       '⚡',
-  profile_featured_ended: '📅',
-  edit_changes_rejected:  '📝',
-  doc_rejected:           '📄',
-  payment_proof_rejected: '💳',
+  proposal_submitted:          '📋',
+  profile_approved:            '🎉',
+  profile_rejected:            '❌',
+  profile_paused:              '⏸️',
+  profile_resumed:             '👀',
+  expiry_warning_7d:           '⚠️',
+  expiry_warning_1d:           '⚠️',
+  subscription_expired:        '🔴',
+  subscription_renewed:        '✨',
+  profile_verified:            '✅',
+  profile_featured:            '⚡',
+  profile_featured_ended:      '📅',
+  edit_changes_rejected:       '📝',
+  doc_rejected:                '📄',
+  verification_submitted:      '🔍',
+  payment_proof_submitted:     '💳',
+  payment_proof_rejected:      '❌',
 };
 
 function timeAgo(dateStr: string): string {
@@ -67,7 +70,7 @@ export default function NotificationBell() {
         .from('notification_log')
         .select('id, type, title, body, created_at, read_at')
         .eq('proposal_id', proposalId)
-        .eq('status', 'sent')
+        .in('status', ['sent', 'skipped_no_token'])
         .order('created_at', { ascending: false })
         .limit(30);
       if (data) setNotifs(data as Notif[]);
