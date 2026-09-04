@@ -174,7 +174,6 @@ export default function PaymentProofModal({
 
   const handleSubmit = async () => {
     const digits = cnic.replace(/\D/g, '');
-    if (digits.length !== 13) { setErrorMsg('Enter a complete 13-digit CNIC number.'); return; }
     if (!isStandard && !slots.every(s => s.city && s.date)) { setErrorMsg('Pick a date and city for every slot to continue.'); return; }
     if (!receipt) { setErrorMsg('Please attach your payment receipt.'); return; }
 
@@ -286,22 +285,10 @@ export default function PaymentProofModal({
       <div style={{ padding: 24, overflowY: 'auto' }}>
         <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 6 }}>Upload Receipt</div>
         <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.4, marginBottom: 18 }}>
-          Enter your CNIC and attach your payment receipt for verification.
+          Attach your payment receipt for verification.
         </div>
 
-        {/* 1. CNIC Number */}
-        <div style={{ marginBottom: 18 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>CNIC Number</div>
-          <input
-            value={cnic}
-            onChange={e => setCnic(formatCnic(e.target.value))}
-            placeholder="12345-1234567-1"
-            maxLength={15}
-            style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 10, border: '1px solid #E8E6F5', fontSize: 13 }}
-          />
-        </div>
-
-        {/* 2. Payment Receipt */}
+        {/* Payment Receipt */}
         <div style={{ marginBottom: isStandard ? 6 : 18 }}>
           <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6B6893', marginBottom: 6 }}>Payment Receipt</div>
           <label style={{ display: 'block', cursor: 'pointer' }}>

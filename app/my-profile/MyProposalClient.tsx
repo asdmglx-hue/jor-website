@@ -253,6 +253,8 @@ export default function MyProposalClient() {
   const [hasPendingVerification, setHasPendingVerification] = useState(false);
   const [freeMode, setFreeMode] = useState<boolean | null>(null); // null = settings not yet loaded
   const [showPayProofModal, setShowPayProofModal] = useState(false);
+  const [showPayInstructionsModal, setShowPayInstructionsModal] = useState(false);
+  const [payInstructionsCopied, setPayInstructionsCopied] = useState<string | null>(null);
   const [payProofType, setPayProofType] = useState<'new' | 'renewal'>('new'); // which button opened the modal
   const [payProofSettings, setPayProofSettings] = useState<Record<string, string>>({});
   const [badgeEnabled, setBadgeEnabled] = useState(true);
@@ -262,7 +264,9 @@ export default function MyProposalClient() {
       .in('key', ['free_mode', 'verification_badge_enabled',
                   'verify_now_candidate_cnic', 'verify_now_latest_degree', 'verify_now_parents_cnic',
                   'verify_now_candidate_cnic_compulsory', 'verify_now_latest_degree_compulsory', 'verify_now_parents_cnic_compulsory',
-                  'whatsapp_number', 'featured_post_price', 'max_featured_per_city'])
+                  'whatsapp_number', 'featured_post_price', 'max_featured_per_city',
+                  'account_number', 'account_title', 'bank_name', 'bank_account', 'bank_holder', 'bank_swift',
+                  'payment_instruction', 'payment_mode', 'plan_price'])
       .then(({ data }) => {
         if (!data) return;
         const map = Object.fromEntries(data.map((r: { key: string; value: string }) => [r.key, r.value]));
@@ -962,7 +966,7 @@ export default function MyProposalClient() {
             </button>
             {/* Pay Now — hidden when free mode, or proof already pending/approved */}
             {user.status === 'pending' && freeMode === false && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
-              <button onClick={() => { setPayProofType('new'); setShowPayProofModal(true); }}
+              <button onClick={() => { setPayProofType('new'); setShowPayInstructionsModal(true); }}
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>Pay Now</span>
@@ -973,7 +977,7 @@ export default function MyProposalClient() {
 
             {/* Renew — only when subscription expired, and proof not already pending/approved */}
             {isInactive && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
-              <button onClick={() => { setPayProofType('renewal'); setShowPayProofModal(true); }}
+              <button onClick={() => { setPayProofType('renewal'); setShowPayInstructionsModal(true); }}
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #D1FAE5', background: '#ECFDF5', cursor: 'pointer' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#16A34A' }}>Renew</span>
@@ -1194,6 +1198,85 @@ export default function MyProposalClient() {
           }}
         />
       )}
+      {/* Payment Instructions Modal — opened by Pay Now or Renew button */}
+      {showPayInstructionsModal && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowPayInstructionsModal(false); }}
+        >
+          <div style={{ background: '#fff', borderRadius: 20, maxWidth: 440, width: '100%', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: 24, overflowY: 'auto' }}>
+              <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 4 }}>Payment Instructions</div>
+              <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 16 }}>
+                Plan: <b style={{ color: '#534AB7' }}>Rishta Profile</b> · Rs. {payProofSettings['plan_price'] || '1000'}
+              </div>
+              <div style={{ height: 1, background: '#E8E6F5', marginBottom: 16 }} />
+
+              {payProofSettings['account_number'] && (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#1A1830' }}>Wallet Transfer</div>
+                    <img src="/wallet-logos.png" alt="Wallet" style={{ height: 24, width: 'auto', objectFit: 'contain' }} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8F7FF', borderRadius: 10, marginBottom: 6 }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: '#6B6893', fontWeight: 600 }}>{payProofSettings['account_title'] || 'JazzCash / Easypaisa'}</div>
+                      <div style={{ fontSize: 13, color: '#1A1830', fontWeight: 700 }}>{payProofSettings['account_number']}</div>
+                    </div>
+                    <button onClick={() => { navigator.clipboard.writeText(payProofSettings['account_number']!); setPayInstructionsCopied('wallet'); setTimeout(() => setPayInstructionsCopied(null), 2000); }}
+                      style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #E8E6F5', background: payInstructionsCopied === 'wallet' ? '#534AB7' : '#fff', color: payInstructionsCopied === 'wallet' ? '#fff' : '#534AB7', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                      {payInstructionsCopied === 'wallet' ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {payProofSettings['bank_name'] && payProofSettings['bank_account'] && (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '16px 0 8px' }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#1A1830' }}>Bank Transfer</div>
+                    <img src="/bank-logos.png" alt="Bank" style={{ height: 24, width: 'auto', objectFit: 'contain' }} />
+                  </div>
+                  {([
+                    { label: 'Bank', value: payProofSettings['bank_name'], key: 'bank' },
+                    ...(payProofSettings['bank_holder'] ? [{ label: 'Account Title', value: payProofSettings['bank_holder'], key: 'holder' }] : []),
+                    { label: 'IBAN', value: payProofSettings['bank_account'], key: 'iban' },
+                    ...(payProofSettings['bank_swift'] ? [{ label: 'Swift', value: payProofSettings['bank_swift'], key: 'swift' }] : []),
+                  ] as { label: string; value: string; key: string }[]).map(row => (
+                    <div key={row.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8F7FF', borderRadius: 10, marginBottom: 6 }}>
+                      <div>
+                        <div style={{ fontSize: 11, color: '#6B6893', fontWeight: 600 }}>{row.label}</div>
+                        <div style={{ fontSize: 13, color: '#1A1830', fontWeight: 700 }}>{row.value}</div>
+                      </div>
+                      <button onClick={() => { navigator.clipboard.writeText(row.value); setPayInstructionsCopied(row.key); setTimeout(() => setPayInstructionsCopied(null), 2000); }}
+                        style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #E8E6F5', background: payInstructionsCopied === row.key ? '#534AB7' : '#fff', color: payInstructionsCopied === row.key ? '#fff' : '#534AB7', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                        {payInstructionsCopied === row.key ? 'Copied!' : 'Copy'}
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.6, margin: '16px 0' }}>
+                {payProofSettings['payment_instruction'] || 'After completing the payment, please upload your payment proof for verification.'}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <button onClick={() => { setShowPayInstructionsModal(false); setShowPayProofModal(true); }}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Upload Receipt
+                </button>
+                <button onClick={() => setShowPayInstructionsModal(false)}
+                  style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1px solid #E8E6F5', background: '#F8F7FF', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Payment Proof Upload Modal — opened by Pay Now or Renew button */}
       <PaymentProofModal
         open={showPayProofModal}
