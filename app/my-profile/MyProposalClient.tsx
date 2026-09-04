@@ -1028,26 +1028,42 @@ export default function MyProposalClient() {
                 </button>
               );
             })()}
-          {/* Verification pending box — hide when docs submitted/under review or approved */}
-          {settingsLoaded && !hasPendingVerification && !user.is_doc_verified && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
-          <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#92400E', marginBottom: 2 }}>Profile Verification Pending</div>
-              <div style={{ fontSize: 13, color: '#B45309', lineHeight: 1.5 }}>Please complete your verification. Your profile will be reviewed within 24 hours.</div>
-            </div>
-          </div>
-          )}
-          {/* Payment pending box — show when no proof or rejected. Hide when submitted or approved */}
-          {settingsLoaded && freeMode === false && !['pending', 'approved'].includes((user as any).payment_proof_status) && (
-          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#991B1B', marginBottom: 2 }}>Payment Pending</div>
-              <div style={{ fontSize: 13, color: '#DC2626', lineHeight: 1.5 }}>Please complete your payment to activate your profile.</div>
-            </div>
-          </div>
-          )}
+          {/* Combined profile setup box */}
+          {settingsLoaded && (() => {
+            const verifDone = hasPendingVerification || user.is_doc_verified;
+            const payDone   = freeMode === true || ['pending', 'approved'].includes((user as any).payment_proof_status);
+            if (verifDone && payDone) return null;
+            const bothPending = !verifDone && !payDone;
+            return (
+              <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 14, padding: '14px 18px', marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: bothPending ? 12 : 0 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#92400E' }}>
+                      {bothPending ? 'Complete Your Profile Setup' : !verifDone ? 'Profile Verification Pending' : 'Payment Pending'}
+                    </div>
+                    {!bothPending && (
+                      <div style={{ fontSize: 13, color: '#B45309', lineHeight: 1.5, marginTop: 2 }}>
+                        {!verifDone ? 'Please complete your verification. Your profile will be reviewed within 24 hours.' : 'Please complete your payment to activate your profile.'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {bothPending && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 30 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid #D97706', flexShrink: 0 }} />
+                      <span style={{ fontSize: 13, color: '#92400E', fontWeight: 600 }}>Submit verification documents</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid #D97706', flexShrink: 0 }} />
+                      <span style={{ fontSize: 13, color: '#92400E', fontWeight: 600 }}>Complete payment</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           </>
         );
         if (label === 'Paused') return (
