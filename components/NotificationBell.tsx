@@ -14,6 +14,7 @@ type Notif = {
 };
 
 const TYPE_ICON: Record<string, string> = {
+  new_proposals_digest:        '💍',
   proposal_submitted:          '📋',
   profile_approved:            '🎉',
   profile_rejected:            '❌',
