@@ -251,9 +251,11 @@ export default function PaymentProofModal({
               p_plan:        isStandard ? 'Rishta Profile' : 'Featured Post',
               p_proof_type:  proofType ?? 'new',
             });
-            // Fire notification directly via supabase functions
-            supabase.functions.invoke('notify-status-change', {
-              body: { type: 'payment_proof_submitted', proposal_id: proposalId },
+            // Fire notification via server route (has service_role key)
+            fetch('/api/notify-user', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'payment_proof_submitted', proposal_id: proposalId }),
             }).catch(() => {});
           }
           // Update localStorage so UI reflects pending state immediately

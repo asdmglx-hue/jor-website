@@ -262,9 +262,11 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
       updates.doc_verification = nextDocVerification;
       updates.is_doc_verified = false;
 
-      // Notify user their verification was submitted
-      supabase.functions.invoke('notify-status-change', {
-        body: { type: 'verification_submitted', proposal_id: user.id },
+      // Notify user via server route (has service_role key)
+      fetch('/api/notify-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'verification_submitted', proposal_id: user.id }),
       }).catch(() => {});
       // Tell the bell to refresh immediately
       window.dispatchEvent(new Event('jor:notify'));
