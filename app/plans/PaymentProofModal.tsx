@@ -241,7 +241,7 @@ export default function PaymentProofModal({
       try {
         const storedUser = typeof window !== 'undefined' ? localStorage.getItem('er_user') : null;
         if (storedUser) {
-          const parsed = JSON.parse(storedUser) as { id?: string; cnic?: string };
+          const parsed = JSON.parse(storedUser) as { id?: string; cnic?: string; [key: string]: unknown };
           // Try by id first, fall back to cnic (website login stores cnic)
           const updateQuery = parsed.id
             ? supabase.from('proposals').update({
