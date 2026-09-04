@@ -238,29 +238,31 @@ export default function PaymentProofModal({
       }
 
 
-      // Save proof to DB via server route (service_role key, bypasses RLS)
+      // Save proof to DB via SECURITY DEFINER RPC (same pattern as submit_cnic_verification)
       try {
         const storedUser = typeof window !== 'undefined' ? localStorage.getItem('er_user') : null;
         if (storedUser) {
-          const parsed = JSON.parse(storedUser) as { id?: string; cnic?: string; [key: string]: unknown };
+          const parsed = JSON.parse(storedUser) as { id?: string; [key: string]: unknown };
           const proposalId = parsed.id as string | undefined;
           if (proposalId) {
-            await fetch('/api/save-payment-proof', {
+            await supabase.rpc('save_payment_proof', {
+              p_proposal_id: proposalId,
+              p_url:         url,
+              p_plan:        isStandard ? 'Rishta Profile' : 'Featured Post',
+              p_proof_type:  proofType ?? 'new',
+            });
+            // Fire notification via server route
+            fetch('/api/notify-user', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                proposal_id: proposalId,
-                url,
-                plan: isStandard ? 'Rishta Profile' : 'Featured Post',
-                proof_type: proofType ?? 'new',
-              }),
-            });
+              body: JSON.stringify({ type: 'payment_proof_submitted', proposal_id: proposalId }),
+            }).catch(() => {});
           }
           // Update localStorage so UI reflects pending state immediately
-          parsed.payment_proof_url = url;
+          parsed.payment_proof_url    = url;
           parsed.payment_proof_status = 'pending';
-          parsed.payment_proof_plan = isStandard ? 'Rishta Profile' : 'Featured Post';
-          parsed.payment_proof_type = proofType ?? 'new';
+          parsed.payment_proof_plan   = isStandard ? 'Rishta Profile' : 'Featured Post';
+          parsed.payment_proof_type   = proofType ?? 'new';
           localStorage.setItem('er_user', JSON.stringify(parsed));
         }
       } catch (_) { /* non-blocking */ }
