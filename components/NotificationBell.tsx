@@ -79,7 +79,7 @@ export default function NotificationBell() {
     // Poll every 60s for new notifications
     const interval = setInterval(fetchNotifs, 60000);
     // Also refresh immediately when a local action fires the event
-    const onRefresh = () => fetchNotifs();
+    const onRefresh = () => setTimeout(fetchNotifs, 1500);
     window.addEventListener('jor:notify', onRefresh);
     return () => {
       clearInterval(interval);
