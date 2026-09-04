@@ -1227,6 +1227,7 @@ export default function MyProposalClient() {
         maxFeaturedPerCity={Number(payProofSettings['max_featured_per_city']) || 5}
         adminWa={payProofSettings['whatsapp_number'] || '923000000000'}
         proofType={payProofType}
+        skipWhatsApp={true}
       />
       {bookingResult && (
         <div

@@ -95,7 +95,7 @@ function maxDateStr(): string {
 }
 
 export default function PaymentProofModal({
-  open, onClose, planName, isStandard, initialCnic, ftPriceInt, maxFeaturedPerCity, adminWa, proofType,
+  open, onClose, planName, isStandard, initialCnic, ftPriceInt, maxFeaturedPerCity, adminWa, proofType, skipWhatsApp,
 }: {
   open: boolean;
   onClose: () => void;
@@ -105,7 +105,8 @@ export default function PaymentProofModal({
   ftPriceInt: number;
   maxFeaturedPerCity: number;
   adminWa: string;
-  proofType?: 'new' | 'renewal'; // 'new' = Pay Now, 'renewal' = Renew
+  proofType?: 'new' | 'renewal';
+  skipWhatsApp?: boolean; // when true, skip WhatsApp redirect (my-profile flow)
 }) {
   const [cnic, setCnic] = useState('');
   const [receipt, setReceipt] = useState<File | null>(null);
@@ -233,7 +234,9 @@ export default function PaymentProofModal({
       }
 
       const text = `Hello Admin,\n\nMy CNIC: ${cnic}\n\nI have completed the payment and attached the receipt. Kindly verify my payment.${selectionsText}\n\nPayment Receipt: ${url}`;
-      window.open(`https://wa.me/${adminWa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+      if (!skipWhatsApp) {
+        window.open(`https://wa.me/${adminWa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+      }
 
 
       // Save proof URL + status to user's proposals row so admin sees it
