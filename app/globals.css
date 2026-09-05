@@ -313,7 +313,7 @@ body {
   /* Register step tabs: Additional Info must fit */
   .step-tab-label { font-size: 9px !important; }
   .my-account-left { width: 100% !important; min-width: 0 !important; overflow: hidden !important; }
-  .my-account-name { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; max-width: 130px !important; }
+  .my-account-name { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; max-width: 160px !important; }
   .saved-btn-header { display: none !important; }
   .proposals-br { display: block; }
   .plans-grid { grid-template-columns: 1fr !important; }
@@ -550,6 +550,7 @@ body {
 /* desktop-only: hidden on mobile, flex on desktop */
 .desktop-only { display: none !important; }
 @media (min-width: 769px) { .desktop-only { display: flex !important; } }
+@media (min-width: 769px) { .my-account-name { max-width: none !important; } }
 
 /* mobile-only: visible on mobile, hidden on desktop */
 .mobile-only { display: flex !important; }
