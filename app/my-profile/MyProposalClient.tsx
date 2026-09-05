@@ -1034,7 +1034,8 @@ export default function MyProposalClient() {
             const verifDv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
             const verifRejected = Object.values(verifDv).some(v => v === 'rejected');
 
-            const verifDone = !!(hasPendingVerification || user.is_doc_verified);
+            const verifDone = !!(hasPendingVerification || user.is_doc_verified ||
+              Object.values(verifDv).some(v => v === 'pending' || v === 'approved'));
             const verifRej  = !verifDone && verifRejected;
 
             const payFree   = freeMode === true;
