@@ -303,6 +303,7 @@ export default function PaymentProofModal({
               setCompressing(false);
               setErrorMsg(null);
             }} />
+            <div style={{ position: 'relative' }}>
             <div style={{ border: `2px dashed ${receipt ? '#534AB7' : '#E8E6F5'}`, borderRadius: 12, background: receipt ? '#EEEDFE' : '#FAFAFA', overflow: 'hidden', height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
               {receiptPreview
                 ? <img src={receiptPreview} alt="Payment receipt" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -319,6 +320,17 @@ export default function PaymentProofModal({
                   <div className="spin" style={{ width: 20, height: 20, border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%' }} />
                 </div>
               )}
+            </div>
+            {/* X button to remove uploaded receipt */}
+            {receipt && (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setReceipt(null); setReceiptPreview(null); }}
+                style={{ position: 'absolute', top: -8, right: -8, width: 22, height: 22, borderRadius: '50%', background: '#DC2626', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10 }}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            )}
             </div>
           </label>
         </div>
