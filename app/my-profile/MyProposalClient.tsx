@@ -1028,73 +1028,26 @@ export default function MyProposalClient() {
                 </button>
               );
             })()}
-          {/* Combined profile setup box */}
-          {settingsLoaded && (() => {
-            const proofStatus = (user as any).payment_proof_status as string | null;
-            const verifDv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
-            const verifRejected = Object.values(verifDv).some(v => v === 'rejected');
-
-            const verifDone = hasPendingVerification || user.is_doc_verified;
-            const verifRej  = !verifDone && verifRejected;
-
-            const payFree   = freeMode === true;
-            const payDone   = payFree || proofStatus === 'pending' || proofStatus === 'approved';
-            const payRej    = !payFree && proofStatus === 'rejected';
-
-            if (payFree && verifDone) return null;
-            if (!payFree && verifDone && payDone) return null;
-
-            const hasRejection = verifRej || payRej;
-            const bg     = hasRejection ? '#FEF2F2' : '#FFFBEB';
-            const border = hasRejection ? '#FECACA' : '#FCD34D';
-            const iconColor  = hasRejection ? '#DC2626' : '#B45309';
-            const titleColor = hasRejection ? '#991B1B' : '#92400E';
-            const title = hasRejection ? 'Action Required' : 'Complete Your Profile Setup';
-
-            const ItemIcon = ({ done, rejected }: { done: boolean; rejected: boolean }) => {
-              if (done) return (
-                <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#DCFCE7', border: '2px solid #16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-              );
-              if (rejected) return (
-                <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#FEE2E2', border: '2px solid #DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </div>
-              );
-              return <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #D97706', flexShrink: 0 }} />;
-            };
-
-            const itemColor = (done: boolean, rejected: boolean) =>
-              done ? '#16A34A' : rejected ? '#DC2626' : '#92400E';
-
-            return (
-              <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: 14, padding: '14px 18px', marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: titleColor }}>{title}</div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 30 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <ItemIcon done={verifDone} rejected={verifRej} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: itemColor(verifDone, verifRej) }}>
-                      {verifDone ? 'Verification submitted' : verifRej ? 'Verification rejected — re-upload' : 'Submit verification documents'}
-                    </span>
-                  </div>
-                  {!payFree && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <ItemIcon done={payDone} rejected={payRej} />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: itemColor(payDone, payRej) }}>
-                        {payDone ? 'Payment submitted' : payRej ? 'Payment proof rejected — re-upload' : 'Complete payment'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
+          {/* Verification pending box */}
+          {settingsLoaded && !hasPendingVerification && !user.is_doc_verified && (
+          <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#92400E', marginBottom: 2 }}>Profile Verification Pending</div>
+              <div style={{ fontSize: 13, color: '#B45309', lineHeight: 1.5 }}>Please complete your verification. Your profile will be reviewed within 24 hours.</div>
+            </div>
+          </div>
+          )}
+          {/* Payment pending box */}
+          {settingsLoaded && freeMode === false && !['pending', 'approved'].includes((user as any).payment_proof_status) && (
+          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 14, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#991B1B', marginBottom: 2 }}>Payment Pending</div>
+              <div style={{ fontSize: 13, color: '#DC2626', lineHeight: 1.5 }}>Please complete your payment to activate your profile.</div>
+            </div>
+          </div>
+          )}
           </>
         );
         if (label === 'Paused') return (
