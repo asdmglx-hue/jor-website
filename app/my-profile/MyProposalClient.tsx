@@ -841,7 +841,7 @@ export default function MyProposalClient() {
             {/* Name + ACTIVE badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden' }}>
-                <div className="my-account-name" style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name && user.name.length > 25 ? user.name.slice(0, 25) + '…' : user.name}</div>
+                <div className="my-account-name desktop-name" style={{ fontSize: 20, fontWeight: 900, color: '#1A1830' }}>{user.name}</div>
                 {user.is_doc_verified && badgeEnabled && (
                   <span title="Verified" style={{ display: 'inline-block', verticalAlign: 'middle', lineHeight: 1, position: 'relative', top: '-1px' }}><svg viewBox="0 0 24 24" width="18" height="18" fill="#16A34A" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
                     <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/>
@@ -1064,18 +1064,18 @@ export default function MyProposalClient() {
 
             const ItemIcon = ({ done, rejected, num }: { done: boolean; rejected: boolean; num: number }) => {
               if (done) return (
-                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#DCFCE7', border: '2px solid #16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#DCFCE7', border: '2px solid #16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
               );
               if (rejected) return (
-                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#FEE2E2', border: '2px solid #DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#FEE2E2', border: '2px solid #DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </div>
               );
               return (
-                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#FEF3C7', border: '2px solid #D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: '#92400E' }}>{num}</span>
+                <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#FEF3C7', border: '2px solid #D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: '#92400E' }}>{num}</span>
                 </div>
               );
             };
