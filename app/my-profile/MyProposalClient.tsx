@@ -1045,11 +1045,11 @@ export default function MyProposalClient() {
             if (!payFree && verifDone && payDone) return null;
 
             const hasRejection = verifRej || payRej;
-            const bg     = hasRejection ? '#FEF2F2' : '#FFFBEB';
-            const border = hasRejection ? '#FECACA' : '#FCD34D';
-            const iconColor  = hasRejection ? '#DC2626' : '#B45309';
-            const titleColor = hasRejection ? '#991B1B' : '#92400E';
-            const title = hasRejection ? 'Action Required' : 'Complete Your Profile Setup';
+            const bg     = '#FFFBEB';
+            const border = '#FCD34D';
+            const iconColor  = '#B45309';
+            const titleColor = '#92400E';
+            const title = 'Complete Your Profile Setup';
 
             const ItemIcon = ({ done, rejected }: { done: boolean; rejected: boolean }) => {
               if (done) return (
