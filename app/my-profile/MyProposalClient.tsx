@@ -841,7 +841,7 @@ export default function MyProposalClient() {
             {/* Name + ACTIVE badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden' }}>
-                <div className="my-account-name desktop-name" style={{ fontSize: 20, fontWeight: 900, color: '#1A1830' }}>{user.name}</div>
+                <div className="my-account-name desktop-name" style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</div>
                 {user.is_doc_verified && badgeEnabled && (
                   <span title="Verified" style={{ display: 'inline-block', verticalAlign: 'middle', lineHeight: 1, position: 'relative', top: '-1px' }}><svg viewBox="0 0 24 24" width="18" height="18" fill="#16A34A" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
                     <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/>
@@ -941,7 +941,13 @@ export default function MyProposalClient() {
                 value in requiring the full flow) — but deliberately NOT
                 locked for Rejected/Removed, where someone should always be
                 able to finish deleting their own already-rejected account. */}
-            {/* Verify Now — desktop only, next to Delete */}
+            {/* Delete button */}
+            <button disabled={user.status === 'pending'} onClick={() => { setDeleteReason(''); setDeleteOtherReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep((isAdminAccount || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed') ? 'password' : 'reason'); }}
+              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FEE2E2', background: user.status === 'pending' ? '#F5F5F5' : '#FEF2F2', cursor: user.status === 'pending' ? 'not-allowed' : 'pointer', opacity: user.status === 'pending' ? 0.5 : 1 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={user.status === 'pending' ? '#9CA3AF' : '#DC2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              <span style={{ fontSize: 10, fontWeight: 700, color: user.status === 'pending' ? '#9CA3AF' : '#DC2626' }}>Delete</span>
+            </button>
+            {/* Verify Now — desktop only, after Delete */}
             {settingsLoaded && (user.status === 'pending' || user.status === 'active') && !isRejected && user.cnic_verified !== true && (() => {
               const dv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
               const anyRejected = Object.values(dv).some((v: string) => v === 'rejected');
@@ -961,12 +967,7 @@ export default function MyProposalClient() {
                 </button>
               );
             })()}
-            <button disabled={user.status === 'pending'} onClick={() => { setDeleteReason(''); setDeleteOtherReason(''); setDeletePassword(''); setDeleteError(''); setDeleteStep((isAdminAccount || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed') ? 'password' : 'reason'); }}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #FEE2E2', background: user.status === 'pending' ? '#F5F5F5' : '#FEF2F2', cursor: user.status === 'pending' ? 'not-allowed' : 'pointer', opacity: user.status === 'pending' ? 0.5 : 1 }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={user.status === 'pending' ? '#9CA3AF' : '#DC2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-              <span style={{ fontSize: 10, fontWeight: 700, color: user.status === 'pending' ? '#9CA3AF' : '#DC2626' }}>Delete</span>
-            </button>
-            {/* Pay Now — desktop only, hidden when free mode, or proof already pending/approved */}
+            {/* Pay Now — desktop only */}
             {settingsLoaded && user.status === 'pending' && freeMode === false && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
               <button className="desktop-only" onClick={() => { setPayProofType('new'); setShowPayInstructionsModal(true); }}
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>

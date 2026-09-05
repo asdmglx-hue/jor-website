@@ -551,7 +551,7 @@ body {
 /* desktop-only: hidden on mobile, flex on desktop */
 .desktop-only { display: none !important; }
 @media (min-width: 769px) { .desktop-only { display: flex !important; } }
-@media (min-width: 769px) { .desktop-name { max-width: none !important; white-space: nowrap !important; overflow: visible !important; text-overflow: clip !important; } }
+@media (min-width: 769px) { .desktop-name { max-width: 320px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; } }
 
 /* mobile-only: visible on mobile, hidden on desktop */
 .mobile-only { display: flex !important; }
