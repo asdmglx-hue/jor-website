@@ -841,7 +841,7 @@ export default function MyProposalClient() {
             {/* Name + ACTIVE badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden' }}>
-                <div className="my-account-name" style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name && user.name.length > 10 ? user.name.slice(0, 10) + '…' : user.name}</div>
+                <div className="my-account-name" style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name && user.name.length > 35 ? user.name.slice(0, 35) + '…' : user.name}</div>
                 {user.is_doc_verified && badgeEnabled && (
                   <span title="Verified" style={{ display: 'inline-block', verticalAlign: 'middle', lineHeight: 1, position: 'relative', top: '-1px' }}><svg viewBox="0 0 24 24" width="18" height="18" fill="#16A34A" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
                     <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/>
@@ -1028,6 +1028,14 @@ export default function MyProposalClient() {
                 </button>
               );
             })()}
+            {/* Pay Now — mobile only, below Verify Now */}
+            {settingsLoaded && user.status === 'pending' && freeMode === false && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
+              <button className="mobile-only" onClick={() => { setPayProofType('new'); setShowPayProofModal(true); }}
+                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '12px 16px', borderRadius: 12, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer', marginBottom: 10 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#7C3AED' }}>Pay Now</span>
+              </button>
+            )}
           {/* Combined profile setup box */}
           {settingsLoaded && (() => {
             const proofStatus = (user as any).payment_proof_status as string | null;
