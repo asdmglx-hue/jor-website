@@ -1034,11 +1034,11 @@ export default function MyProposalClient() {
             const verifDv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
             const verifRejected = Object.values(verifDv).some(v => v === 'rejected');
 
-            const verifDone = hasPendingVerification || user.is_doc_verified;
+            const verifDone = !!(hasPendingVerification || user.is_doc_verified);
             const verifRej  = !verifDone && verifRejected;
 
             const payFree   = freeMode === true;
-            const payDone   = payFree || proofStatus === 'pending' || proofStatus === 'approved';
+            const payDone   = !!(payFree || proofStatus === 'pending' || proofStatus === 'approved');
             const payRej    = !payFree && proofStatus === 'rejected';
 
             if (payFree && verifDone) return null;
