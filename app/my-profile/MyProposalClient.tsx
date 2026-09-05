@@ -1052,18 +1052,24 @@ export default function MyProposalClient() {
             const titleColor = '#92400E';
             const title = 'Complete Your Profile Setup';
 
-            const ItemIcon = ({ done, rejected }: { done: boolean; rejected: boolean }) => {
+            const planPrice = payProofSettings['plan_price'] || payProofSettings['standard_plan_price'] || '1,000';
+
+            const ItemIcon = ({ done, rejected, num }: { done: boolean; rejected: boolean; num: number }) => {
               if (done) return (
-                <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#DCFCE7', border: '2px solid #16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#DCFCE7', border: '2px solid #16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
               );
               if (rejected) return (
-                <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#FEE2E2', border: '2px solid #DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#FEE2E2', border: '2px solid #DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </div>
               );
-              return <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #D97706', flexShrink: 0 }} />;
+              return (
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#FEF3C7', border: '2px solid #D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#92400E' }}>{num}</span>
+                </div>
+              );
             };
 
             const itemColor = (done: boolean, rejected: boolean) =>
@@ -1079,16 +1085,16 @@ export default function MyProposalClient() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 30 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <ItemIcon done={verifDone} rejected={verifRej} />
+                    <ItemIcon done={verifDone} rejected={verifRej} num={1} />
                     <span style={{ fontSize: 13, fontWeight: 600, color: itemColor(verifDone, verifRej) }}>
-                      {verifDone ? 'Verification submitted' : verifRej ? 'Verification rejected — re-upload' : 'Submit verification documents'}
+                      {verifDone ? 'Verification documents submitted.' : verifRej ? 'Verification documents rejected. Please resubmit.' : 'Submit verification documents.'}
                     </span>
                   </div>
                   {!payFree && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <ItemIcon done={payDone} rejected={payRej} />
+                      <ItemIcon done={payDone} rejected={payRej} num={2} />
                       <span style={{ fontSize: 13, fontWeight: 600, color: itemColor(payDone, payRej) }}>
-                        {payDone ? 'Payment submitted' : payRej ? 'Payment proof rejected — re-upload' : 'Complete payment'}
+                        {payDone ? 'Payment proof submitted.' : payRej ? `Payment proof rejected. Please pay Rs. ${planPrice}.` : `Complete the payment of Rs. ${planPrice}.`}
                       </span>
                     </div>
                   )}
