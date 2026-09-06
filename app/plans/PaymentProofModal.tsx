@@ -212,6 +212,10 @@ export default function PaymentProofModal({
       }
       const url = data.url;
 
+      // Resolve proposalId early so it can be saved with the featured request
+      const storedUserEarly = typeof window !== 'undefined' ? localStorage.getItem('er_user') : null;
+      const proposalIdEarly = storedUserEarly ? (JSON.parse(storedUserEarly) as { id?: string }).id : undefined;
+
       // Featured Post: record the requested date/city pairs so support can
       // see + approve them from the pending queue — same table + shape the
       // mobile app writes to, so both stay in sync.
@@ -223,7 +227,14 @@ export default function PaymentProofModal({
         try {
           await supabase.from('pending_featured_requests').insert({
             cnic, selections: selectionsJson, total_credits: totalCredits, total_amount: totalAmount,
+            proof_url: url, user_id_fk: proposalIdEarly ?? null,
           });
+          // Notify admin of featured payment proof
+          fetch('/api/notify-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'admin_payment_proof', name: cnic, proposal_id: proposalIdEarly }),
+          }).catch(() => {});
         } catch (_) {
           // Non-blocking — the WhatsApp message below still carries the
           // full selection details for support to act on manually.
