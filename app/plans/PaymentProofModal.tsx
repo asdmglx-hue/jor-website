@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { compressImage } from '@/lib/compressImage';
 import { supabase, isFeaturedSlotAvailable } from '@/lib/supabase';
 import { getSession } from '@/lib/auth';
@@ -17,32 +17,15 @@ function LocationSelect({ value, onChange }: { value: string; onChange: (v: stri
   const [loading, setLoading] = useState(false);
   const [cityGroups, setCityGroups] = useState<Record<string, string[]>>({});
   const [countries, setCountries] = useState<string[]>([]);
-  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 260 });
-  const triggerRef = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (ref.current && !ref.current.contains(target) && triggerRef.current && !triggerRef.current.contains(target)) {
-        setOpen(false);
-      }
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
-
-  // Calculate fixed position when opening
-  useLayoutEffect(() => {
-    if (!open || !triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    setDropdownPos({
-      top: rect.bottom + 4,
-      left: rect.left,
-      width: Math.max(rect.width, 260),
-    });
-  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -73,14 +56,18 @@ function LocationSelect({ value, onChange }: { value: string; onChange: (v: stri
   const options = mode === 'pakistan' ? Object.values(filteredCityGroups).flat() : filteredCountries;
 
   return (
-    <>
-      <div ref={triggerRef} onClick={() => { setOpen(o => !o); setQuery(''); }}
-        style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid #E8E6F5', background: '#F8F7FF', fontSize: 12.5, cursor: 'pointer', color: value ? '#1A1830' : '#68629C', fontWeight: value ? 600 : 400, display: 'flex', alignItems: 'center', gap: 6 }}>
+    <div ref={ref}>
+      {/* Trigger */}
+      <div onClick={() => { setOpen(o => !o); setQuery(''); }}
+        style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${open ? '#534AB7' : '#E8E6F5'}`, background: '#F8F7FF', fontSize: 12.5, cursor: 'pointer', color: value ? '#1A1830' : '#68629C', fontWeight: value ? 600 : 400, display: 'flex', alignItems: 'center', gap: 6 }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-        {value || 'Select location'}
+        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value || 'Select location'}</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><polyline points="6 9 12 15 18 9"/></svg>
       </div>
+
+      {/* Inline dropdown — scrolls with modal, no layout shift */}
       {open && (
-        <div ref={ref} style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, maxWidth: 'calc(100vw - 32px)', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', zIndex: 9999, overflow: 'hidden' }}>
+        <div style={{ marginTop: 4, background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
           <div style={{ display: 'flex', gap: 6, padding: '10px 10px 0' }}>
             {(['pakistan', 'overseas'] as const).map(m => (
               <button key={m} type="button" onClick={() => { setMode(m); setQuery(''); }}
@@ -94,7 +81,7 @@ function LocationSelect({ value, onChange }: { value: string; onChange: (v: stri
               placeholder={mode === 'pakistan' ? 'Search city...' : 'Search country...'}
               style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid #E8E6F5', borderRadius: 8, fontSize: 12.5, outline: 'none' }} />
           </div>
-          <div style={{ maxHeight: 220, overflowY: 'auto', paddingBottom: 8 }}>
+          <div style={{ maxHeight: 180, overflowY: 'auto', paddingBottom: 8 }}>
             {loading && <div style={{ padding: '10px 12px', fontSize: 12, color: '#68629C' }}>Loading…</div>}
             {!loading && options.length === 0 && <div style={{ padding: '10px 12px', fontSize: 12, color: '#68629C' }}>{q ? 'No matches' : mode === 'pakistan' ? 'No qualifying cities' : 'No qualifying countries'}</div>}
             {!loading && mode === 'pakistan' && Object.entries(filteredCityGroups).map(([province, cities]) => (
@@ -104,7 +91,7 @@ function LocationSelect({ value, onChange }: { value: string; onChange: (v: stri
                   <div key={city} onClick={() => { onChange(city); setOpen(false); setQuery(''); }}
                     style={{ padding: '8px 12px', fontSize: 12.5, cursor: 'pointer', color: value === city ? '#534AB7' : '#1A1830', fontWeight: value === city ? 700 : 400, background: value === city ? '#EEEDFE' : 'transparent' }}
                     onMouseEnter={e => { if (value !== city) (e.currentTarget as HTMLElement).style.background = '#F8F7FF'; }}
-                    onMouseLeave={e => { if (value !== city) (e.currentTarget as HTMLElement).style.background = value === city ? '#EEEDFE' : 'transparent'; }}>
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = value === city ? '#EEEDFE' : 'transparent'; }}>
                     {city}
                   </div>
                 ))}
@@ -114,14 +101,14 @@ function LocationSelect({ value, onChange }: { value: string; onChange: (v: stri
               <div key={country} onClick={() => { onChange(country); setOpen(false); setQuery(''); }}
                 style={{ padding: '8px 12px', fontSize: 12.5, cursor: 'pointer', color: value === country ? '#534AB7' : '#1A1830', fontWeight: value === country ? 700 : 400, background: value === country ? '#EEEDFE' : 'transparent' }}
                 onMouseEnter={e => { if (value !== country) (e.currentTarget as HTMLElement).style.background = '#F8F7FF'; }}
-                onMouseLeave={e => { if (value !== country) (e.currentTarget as HTMLElement).style.background = value === country ? '#EEEDFE' : 'transparent'; }}>
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = value === country ? '#EEEDFE' : 'transparent'; }}>
                 {country}
               </div>
             ))}
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
@@ -397,7 +384,7 @@ export default function PaymentProofModal({
         {/* 3. Select Date & City (Featured Post only) */}
         {!isStandard && (
           <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6B6893', marginBottom: 10 }}>Select Date & City</div>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6B6893', marginBottom: 10 }}>Date & Location</div>
             {slots.map((slot, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
