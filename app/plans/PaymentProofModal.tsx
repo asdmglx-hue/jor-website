@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { compressImage } from '@/lib/compressImage';
 import { supabase, isFeaturedSlotAvailable } from '@/lib/supabase';
 import { getSession } from '@/lib/auth';
@@ -17,13 +17,32 @@ function LocationSelect({ value, onChange }: { value: string; onChange: (v: stri
   const [loading, setLoading] = useState(false);
   const [cityGroups, setCityGroups] = useState<Record<string, string[]>>({});
   const [countries, setCountries] = useState<string[]>([]);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 260 });
+  const triggerRef = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLDivElement>(null);
 
+  // Close on outside click
   useEffect(() => {
-    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const handler = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (ref.current && !ref.current.contains(target) && triggerRef.current && !triggerRef.current.contains(target)) {
+        setOpen(false);
+      }
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  // Calculate fixed position when opening
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setDropdownPos({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: Math.max(rect.width, 260),
+    });
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -54,14 +73,14 @@ function LocationSelect({ value, onChange }: { value: string; onChange: (v: stri
   const options = mode === 'pakistan' ? Object.values(filteredCityGroups).flat() : filteredCountries;
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <div onClick={() => { setOpen(o => !o); setQuery(''); }}
+    <>
+      <div ref={triggerRef} onClick={() => { setOpen(o => !o); setQuery(''); }}
         style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid #E8E6F5', background: '#F8F7FF', fontSize: 12.5, cursor: 'pointer', color: value ? '#1A1830' : '#68629C', fontWeight: value ? 600 : 400, display: 'flex', alignItems: 'center', gap: 6 }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         {value || 'Select location'}
       </div>
       {open && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, width: 260, maxWidth: '90vw', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', zIndex: 300, overflow: 'hidden' }}>
+        <div ref={ref} style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, maxWidth: 'calc(100vw - 32px)', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', zIndex: 9999, overflow: 'hidden' }}>
           <div style={{ display: 'flex', gap: 6, padding: '10px 10px 0' }}>
             {(['pakistan', 'overseas'] as const).map(m => (
               <button key={m} type="button" onClick={() => { setMode(m); setQuery(''); }}
@@ -102,7 +121,7 @@ function LocationSelect({ value, onChange }: { value: string; onChange: (v: stri
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -323,8 +342,8 @@ export default function PaymentProofModal({
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={(e) => { if (e.target === e.currentTarget && !submitting) onClose(); }}
     >
-      <div style={{ background: '#fff', borderRadius: 20, maxWidth: 440, width: '100%', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: 24, overflowY: 'auto' }}>
+      <div style={{ background: '#fff', borderRadius: 20, maxWidth: 440, width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: 24, overflowY: 'auto', borderRadius: 20 }}>
         <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 6 }}>Upload Receipt</div>
         <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.4, marginBottom: 18 }}>
           Attach your payment receipt for verification.
