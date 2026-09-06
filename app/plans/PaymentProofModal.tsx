@@ -56,7 +56,7 @@ function LocationSelect({ value, onChange }: { value: string; onChange: (v: stri
   const options = mode === 'pakistan' ? Object.values(filteredCityGroups).flat() : filteredCountries;
 
   return (
-    <div ref={ref}>
+    <div ref={ref} style={{ position: 'relative' }}>
       {/* Trigger */}
       <div onClick={() => { setOpen(o => !o); setQuery(''); }}
         style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${open ? '#534AB7' : '#E8E6F5'}`, background: '#F8F7FF', fontSize: 12.5, cursor: 'pointer', color: value ? '#1A1830' : '#68629C', fontWeight: value ? 600 : 400, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -65,9 +65,9 @@ function LocationSelect({ value, onChange }: { value: string; onChange: (v: stri
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><polyline points="6 9 12 15 18 9"/></svg>
       </div>
 
-      {/* Inline dropdown — scrolls with modal, no layout shift */}
+      {/* Absolute overlay — sits on top of content below, does not push layout */}
       {open && (
-        <div style={{ marginTop: 4, background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, boxShadow: '0 4px 16px rgba(0,0,0,0.13)', zIndex: 50, overflow: 'hidden' }}>
           <div style={{ display: 'flex', gap: 6, padding: '10px 10px 0' }}>
             {(['pakistan', 'overseas'] as const).map(m => (
               <button key={m} type="button" onClick={() => { setMode(m); setQuery(''); }}
@@ -329,8 +329,8 @@ export default function PaymentProofModal({
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={(e) => { if (e.target === e.currentTarget && !submitting) onClose(); }}
     >
-      <div style={{ background: '#fff', borderRadius: 20, maxWidth: 440, width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: 24, overflowY: 'auto', borderRadius: 20 }}>
+      <div style={{ background: '#fff', borderRadius: 20, maxWidth: 440, width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ padding: 24, overflowY: 'auto', overflowX: 'visible', borderRadius: 20 }}>
         <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 6 }}>Upload Receipt</div>
         <div style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.4, marginBottom: 18 }}>
           Attach your payment receipt for verification.
