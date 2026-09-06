@@ -797,6 +797,11 @@ export default function MyProposalClient() {
   // to view/share/pause either way.
   const isPendingAccount = user.status === 'pending' || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed';
   const isRejected = getStatusLabel(user) === 'Rejected';
+  // View Only: profile is live (status=active) but subscription not yet fully activated
+  const isViewOnly = (user.status === 'active' || user.status === 'approved') &&
+    ((user as any).subscription_status === 'doc_pending' || (user as any).subscription_status === 'inactive');
+  // Treat View Only same as pending for button purposes
+  const isEffectivelyPending = isPendingAccount || isViewOnly;
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '24px 20px' }}>
@@ -889,7 +894,7 @@ export default function MyProposalClient() {
               // get a Renew button — Delete is the only action that stays
               // fully live, since deleting doesn't depend on being subscribed.
               const isInactive = getStatusLabel(user, hasFeaturedBoost) === 'Inactive';
-              const shareLocked = isAdminAccount || isPendingAccount || isInactive;
+              const shareLocked = isAdminAccount || isEffectivelyPending || isInactive;
               return (<>
             {/* Share */}
             <button disabled={shareLocked} onClick={async () => {
@@ -908,22 +913,22 @@ export default function MyProposalClient() {
               <span style={{ fontSize: 10, fontWeight: 700, color: shareLocked ? '#9CA3AF' : '#534AB7' }}>Share</span>
             </button>
             {/* Pause/Resume — shown for active/paused/pending/inactive, disabled for pending/inactive */}
-            {(['Active', 'Featured', 'Paused', 'Pending', 'Removed', 'Inactive'].includes(getStatusLabel(user, hasFeaturedBoost))) && !isRejected && <button disabled={isAdminAccount || isPendingAccount || isInactive} onClick={async () => {
+            {(['Active', 'Featured', 'Paused', 'Pending', 'Removed', 'Inactive'].includes(getStatusLabel(user, hasFeaturedBoost))) && !isRejected && <button disabled={isAdminAccount || isEffectivelyPending || isInactive} onClick={async () => {
                 const isPaused = user.status === 'paused';
                 const msg = isPaused ? 'Resume your profile? It will become visible in the group again.' : 'Pause your profile? It will be hidden from the group. You can resume anytime.';
                 if (!window.confirm(msg)) return;
                 const { data: updateResult } = await updateOwnProposalAction({ p_id: user.id, p_updates: { status: isPaused ? 'active' : 'paused' }, proposalNumber: user.proposal_number });
                 if (updateResult) { const updated = { ...user, status: isPaused ? 'active' : 'paused' }; setUser(updated as typeof user); import('@/lib/auth').then(m => m.saveSession(updated as typeof user)); }
               }}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: (isAdminAccount || isPendingAccount || isInactive) ? '#F5F5F5' : '#fff', cursor: (isAdminAccount || isPendingAccount || isInactive) ? 'not-allowed' : 'pointer', opacity: (isAdminAccount || isPendingAccount || isInactive) ? 0.5 : 1 }}>
+              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: (isAdminAccount || isEffectivelyPending || isInactive) ? '#F5F5F5' : '#fff', cursor: (isAdminAccount || isEffectivelyPending || isInactive) ? 'not-allowed' : 'pointer', opacity: (isAdminAccount || isEffectivelyPending || isInactive) ? 0.5 : 1 }}>
               {user.status === 'paused'
-                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={(isAdminAccount || isPendingAccount || isInactive) ? '#9CA3AF' : '#16A34A'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={(isAdminAccount || isEffectivelyPending || isInactive) ? '#9CA3AF' : '#16A34A'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
               }
-              <span style={{ fontSize: 10, fontWeight: 700, color: (isAdminAccount || isPendingAccount || isInactive) ? '#9CA3AF' : (user.status === 'paused' ? '#16A34A' : '#6B7280') }}>{user.status === 'paused' ? 'Resume' : 'Pause'}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: (isAdminAccount || isEffectivelyPending || isInactive) ? '#9CA3AF' : (user.status === 'paused' ? '#16A34A' : '#6B7280') }}>{user.status === 'paused' ? 'Resume' : 'Pause'}</span>
             </button>}
             {/* View */}
-            {(['Active','Featured','Pending','Removed','Inactive'].includes(getStatusLabel(user, hasFeaturedBoost))) && !isRejected && ((isAdminAccount || isPendingAccount || isInactive) ? (
+            {(['Active','Featured','Pending','Removed','Inactive'].includes(getStatusLabel(user, hasFeaturedBoost))) && !isRejected && ((isAdminAccount || isEffectivelyPending || isInactive) ? (
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#F5F5F5', opacity: 0.5, cursor: 'not-allowed' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF' }}>View</span>
@@ -968,7 +973,7 @@ export default function MyProposalClient() {
               );
             })()}
             {/* Pay Now — desktop only */}
-            {settingsLoaded && user.status === 'pending' && freeMode === false && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
+            {settingsLoaded && (user.status === 'pending' || isViewOnly) && freeMode === false && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
               <button className="desktop-only" onClick={() => { setPayProofType('new'); setShowPayInstructionsModal(true); }}
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -1030,7 +1035,7 @@ export default function MyProposalClient() {
               );
             })()}
             {/* Pay Now — mobile only, below Verify Now */}
-            {settingsLoaded && user.status === 'pending' && freeMode === false && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
+            {settingsLoaded && (user.status === 'pending' || isViewOnly) && freeMode === false && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
               <button className="mobile-only" onClick={() => { setPayProofType('new'); setShowPayInstructionsModal(true); }}
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '12px 16px', borderRadius: 12, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer', marginBottom: 10 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
