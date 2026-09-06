@@ -4,19 +4,19 @@ import { compressImage } from '@/lib/compressImage';
 import { supabase, isFeaturedSlotAvailable } from '@/lib/supabase';
 import { getSession } from '@/lib/auth';
 import { trackEvent } from '@/lib/analytics';
-import { CITIES } from '@/lib/constants';
 
 const MAX_FEATURED_SLOTS = 5;
 
-type FeaturedSlot = { city: string; date: string; checking?: boolean }; // date is yyyy-mm-dd from <input type="date">
+type FeaturedSlot = { city: string; date: string; checking?: boolean };
 
-// ── Searchable city dropdown ────────────────────────────────────────────
-// Flat, filtered-as-you-type list over the same CITIES used by the
-// registration form — click-outside-to-close pattern matches the one
-// already used elsewhere on this site (FilterBar's ProfessionSelect).
-function CitySelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+// ── Location Select (Pakistan / Overseas toggle with live RPC data) ──────────
+function LocationSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<'pakistan' | 'overseas'>('pakistan');
   const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [cityGroups, setCityGroups] = useState<Record<string, string[]>>({});
+  const [countries, setCountries] = useState<string[]>([]);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,50 +25,78 @@ function CitySelect({ value, onChange }: { value: string; onChange: (v: string) 
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const filtered = query.trim()
-    ? CITIES.filter(c => c.toLowerCase().includes(query.trim().toLowerCase()))
-    : CITIES;
+  useEffect(() => {
+    if (!open) return;
+    if (Object.keys(cityGroups).length > 0 || countries.length > 0) return;
+    setLoading(true);
+    Promise.all([
+      supabase.rpc('get_qualifying_cities'),
+      supabase.rpc('get_qualifying_countries'),
+    ]).then(([citiesRes, countriesRes]) => {
+      const groups: Record<string, string[]> = {};
+      for (const row of (citiesRes.data ?? []) as { province: string; city: string }[]) {
+        if (!groups[row.province]) groups[row.province] = [];
+        groups[row.province].push(row.city);
+      }
+      setCityGroups(groups);
+      setCountries(((countriesRes.data ?? []) as { country: string }[]).map((r: { country: string }) => r.country));
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [open]);
+
+  const q = query.trim().toLowerCase();
+  const filteredCityGroups: Record<string, string[]> = {};
+  Object.entries(cityGroups).forEach(([province, cities]) => {
+    const matches = q ? cities.filter((c: string) => c.toLowerCase().includes(q)) : cities;
+    if (matches.length > 0) filteredCityGroups[province] = matches;
+  });
+  const filteredCountries = q ? countries.filter((c: string) => c.toLowerCase().includes(q)) : countries;
+  const options = mode === 'pakistan' ? Object.values(filteredCityGroups).flat() : filteredCountries;
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <div
-        onClick={() => setOpen(o => !o)}
-        style={{
-          padding: '10px 12px', borderRadius: 10, border: '1px solid #E8E6F5',
-          background: '#F8F7FF', fontSize: 12.5, cursor: 'pointer',
-          color: value ? '#1A1830' : '#68629C', fontWeight: value ? 600 : 400,
-          display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}
-      >
+      <div onClick={() => { setOpen(o => !o); setQuery(''); }}
+        style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid #E8E6F5', background: '#F8F7FF', fontSize: 12.5, cursor: 'pointer', color: value ? '#1A1830' : '#68629C', fontWeight: value ? 600 : 400, display: 'flex', alignItems: 'center', gap: 6 }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#68629C" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-        {value || 'Select city'}
+        {value || 'Select location'}
       </div>
       {open && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, marginTop: 4, width: 220, maxWidth: '80vw',
-          background: '#fff', border: '1px solid #E8E6F5', borderRadius: 10,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.12)', zIndex: 300, overflow: 'hidden',
-        }}>
-          <input
-            autoFocus
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search city..."
-            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: 'none', borderBottom: '1px solid #E8E6F5', fontSize: 12.5, outline: 'none' }}
-          />
-          <div style={{ maxHeight: 220, overflowY: 'auto' }}>
-            {filtered.length === 0 && (
-              <div style={{ padding: '10px 12px', fontSize: 12, color: '#68629C' }}>No matching cities</div>
-            )}
-            {filtered.map(city => (
-              <div key={city} onClick={() => { onChange(city); setOpen(false); setQuery(''); }}
-                style={{ padding: '9px 12px', fontSize: 12.5, cursor: 'pointer',
-                  color: value === city ? '#534AB7' : '#1A1830',
-                  fontWeight: value === city ? 700 : 400,
-                  background: value === city ? '#EEEDFE' : 'transparent' }}
-                onMouseEnter={e => { if (value !== city) (e.currentTarget as HTMLElement).style.background = '#F8F7FF'; }}
-                onMouseLeave={e => { if (value !== city) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
-                {city}
+        <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, width: 260, maxWidth: '90vw', background: '#fff', border: '1px solid #E8E6F5', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', zIndex: 300, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', gap: 6, padding: '10px 10px 0' }}>
+            {(['pakistan', 'overseas'] as const).map(m => (
+              <button key={m} type="button" onClick={() => { setMode(m); setQuery(''); }}
+                style={{ flex: 1, padding: '6px 0', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: mode === m ? '#534AB7' : '#F0EFF8', color: mode === m ? '#fff' : '#534AB7' }}>
+                {m === 'pakistan' ? 'Pakistan' : 'Overseas'}
+              </button>
+            ))}
+          </div>
+          <div style={{ padding: '8px 10px' }}>
+            <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
+              placeholder={mode === 'pakistan' ? 'Search city...' : 'Search country...'}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid #E8E6F5', borderRadius: 8, fontSize: 12.5, outline: 'none' }} />
+          </div>
+          <div style={{ maxHeight: 220, overflowY: 'auto', paddingBottom: 8 }}>
+            {loading && <div style={{ padding: '10px 12px', fontSize: 12, color: '#68629C' }}>Loading…</div>}
+            {!loading && options.length === 0 && <div style={{ padding: '10px 12px', fontSize: 12, color: '#68629C' }}>{q ? 'No matches' : mode === 'pakistan' ? 'No qualifying cities' : 'No qualifying countries'}</div>}
+            {!loading && mode === 'pakistan' && Object.entries(filteredCityGroups).map(([province, cities]) => (
+              <div key={province}>
+                <div style={{ padding: '6px 12px 3px', fontSize: 10, fontWeight: 800, color: '#A09CC0', letterSpacing: 0.8, textTransform: 'uppercase' }}>{province}</div>
+                {cities.map((city: string) => (
+                  <div key={city} onClick={() => { onChange(city); setOpen(false); setQuery(''); }}
+                    style={{ padding: '8px 12px', fontSize: 12.5, cursor: 'pointer', color: value === city ? '#534AB7' : '#1A1830', fontWeight: value === city ? 700 : 400, background: value === city ? '#EEEDFE' : 'transparent' }}
+                    onMouseEnter={e => { if (value !== city) (e.currentTarget as HTMLElement).style.background = '#F8F7FF'; }}
+                    onMouseLeave={e => { if (value !== city) (e.currentTarget as HTMLElement).style.background = value === city ? '#EEEDFE' : 'transparent'; }}>
+                    {city}
+                  </div>
+                ))}
+              </div>
+            ))}
+            {!loading && mode === 'overseas' && filteredCountries.map((country: string) => (
+              <div key={country} onClick={() => { onChange(country); setOpen(false); setQuery(''); }}
+                style={{ padding: '8px 12px', fontSize: 12.5, cursor: 'pointer', color: value === country ? '#534AB7' : '#1A1830', fontWeight: value === country ? 700 : 400, background: value === country ? '#EEEDFE' : 'transparent' }}
+                onMouseEnter={e => { if (value !== country) (e.currentTarget as HTMLElement).style.background = '#F8F7FF'; }}
+                onMouseLeave={e => { if (value !== country) (e.currentTarget as HTMLElement).style.background = value === country ? '#EEEDFE' : 'transparent'; }}>
+                {country}
               </div>
             ))}
           </div>
@@ -78,6 +106,7 @@ function CitySelect({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
+// Searchable city dropdown
 function formatCnic(raw: string): string {
   const digits = raw.replace(/\D/g, '').slice(0, 13);
   if (digits.length > 12) return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
@@ -364,8 +393,8 @@ export default function PaymentProofModal({
                   />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#68629C', marginBottom: 4 }}>City {i + 1}</div>
-                  <CitySelect value={slot.city} onChange={v => updateSlot(i, { city: v })} />
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#68629C', marginBottom: 4 }}>Location {i + 1}</div>
+                  <LocationSelect value={slot.city} onChange={v => updateSlot(i, { city: v })} />
                 </div>
                 {slots.length > 1 && (
                   <button type="button" onClick={() => removeSlot(i)} aria-label="Remove"
