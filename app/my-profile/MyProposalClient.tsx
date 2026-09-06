@@ -254,6 +254,8 @@ export default function MyProposalClient() {
   const [freeMode, setFreeMode] = useState<boolean | null>(null); // null = settings not yet loaded
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [showPayProofModal, setShowPayProofModal] = useState(false);
+  const [showFeaturedPayProofModal, setShowFeaturedPayProofModal] = useState(false);
+  const [isFeaturedFlow, setIsFeaturedFlow] = useState(false);
   const [showPayInstructionsModal, setShowPayInstructionsModal] = useState(false);
   const [payInstructionsCopied, setPayInstructionsCopied] = useState<string | null>(null);
   const [payProofType, setPayProofType] = useState<'new' | 'renewal'>('new'); // which button opened the modal
@@ -974,7 +976,7 @@ export default function MyProposalClient() {
             })()}
             {/* Pay Now — desktop only */}
             {settingsLoaded && (user.status === 'pending' || isViewOnly) && freeMode === false && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
-              <button className="desktop-only" onClick={() => { setPayProofType('new'); setShowPayInstructionsModal(true); }}
+              <button className="desktop-only" onClick={() => { setPayProofType('new'); setIsFeaturedFlow(false); setShowPayInstructionsModal(true); }}
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED' }}>Pay Now</span>
@@ -985,7 +987,7 @@ export default function MyProposalClient() {
 
             {/* Renew — only when subscription expired, and proof not already pending/approved */}
             {settingsLoaded && isInactive && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
-              <button onClick={() => { setPayProofType('renewal'); setShowPayInstructionsModal(true); }}
+              <button onClick={() => { setPayProofType('renewal'); setIsFeaturedFlow(false); setShowPayInstructionsModal(true); }}
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #D1FAE5', background: '#ECFDF5', cursor: 'pointer' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#16A34A' }}>Renew</span>
@@ -1036,7 +1038,7 @@ export default function MyProposalClient() {
             })()}
             {/* Pay Now — mobile only, below Verify Now */}
             {settingsLoaded && (user.status === 'pending' || isViewOnly) && freeMode === false && (user as any).payment_proof_status !== 'pending' && (user as any).payment_proof_status !== 'approved' && (
-              <button className="mobile-only" onClick={() => { setPayProofType('new'); setShowPayInstructionsModal(true); }}
+              <button className="mobile-only" onClick={() => { setPayProofType('new'); setIsFeaturedFlow(false); setShowPayInstructionsModal(true); }}
                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '12px 16px', borderRadius: 12, border: '1.5px solid #DDD6FE', background: '#EDE9FE', cursor: 'pointer', marginBottom: 10 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                 <span style={{ fontSize: 13, fontWeight: 700, color: '#7C3AED' }}>Pay Now</span>
@@ -1205,9 +1207,9 @@ export default function MyProposalClient() {
                         Schedule Featured Post
                       </button>
                     ) : (
-                      <Link href="/plans?plan=featured&pay=1" style={{ display: 'inline-block', textAlign: 'center', padding: '9px 20px', borderRadius: 10, background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>
+                      <button onClick={() => { setPayProofType('new'); setIsFeaturedFlow(true); setShowPayInstructionsModal(true); }} style={{ display: 'inline-block', textAlign: 'center', padding: '9px 20px', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
                         Buy Credits
-                      </Link>
+                      </button>
                     )}
                     <button onClick={() => setManageModalOpen(true)} style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.5)', background: 'transparent', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                       Manage
@@ -1238,7 +1240,7 @@ export default function MyProposalClient() {
                     Schedule Post
                   </button>
                 ) : (
-                  <button onClick={() => router.push('/plans?plan=featured&pay=1')} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '9px 0', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer', minHeight: 38 }}>
+                  <button onClick={() => { setPayProofType('new'); setIsFeaturedFlow(true); setShowPayInstructionsModal(true); }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '9px 0', borderRadius: 10, border: 'none', background: '#fff', color: isRunning ? '#E8620A' : '#534AB7', fontWeight: 800, fontSize: 13, cursor: 'pointer', minHeight: 38 }}>
                     Buy Credits
                   </button>
                 )}
@@ -1291,7 +1293,7 @@ export default function MyProposalClient() {
             <div style={{ padding: 24, overflowY: 'auto' }}>
               <div style={{ fontWeight: 800, fontSize: 18, color: '#1A1830', marginBottom: 4 }}>Payment Instructions</div>
               <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 16 }}>
-                Plan: <b style={{ color: '#534AB7' }}>Rishta Profile</b> · Rs. {payProofSettings['plan_price'] || '1000'}
+                Plan: <b style={{ color: '#534AB7' }}>{isFeaturedFlow ? 'Featured Post' : 'Rishta Profile'}</b> · Rs. {isFeaturedFlow ? (payProofSettings['featured_post_price'] || '200') : (payProofSettings['plan_price'] || '1000')}
               </div>
               <div style={{ height: 1, background: '#E8E6F5', marginBottom: 16 }} />
 
@@ -1345,7 +1347,7 @@ export default function MyProposalClient() {
               </div>
 
               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                <button onClick={() => { setShowPayInstructionsModal(false); setShowPayProofModal(true); }}
+                <button onClick={() => { setShowPayInstructionsModal(false); if (isFeaturedFlow) { setShowFeaturedPayProofModal(true); } else { setShowPayProofModal(true); } }}
                   style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                   Upload Receipt
@@ -1381,6 +1383,27 @@ export default function MyProposalClient() {
         maxFeaturedPerCity={Number(payProofSettings['max_featured_per_city']) || 5}
         adminWa={payProofSettings['whatsapp_number'] || '923000000000'}
         proofType={payProofType}
+        skipWhatsApp={true}
+      />
+      <PaymentProofModal
+        open={showFeaturedPayProofModal}
+        onClose={() => {
+          setShowFeaturedPayProofModal(false);
+          const storedUser = typeof window !== 'undefined' ? localStorage.getItem('er_user') : null;
+          if (storedUser) {
+            try {
+              const parsed = JSON.parse(storedUser);
+              setUser((prev: any) => ({ ...prev, ...parsed }));
+            } catch (_) {}
+          }
+        }}
+        planName="Featured Post"
+        isStandard={false}
+        initialCnic={(user as any).cnic}
+        ftPriceInt={Number((payProofSettings['featured_post_price'] || '200').replace(/,/g, '')) || 200}
+        maxFeaturedPerCity={Number(payProofSettings['max_featured_per_city']) || 5}
+        adminWa={payProofSettings['whatsapp_number'] || '923000000000'}
+        proofType="new"
         skipWhatsApp={true}
       />
       {bookingResult && (
