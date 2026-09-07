@@ -852,10 +852,10 @@ export default function MyProposalClient() {
             )}
           </div>
           <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ flex: 1 }}>
             {/* Name + status badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%' }}>
-              <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', whiteSpace: 'nowrap', flexShrink: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', whiteSpace: 'nowrap' }}>
                 {user.name}
               </div>
               {user.is_doc_verified && badgeEnabled && (
