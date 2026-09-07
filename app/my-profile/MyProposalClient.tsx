@@ -854,11 +854,11 @@ export default function MyProposalClient() {
           <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Name + ACTIVE badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden', flexShrink: 1 }}>
                 <div
                   className="my-account-name"
-                  style={{ fontSize: 20, fontWeight: 900, color: '#1A1830' }}
+                  style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                 >
                   <span className="name-mobile">{user.name && user.name.length > 25 ? user.name.slice(0, 25) + '…' : user.name}</span>
                   <span className="name-desktop">{user.name}</span>
@@ -869,7 +869,7 @@ export default function MyProposalClient() {
                   </svg></span>
                 )}
               </div>
-              <StatusBadge user={user} featuredBoost={hasFeaturedBoost} isAdmin={isAdminAccount} />
+              <div style={{ flexShrink: 0 }}><StatusBadge user={user} featuredBoost={hasFeaturedBoost} isAdmin={isAdminAccount} /></div>
               {user.proposal_number > 0 && <div className="hash-mobile" style={{ display: 'none', fontSize: 13, color: '#6B6893', marginLeft: 'auto', marginRight: 0 }}>#{user.proposal_number}</div>}
             </div>
             {!isAdminAccount && (
