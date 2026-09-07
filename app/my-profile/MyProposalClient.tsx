@@ -855,9 +855,8 @@ export default function MyProposalClient() {
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Name + status badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%' }}>
-              <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', flexShrink: 1, minWidth: 0 }}>
-                <span className="name-mobile">{user.name && user.name.length > 25 ? user.name.slice(0, 25) + '…' : user.name}</span>
-                <span className="name-desktop">{user.name}</span>
+              <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', whiteSpace: 'nowrap', flexShrink: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user.name}
               </div>
               {user.is_doc_verified && badgeEnabled && (
                 <span title="Verified" style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}><svg viewBox="0 0 24 24" width="18" height="18" fill="#16A34A"><path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/></svg></span>
