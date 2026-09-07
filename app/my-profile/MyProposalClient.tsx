@@ -216,7 +216,6 @@ export default function MyProposalClient() {
       const stored = localStorage.getItem('er_user');
       if (!stored) return null;
       const parsed = JSON.parse(stored);
-      if (parsed?.name && parsed.name.length > 25) parsed.name = parsed.name.slice(0, 25) + '…';
       return parsed;
     } catch { return null; }
   });
@@ -424,8 +423,7 @@ export default function MyProposalClient() {
 
     // Run check on page load
     validateSession();
-    const truncateName = (p: any) => p?.name?.length > 25 ? { ...p, name: p.name.slice(0, 25) + '…' } : p;
-    setUser(truncateName(session));
+    setUser(session);
     setSavedIds(getSavedIds());
     if (session.id) {
       import('@/lib/auth').then(m => m.syncSavedFromServer(session.id).then(ids => setSavedIds(ids)));
@@ -458,7 +456,6 @@ export default function MyProposalClient() {
           const data = rows?.[0];
           if (data) {
             const fresh = { ...session, ...data } as Proposal;
-            if (fresh.name && fresh.name.length > 25) (fresh as any).name = fresh.name.slice(0, 25) + '…';
             setUser(fresh);
             if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
             if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
@@ -470,7 +467,6 @@ export default function MyProposalClient() {
         supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle().then(({ data }) => {
           if (data) {
             const fresh = { ...session, ...data } as Proposal;
-            if (fresh.name && fresh.name.length > 25) (fresh as any).name = fresh.name.slice(0, 25) + '…';
             setUser(fresh);
             if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
             if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
