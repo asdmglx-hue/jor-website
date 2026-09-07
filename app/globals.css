@@ -553,7 +553,9 @@ body {
 .desktop-only { display: none !important; }
 @media (min-width: 769px) { .desktop-only { display: flex !important; } }
 @media (min-width: 769px) { .desktop-name { } }
-/* Name spans: mobile shows truncated span, desktop shows full span */
+/* Profile name: shrinks dynamically on mobile, natural width on desktop */
+.profile-name-div { flex: 1; min-width: 0; }
+@media (min-width: 769px) { .profile-name-div { flex: none; min-width: unset; } }
 .name-mobile { display: inline; }
 .name-desktop { display: none; }
 @media (min-width: 769px) { .name-mobile { display: none !important; } .name-desktop { display: inline !important; } }

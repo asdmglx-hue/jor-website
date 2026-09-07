@@ -861,7 +861,7 @@ export default function MyProposalClient() {
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Name + badge: single row, name truncates dynamically, badge pinned right */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%' }}>
-              <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0 }}>
+              <div className="profile-name-div" style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {user.name}
               </div>
               {user.is_doc_verified && badgeEnabled && (
