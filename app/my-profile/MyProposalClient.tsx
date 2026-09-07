@@ -827,10 +827,11 @@ export default function MyProposalClient() {
       <div style={{
         background: user.status === 'paused' ? '#F9FAFB' : user.is_boosted ? '#FFFBF5' : '#fff',
         border: `1px solid ${user.status === 'paused' ? '#D1D5DB' : user.is_boosted ? '#E8620A44' : '#E8E6F5'}`,
-        borderRadius: 20, padding: '20px', marginBottom: 16, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between',
+        borderRadius: 20, padding: '20px', marginBottom: 16, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between', position: 'relative',
       }}>
+        {user.proposal_number > 0 && <div className="hash-mobile" style={{ display: 'none', position: 'absolute', top: 16, right: 16, fontSize: 13, color: '#6B6893' }}>#{user.proposal_number}</div>}
         <div className="my-account-left" style={{ display: 'flex', gap: 16, alignItems: 'flex-start', minWidth: 0, flex: 1 }}>
-          <div style={{ position: 'relative', width: 72, height: 72, borderRadius: 36, flexShrink: 0 }}>
+          <div style={{ position: 'relative', width: 72, height: 72, borderRadius: 36, flexShrink: 0, overflow: 'visible' }}>
             <div onClick={() => photoInputRef.current?.click()} style={{ width: 72, height: 72, borderRadius: 36, background: user.gender === 'Male' ? '#534AB7' : '#E11D48', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, color: '#fff', fontWeight: 900, overflow: 'hidden', cursor: 'pointer' }}>
               {user.profile_photo_url ? <img src={user.profile_photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (user.name || '?').charAt(0)}
             </div>
@@ -863,7 +864,7 @@ export default function MyProposalClient() {
                 <span title="Verified" style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}><svg viewBox="0 0 24 24" width="18" height="18" fill="#16A34A"><path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/></svg></span>
               )}
               <div style={{ flexShrink: 0 }}><StatusBadge user={user} featuredBoost={hasFeaturedBoost} isAdmin={isAdminAccount} /></div>
-              {user.proposal_number > 0 && <div className="hash-mobile" style={{ display: 'none', fontSize: 13, color: '#6B6893', marginLeft: 'auto', marginRight: 0 }}>#{user.proposal_number}</div>}
+              {user.proposal_number > 0 && <div className="hash-desktop" style={{ fontSize: 13, color: '#6B6893', marginLeft: 'auto', marginRight: 0 }}>#{user.proposal_number}</div>}
             </div>
             {!isAdminAccount && (
             <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 2 }}>
