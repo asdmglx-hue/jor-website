@@ -553,8 +553,8 @@ body {
 @media (min-width: 769px) { .desktop-only { display: flex !important; } }
 @media (min-width: 769px) { .desktop-name { max-width: 320px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; } }
 /* Name spans: mobile shows truncated span, desktop shows full span */
-.name-mobile { display: inline; }
-.name-desktop { display: none; }
+.name-mobile { display: inline; white-space: nowrap; }
+.name-desktop { display: none; white-space: nowrap; }
 @media (min-width: 769px) { .name-mobile { display: none !important; } .name-desktop { display: inline !important; } }
 
 /* mobile-only: visible on mobile, hidden on desktop */

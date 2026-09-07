@@ -855,7 +855,7 @@ export default function MyProposalClient() {
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Name + ACTIVE badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                 <div
                   className="my-account-name"
                   style={{ fontSize: 20, fontWeight: 900, color: '#1A1830' }}
