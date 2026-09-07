@@ -313,7 +313,7 @@ body {
   /* Register step tabs: Additional Info must fit */
   .step-tab-label { font-size: 9px !important; }
   .my-account-left { width: 100% !important; min-width: 0 !important; overflow: hidden !important; }
-  .my-account-name { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; max-width: 160px !important; }
+  .my-account-name { max-width: 160px; }
   .my-account-name-desktop { max-width: none !important; white-space: normal !important; overflow: visible !important; }
   .saved-btn-header { display: none !important; }
   .proposals-br { display: block; }
@@ -551,10 +551,10 @@ body {
 /* desktop-only: hidden on mobile, flex on desktop */
 .desktop-only { display: none !important; }
 @media (min-width: 769px) { .desktop-only { display: flex !important; } }
-@media (min-width: 769px) { .desktop-name { max-width: 320px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; } }
+@media (min-width: 769px) { .desktop-name { } }
 /* Name spans: mobile shows truncated span, desktop shows full span */
-.name-mobile { display: inline; white-space: nowrap; }
-.name-desktop { display: none; white-space: nowrap; }
+.name-mobile { display: inline; }
+.name-desktop { display: none; }
 @media (min-width: 769px) { .name-mobile { display: none !important; } .name-desktop { display: inline !important; } }
 
 /* mobile-only: visible on mobile, hidden on desktop */

@@ -854,11 +854,11 @@ export default function MyProposalClient() {
           <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Name + ACTIVE badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden', flexShrink: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 4, width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                 <div
                   className="my-account-name"
-                  style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  style={{ fontSize: 20, fontWeight: 900, color: '#1A1830' }}
                 >
                   <span className="name-mobile">{user.name && user.name.length > 25 ? user.name.slice(0, 25) + '…' : user.name}</span>
                   <span className="name-desktop">{user.name}</span>
