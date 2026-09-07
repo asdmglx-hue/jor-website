@@ -829,9 +829,9 @@ export default function MyProposalClient() {
         border: `1px solid ${user.status === 'paused' ? '#D1D5DB' : user.is_boosted ? '#E8620A44' : '#E8E6F5'}`,
         borderRadius: 20, padding: '20px', marginBottom: 16, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between', position: 'relative',
       }}>
-        {user.proposal_number > 0 && <div className="hash-mobile" style={{ display: 'none', position: 'absolute', top: 16, right: 20, fontSize: 13, color: '#6B6893' }}>#{user.proposal_number}</div>}
         <div className="my-account-left" style={{ display: 'flex', gap: 16, alignItems: 'flex-start', minWidth: 0, flex: 1 }}>
-          <div style={{ position: 'relative', width: 72, height: 72, borderRadius: 36, flexShrink: 0, overflow: 'visible' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, gap: 4 }}>
+          <div style={{ position: 'relative', width: 72, height: 72, borderRadius: 36, overflow: 'visible' }}>
             <div onClick={() => photoInputRef.current?.click()} style={{ width: 72, height: 72, borderRadius: 36, background: user.gender === 'Male' ? '#534AB7' : '#E11D48', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, color: '#fff', fontWeight: 900, overflow: 'hidden', cursor: 'pointer' }}>
               {user.profile_photo_url ? <img src={user.profile_photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (user.name || '?').charAt(0)}
             </div>
@@ -853,9 +853,12 @@ export default function MyProposalClient() {
             )}
           </div>
           <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
+          {/* Hash under photo — mobile only */}
+          {user.proposal_number > 0 && (
+            <div className="hash-mobile" style={{ display: 'none', fontSize: 12, color: '#6B6893', textAlign: 'center' }}>#{user.proposal_number}</div>
+          )}
+          </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Space above name row on mobile to clear the absolute hash */}
-            <div className="hash-mobile" style={{ display: 'none', height: 24 }} />
             {/* Name + badge: single row, name truncates dynamically, badge pinned right */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, width: '100%' }}>
               <div style={{ fontSize: 20, fontWeight: 900, color: '#1A1830', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0 }}>
