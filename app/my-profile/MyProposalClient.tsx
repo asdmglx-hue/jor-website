@@ -392,7 +392,10 @@ export default function MyProposalClient() {
     // Skips check for 10 seconds after login to prevent self-kick.
     const validateSession = async () => {
       const sessionToken = localStorage.getItem('jor_session_token');
-      if (!session.cnic || !sessionToken) return true; // no token = old login, allow
+      const sessionIdentity = session.cnic
+        ? session.cnic.replace(/-/g, '')
+        : session.auth_phone ?? null;
+      if (!sessionIdentity || !sessionToken) return true; // no token = old login, allow
       const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
       if (Date.now() - loginTime < 10000) return true; // grace period after login
       // IMPORTANT: register_device_session (called at login) always uses
@@ -404,7 +407,7 @@ export default function MyProposalClient() {
       // kicking that person on every visit regardless of device.
       // Stripping here guarantees this always compares apples to apples.
       const { data } = await Promise.resolve(supabase.rpc('check_device_session', {
-        p_cnic: session.cnic.replace(/-/g, ''),
+        p_cnic: sessionIdentity,
         p_session_token: sessionToken,
       })).catch(() => ({ data: true }));
       if (data === false) {
@@ -415,7 +418,7 @@ export default function MyProposalClient() {
         localStorage.removeItem('er_saved');
         // Small delay to ensure localStorage writes complete before reload
         await new Promise(resolve => setTimeout(resolve, 150));
-        window.location.replace('/login?kicked=1');
+        window.location.replace(session.auth_phone && !session.cnic ? '/login-otp?kicked=1' : '/login?kicked=1');
         return false;
       }
       return true;
@@ -454,6 +457,19 @@ export default function MyProposalClient() {
           p_cnic: session.cnic.replace(/-/g, ''),
         }).then(({ data: rows }) => {
           const data = rows?.[0];
+          if (data) {
+            const fresh = { ...session, ...data } as Proposal;
+            setUser(fresh);
+            if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
+            if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
+            import('@/lib/auth').then(m => m.saveSession(fresh));
+          }
+        });
+      } else if (session.auth_phone) {
+        // Phone-only user — fetch proposal by auth_phone
+        supabase.from('proposals').select(PROFILE_DETAIL_COLS)
+          .eq('auth_phone', session.auth_phone)
+          .maybeSingle().then(({ data }) => {
           if (data) {
             const fresh = { ...session, ...data } as Proposal;
             setUser(fresh);
