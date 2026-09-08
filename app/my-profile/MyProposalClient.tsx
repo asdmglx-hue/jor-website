@@ -392,9 +392,9 @@ export default function MyProposalClient() {
     // Skips check for 10 seconds after login to prevent self-kick.
     const validateSession = async () => {
       const sessionToken = localStorage.getItem('jor_session_token');
-      const sessionIdentity = session.cnic
-        ? session.cnic.replace(/-/g, '')
-        : session.auth_phone ?? null;
+      const sessionIdentity = session.auth_phone
+        ? session.auth_phone.replace(/\D/g, '')
+        : (session as any).cnic?.replace(/-/g, '') ?? null;
       if (!sessionIdentity || !sessionToken) return true; // no token = old login, allow
       const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
       if (Date.now() - loginTime < 10000) return true; // grace period after login
@@ -451,10 +451,10 @@ export default function MyProposalClient() {
       // being silently wiped out by this refresh.
       // Use fetch_own_proposal RPC — bypasses the RLS status='active' filter
       // so pending/paused users also get fresh data on page load.
-      if (session.cnic) {
+      if (session.id && (session as any).cnic) {
         supabase.rpc('fetch_own_proposal', {
           p_id: session.id,
-          p_cnic: session.cnic.replace(/-/g, ''),
+          p_cnic: (session as any).cnic.replace(/-/g, ''),
         }).then(({ data: rows }) => {
           const data = rows?.[0];
           if (data) {
@@ -498,9 +498,9 @@ export default function MyProposalClient() {
       // the app hit). Reusing the same RPC built for the app: verifies
       // ownership server-side, then returns the events so the same
       // chronological-replay resolution logic can run here too.
-      if (session.cnic) {
+      if (session.id) {
         supabase.rpc('fetch_own_pending_edits', {
-          p_cnic: session.cnic.replace(/-/g, ''),
+          p_cnic: (session as any).auth_phone?.replace(/\D/g, '') ?? '',
           p_proposal_id: session.id,
         }).then(({ data: events }) => {
           if (!events) return;
@@ -549,8 +549,8 @@ export default function MyProposalClient() {
             }
             setBoostChecked(true);
           });
-        if (session.cnic) {
-          supabase.rpc('fetch_own_proposal', { p_id: session.id, p_cnic: session.cnic.replace(/-/g, '') })
+        if (session.id && (session as any).cnic) {
+          supabase.rpc('fetch_own_proposal', { p_id: session.id, p_cnic: (session as any).cnic.replace(/-/g, '') })
             .then(({ data: rows }) => { const data = rows?.[0]; if (data) setUser(prev => (prev ? { ...prev, ...data } : (data as Proposal))); });
         } else {
           supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle()
@@ -616,12 +616,10 @@ export default function MyProposalClient() {
   const handleLogout = () => {
     const session = getSession();
     const sessionToken = localStorage.getItem('jor_session_token');
-    if (session?.cnic && sessionToken) {
-      // Same dash-stripping as the check above — without it, logout
-      // silently fails to actually remove the DB session for anyone
-      // whose cnic column happens to have dashes.
+    const logoutIdentity = session?.auth_phone ?? (session as any)?.cnic ?? null;
+    if (logoutIdentity && sessionToken) {
       supabase.rpc('remove_device_session', {
-        p_cnic: session.cnic.replace(/-/g, ''),
+        p_cnic: logoutIdentity.replace(/\D/g, ''),
         p_session_token: sessionToken,
       }).then(() => {});
     }
@@ -651,9 +649,9 @@ export default function MyProposalClient() {
       // Storage from the browser — keeps every profile photo on R2 (zero
       // egress fees) instead of split across two different storage
       // providers, and keeps any storage credentials server-side only.
-      const cnicDigits = (user.cnic || '').replace(/\D/g, '') || user.id;
+      const identity = ((user as any).auth_phone || user.id || '').replace(/\D/g, '');
       const photoForm = new FormData();
-      photoForm.append('cnic', cnicDigits);
+      photoForm.append('auth_phone', identity);
       photoForm.append('photo', watermarked);
       const res = await fetch('/api/upload-profile-photo', { method: 'POST', body: photoForm });
       const uploaded = await res.json().catch(() => ({}));
@@ -787,9 +785,9 @@ export default function MyProposalClient() {
         // landed in review, the field should immediately show its
         // submitted text + a pending indicator, not wait for the next
         // full page load to reflect that.
-        if (user.cnic) {
+        if (user.id) {
           supabase.rpc('fetch_own_pending_edits', {
-            p_cnic: user.cnic.replace(/-/g, ''),
+            p_cnic: ((user as any).auth_phone ?? '').replace(/\D/g, ''),
             p_proposal_id: user.id,
           }).then(({ data: events }) => {
             if (!events) return;
@@ -1287,7 +1285,7 @@ export default function MyProposalClient() {
       <FeaturedBookModal
         open={bookModalOpen}
         onClose={() => setBookModalOpen(false)}
-        cnic={user.cnic || ''}
+        cnic={(user as any).auth_phone || ''}
         maxSlots={Math.min(3, Math.max(1, (user.featured_credits_purchased ?? 0) - (user.featured_credits_used ?? 0)))}
         onBooked={() => refreshFeaturedDataRef.current()}
         onResult={(lines, allToday) => setBookingResult({ lines, allToday })}
@@ -1295,7 +1293,7 @@ export default function MyProposalClient() {
       <FeaturedManageModal
         open={manageModalOpen}
         onClose={() => setManageModalOpen(false)}
-        cnic={user.cnic || ''}
+        cnic={(user as any).auth_phone || ''}
         userId={user.id}
         boosts={featuredBoosts}
         onChanged={() => refreshFeaturedDataRef.current()}
@@ -1551,7 +1549,7 @@ export default function MyProposalClient() {
                 setUploading(true);
                 try {
                   const fd = new FormData();
-                  fd.append('cnic', user.cnic);
+                  fd.append('auth_phone', (user as any).auth_phone || user.id);
                   fd.append('slot', slot);
                   fd.append('file', file);
                   const res = await fetch('/api/upload-degree-certificate', { method: 'POST', body: fd });
@@ -2108,7 +2106,7 @@ export default function MyProposalClient() {
                       // write (admin_accounts no longer grants raw write
                       // access to the anon key).
                       const { data: ok } = await supabase.rpc('admin_account_self_delete', {
-                        p_cnic: user.cnic,
+                        p_cnic: (user as any).auth_phone ?? '',
                         p_current_password: deletePassword.trim(),
                       });
                       setDeleting(false);
@@ -2146,7 +2144,7 @@ export default function MyProposalClient() {
                       // Voluntary self-delete: hard delete + save reason to deletion_reasons
                       const { data, error } = await supabase.rpc('self_delete_proposal', {
                         p_id: user.id,
-                        p_cnic: user.cnic ?? '',
+                        p_cnic: (user as any).auth_phone ?? '',
                         p_password: deletePassword.trim(),
                         p_reason: effectiveDeleteReason,
                       });

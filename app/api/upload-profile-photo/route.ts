@@ -10,10 +10,11 @@ export async function POST(request: Request) {
     const { env } = await getCloudflareContext({ async: true });
 
     const formData = await request.formData();
-    const cnicDigits = String(formData.get('cnic') || '').replace(/\D/g, '');
-    if (!/^\d{13}$/.test(cnicDigits)) {
-      return jsonResponse({ error: 'Invalid CNIC number' }, 400);
+    const authPhone = String(formData.get('auth_phone') || formData.get('cnic') || '').replace(/\D/g, '');
+    if (!authPhone || authPhone.length < 7) {
+      return jsonResponse({ error: 'Invalid identity' }, 400);
     }
+    const cnicDigits = authPhone;
 
     const photo = formData.get('photo');
     if (!(photo instanceof File)) {
