@@ -14,10 +14,9 @@ export function getSession(): Proposal | null {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    // A valid session must have at least an id and either a cnic (old users)
-    // or an auth_phone (OTP phone users). Name check removed — phone-only
-    // users may have their phone as placeholder name before submitting profile.
-    if (!parsed || !parsed.id || (!parsed.cnic && !parsed.auth_phone)) {
+    // Valid session needs an id. auth_phone OR cnic provides identity.
+    // We accept either — phone users have auth_phone, CNIC users had cnic (now dropped).
+    if (!parsed || !parsed.id) {
       localStorage.removeItem(SESSION_KEY);
       return null;
     }
@@ -25,12 +24,6 @@ export function getSession(): Proposal | null {
   } catch { return null; }
 }
 
-// A logged-in man should only ever browse women's proposals and vice
-// versa — matches the mobile app's identical lockedGender feature
-// (group_feed_screen.dart / filter_sheet.dart). Admin sessions (id
-// starts with 'admin:') and logged-out visitors are unrestricted, same
-// as mobile. Returns the gender the feed/filter should be locked to, or
-// null if nothing should be locked.
 export function getLockedGenderFilter(): 'Male' | 'Female' | null {
   const session = getSession();
   if (!session) return null;
@@ -56,13 +49,7 @@ export function toggleSaved(id: string): string[] {
   if (idx >= 0) ids.splice(idx, 1); else ids.push(id);
   localStorage.setItem('er_saved', JSON.stringify(ids));
 
-  // Sync to the database in the background if logged in, so saved proposals
-  // survive clearing browser history/localStorage — mirrors the mobile app's
-  // saved_proposals table exactly (not just a local-only cache).
   const session = getSession();
-  // Same reasoning as the proposals/featured_boosts guard — an admin's
-  // "admin:<uuid>" id was never a real proposal id, so it can't be used
-  // in saved_proposals.user_proposal_id (a real uuid column) either.
   if (session?.id && !session.id.startsWith('admin:')) {
     if (nowSaved) {
       supabase.from('saved_proposals')
@@ -79,9 +66,6 @@ export function toggleSaved(id: string): string[] {
   return ids;
 }
 
-// Pulls the authoritative saved list from the database and refreshes the
-// local cache — call this once a logged-in session is detected (e.g. on
-// app load), so saved proposals reappear even after localStorage was wiped.
 export async function syncSavedFromServer(userProposalId: string): Promise<string[]> {
   if (userProposalId.startsWith('admin:')) return getSavedIds();
   try {
@@ -101,7 +85,7 @@ export async function syncSavedFromServer(userProposalId: string): Promise<strin
 
 const NOT_INTERESTED_KEY = 'er_not_interested';
 const NOT_INTERESTED_DAYS = 30;
-type NotInterestedMap = Record<string, number>; // proposal id -> dismissed-at timestamp (ms)
+type NotInterestedMap = Record<string, number>;
 
 function getNotInterestedMap(): NotInterestedMap {
   if (typeof window === 'undefined') return {};
@@ -109,8 +93,6 @@ function getNotInterestedMap(): NotInterestedMap {
     const raw = localStorage.getItem(NOT_INTERESTED_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw);
-    // Back-compat: older versions stored a flat string[] with no expiry.
-    // Treat those as dismissed right now, so they still get a fresh 30-day window.
     if (Array.isArray(parsed)) {
       const now = Date.now();
       const map: NotInterestedMap = {};
@@ -138,28 +120,22 @@ export function addNotInterested(id: string): string[] {
   map[id] = Date.now();
   saveNotInterestedMap(map);
 
-  // Sync to the database in the background if logged in — uses the same
-  // append_not_interested RPC and not_interested_ids column your mobile
-  // app already relies on, so this survives clearing browser history.
+  // Sync to DB using proposal id (no longer needs cnic)
   const session = getSession();
-  if (session?.cnic) {
+  if (session?.id && !session.id.startsWith('admin:')) {
     const expiryMs = Date.now() + NOT_INTERESTED_DAYS * 24 * 60 * 60 * 1000;
-    supabase.rpc('append_not_interested', { p_cnic: session.cnic, p_proposal_id: id, p_expiry_ms: expiryMs }).then(() => {});
+    supabase.rpc('append_not_interested', { p_cnic: session.auth_phone ?? session.id, p_proposal_id: id, p_expiry_ms: expiryMs }).then(() => {});
   }
   return getNotInterestedIds();
 }
 
-// Pulls the authoritative not-interested list from the database and
-// refreshes the local cache — call this once a logged-in session is
-// detected, so dismissed proposals stay hidden even after localStorage
-// was wiped. IDs newly seen from the server start a fresh 30-day timer;
-// IDs the website already had a local timestamp for keep that timestamp.
-export async function syncNotInterestedFromServer(cnic: string): Promise<string[]> {
+export async function syncNotInterestedFromServer(identity: string): Promise<string[]> {
   try {
+    // Fetch by auth_phone for phone users, fallback to id
     const { data, error } = await supabase
       .from('proposals')
       .select('not_interested_ids')
-      .eq('cnic', cnic)
+      .eq('auth_phone', identity)
       .maybeSingle();
     if (error || !data) return getNotInterestedIds();
     const ids = (data.not_interested_ids as string[] | null) || [];
