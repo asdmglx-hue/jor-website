@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import PasswordInput from '@/components/PasswordInput';
@@ -154,8 +154,16 @@ export default function RegisterOtpClient() {
   const [pass, setPass]         = useState('');
   const [conf, setConf]         = useState('');
   const [busy, setBusy]         = useState(false);
+  const [resend, setResend]     = useState(0); // countdown seconds
   const [err, setErr]           = useState('');
   const [fullPhone, setFullPhone] = useState('');
+
+  // Countdown timer for resend
+  useEffect(() => {
+    if (resend <= 0) return;
+    const t = setTimeout(() => setResend(r => r - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resend]);
 
   // ── Step 1: Send OTP ──────────────────────────────────────────────────────
   async function handleSendOtp() {
@@ -179,6 +187,7 @@ export default function RegisterOtpClient() {
       if (data?.success) {
         setFullPhone(fp);
         setStep('otp');
+        setResend(60);
       } else {
         setErr((data?.message as string) || 'Failed to send OTP. Please try again.');
       }
@@ -293,10 +302,18 @@ export default function RegisterOtpClient() {
                   {busy ? <><Spinner /> Verifying...</> : 'Verify Code →'}
                 </button>
               </div>
-              <button onClick={() => { setStep('phone'); setOtp(''); setErr(''); }}
-                style={{ background: 'none', border: 'none', padding: '12px 0 0', width: '100%', textAlign: 'center', color: INK_LT, fontSize: 13, cursor: 'pointer' }}>
-                ← Change number
-              </button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 14 }}>
+                <button onClick={() => { setStep('phone'); setOtp(''); setErr(''); }}
+                  style={{ background: 'none', border: 'none', padding: 0, color: INK_LT, fontSize: 13, cursor: 'pointer' }}>
+                  ← Change number
+                </button>
+                <button
+                  onClick={() => { setOtp(''); setErr(''); handleSendOtp(); }}
+                  disabled={resend > 0}
+                  style={{ background: 'none', border: 'none', padding: 0, fontSize: 13, fontWeight: 600, cursor: resend > 0 ? 'default' : 'pointer', color: resend > 0 ? '#9895C0' : PURPLE }}>
+                  {resend > 0 ? `Resend in ${resend}s` : 'Resend code'}
+                </button>
+              </div>
             </>
           )}
 
@@ -331,18 +348,14 @@ export default function RegisterOtpClient() {
                 <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
               <div style={{ fontSize: 20, fontWeight: 900, color: INK, marginBottom: 6 }}>Account Created!</div>
-              <div style={{ fontSize: 14, color: INK_LT, marginBottom: 8, lineHeight: 1.6 }}>
+              <div style={{ fontSize: 14, color: INK_LT, marginBottom: 16, lineHeight: 1.6 }}>
                 Your account is ready. Now fill in your rishta profile to get started.
               </div>
-              <div style={{ fontSize: 13, color: INK_LT, marginBottom: 24 }}>{fullPhone}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: PURPLE, marginBottom: 24 }}>{fullPhone}</div>
               <Link href={`/login-otp?phone=${encodeURIComponent(fullPhone)}&next=/register`}
                 style={{ display: 'block', width: '100%', padding: '13px', borderRadius: 12, background: PURPLE, color: '#fff', fontWeight: 800, fontSize: 15, textDecoration: 'none', textAlign: 'center', boxShadow: '0 4px 14px rgba(83,74,183,0.3)' }}>
-                Continue to Profile →
+                Login →
               </Link>
-              <p style={{ marginTop: 16, fontSize: 13, color: INK_LT }}>
-                Already have a profile?{' '}
-                <Link href="/login-otp" style={{ color: PURPLE, fontWeight: 700, textDecoration: 'none' }}>Login</Link>
-              </p>
             </div>
           )}
         </div>
