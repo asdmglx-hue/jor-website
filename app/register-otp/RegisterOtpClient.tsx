@@ -267,12 +267,12 @@ export default function RegisterOtpClient() {
                   {busy ? <><Spinner /> Sending...</> : <><WaIcon /> Continue with WhatsApp</>}
                 </button>
               </div>
-              <p style={{ fontSize: 11.5, color: INK_LT, textAlign: 'center', marginTop: 20, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 11.5, color: INK_LT, textAlign: 'center', marginTop: 20, lineHeight: 1.6, marginBottom: 4 }}>
                 By continuing, you accept our{' '}
                 <a href="/privacy-policy" target="_blank" style={{ color: PURPLE, fontWeight: 700 }}>Privacy Policy</a>{' '}and{' '}
                 <a href="/terms" target="_blank" style={{ color: PURPLE, fontWeight: 700 }}>Terms</a>.
               </p>
-              <p style={{ textAlign: 'center', marginTop: 16, fontSize: 13, color: INK_LT }}>
+              <p style={{ textAlign: 'center', marginTop: 4, fontSize: 13, color: INK_LT }}>
                 Already have an account?{' '}
                 <Link href="/login-otp" style={{ color: PURPLE, fontWeight: 700, textDecoration: 'none' }}>Login</Link>
               </p>
