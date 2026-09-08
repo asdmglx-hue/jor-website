@@ -36,30 +36,24 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
 
     // Check session validity on every page navigation
     // This ensures kicked users are logged out globally, not just on /my-profile
-    if (s?.cnic) {
+    // Use cnic for old users, auth_phone for new OTP phone users
+    const sessionIdentity = s?.cnic
+      ? s.cnic.replace(/-/g, '')
+      : s?.auth_phone ?? null;
+    if (sessionIdentity) {
       const sessionToken = localStorage.getItem('jor_session_token');
       const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
       if (sessionToken && Date.now() - loginTime > 10000) {
-        // IMPORTANT: register_device_session (called at login) always uses
-        // the dash-stripped CNIC, but a handful of proposals have their
-        // cnic column stored WITH dashes (data entry inconsistency, not
-        // something this code can rely on being clean) — session.cnic here
-        // reflects however it's actually stored in the DB for this
-        // person, dashes and all. Comparing that raw value against a
-        // session registered under the stripped form never matches,
-        // which silently and permanently kicks that person on every
-        // single visit, regardless of device. Stripping here guarantees
-        // this check always compares apples to apples with how the
-        // session was actually registered.
         Promise.resolve(supabase.rpc('check_device_session', {
-          p_cnic: s.cnic.replace(/-/g, ''),
+          p_cnic: sessionIdentity,
           p_session_token: sessionToken,
         })).then(({ data }) => {
           if (data === false) {
             localStorage.removeItem('er_user');
             localStorage.removeItem('jor_session_token');
             localStorage.removeItem('jor_login_time');
-            window.location.replace('/login?kicked=1');
+            // Redirect to correct login page based on how they logged in
+            window.location.replace(s?.auth_phone && !s?.cnic ? '/login-otp?kicked=1' : '/login?kicked=1');
           }
         }).catch(() => {});
       }
