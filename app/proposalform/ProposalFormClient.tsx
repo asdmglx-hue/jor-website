@@ -819,7 +819,7 @@ export default function ProposalFormClient() {
     try {
       const s = getSession();
       if (!s || (!s.auth_phone && !s.cnic)) {
-        window.location.href = '/login-otp?next=/proposalform';
+        window.location.href = '/login?next=/proposalform';
         return;
       }
       const phone = s.auth_phone ?? '';
@@ -1335,7 +1335,7 @@ export default function ProposalFormClient() {
             <p style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.6, marginBottom: 20 }}>Your form progress is saved. You can come back anytime to continue.</p>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setShowLogoutModal(false)} style={{ flex: 1, padding: 11, borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => { clearSession(); window.location.href = '/login-otp'; }} style={{ flex: 2, padding: 11, borderRadius: 10, border: 'none', background: '#DC2626', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>Log Out</button>
+              <button onClick={() => { clearSession(); window.location.href = '/login'; }} style={{ flex: 2, padding: 11, borderRadius: 10, border: 'none', background: '#DC2626', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>Log Out</button>
             </div>
           </div>
         </div>
@@ -1445,7 +1445,7 @@ export default function ProposalFormClient() {
               </div>
               {cnicState === 'taken' && (
                 <div style={{ marginTop: 6, fontSize: 12.5, color: '#DC2626', fontWeight: 600 }}>
-                  This CNIC is already registered. <a href="/login-otp" style={{ color: '#534AB7', textDecoration: 'none' }}>→ Login instead</a>
+                  This CNIC is already registered. <a href="/login" style={{ color: '#534AB7', textDecoration: 'none' }}>→ Login instead</a>
                 </div>
               )}
             </Field>

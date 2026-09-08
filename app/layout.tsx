@@ -127,7 +127,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="footer-nav-right footer-nav-desktop" style={{ textAlign: 'right' }}>
                 <div className="footer-nav-main" style={{ display: 'flex', gap: 32, fontSize: 15, fontWeight: 400, color: '#fff', marginBottom: 8, justifyContent: 'flex-end' }}>
                   <Link href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Proposals</Link>
-                  <Link href="/register-otp" style={{ color: '#fff', textDecoration: 'none' }}>Register</Link>
+                  <Link href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</Link>
                   <Link href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</Link>
                   <Link href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</Link>
                   <Link href="/blog" style={{ color: '#fff', textDecoration: 'none' }}>Blog</Link>
@@ -164,7 +164,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="footer-nav-mobile-copy">
                 <div style={{ display: 'flex', gap: 14, fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 8 }}>
                   <Link href="/proposals" style={{ color: '#fff', textDecoration: 'none' }}>Proposals</Link>
-                  <Link href="/register-otp" style={{ color: '#fff', textDecoration: 'none' }}>Register</Link>
+                  <Link href="/register" style={{ color: '#fff', textDecoration: 'none' }}>Register</Link>
                   <Link href="/plans" style={{ color: '#fff', textDecoration: 'none' }}>Plans</Link>
                   <Link href="/stories" style={{ color: '#fff', textDecoration: 'none' }}>Stories</Link>
                   <Link href="/blog" style={{ color: '#fff', textDecoration: 'none' }}>Blog</Link>

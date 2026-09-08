@@ -418,7 +418,7 @@ export default function MyProposalClient() {
         localStorage.removeItem('er_saved');
         // Small delay to ensure localStorage writes complete before reload
         await new Promise(resolve => setTimeout(resolve, 150));
-        window.location.replace(session.auth_phone && !session.cnic ? '/login-otp?kicked=1' : '/login?kicked=1');
+        window.location.replace(session.auth_phone && !session.cnic ? '/login?kicked=1' : '/login?kicked=1');
         return false;
       }
       return true;

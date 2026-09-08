@@ -1111,7 +1111,7 @@ export default function SubmitClient() {
       <p style={{ color: '#6B6893', marginBottom: 24, lineHeight: 1.6 }}>
         Thank you for submitting your profile! Please allow up to 24 hours for review.
       </p>
-      <Link href="/login-otp" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: 12, background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>
+      <Link href="/login" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: 12, background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>
         Login
       </Link>
     </div>
@@ -1181,7 +1181,7 @@ export default function SubmitClient() {
             </Field>
             {error.includes('already registered') && (
               <div style={{ marginTop: -8, marginBottom: 14, fontSize: 13 }}>
-                <Link href="/login-otp" style={{ color: '#534AB7', fontWeight: 700, textDecoration: 'none' }}>→ Go to Login</Link>
+                <Link href="/login" style={{ color: '#534AB7', fontWeight: 700, textDecoration: 'none' }}>→ Go to Login</Link>
               </div>
             )}
             <Field label="Set Password" required>

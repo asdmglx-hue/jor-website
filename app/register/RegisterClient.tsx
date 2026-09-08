@@ -6,7 +6,7 @@ import PasswordInput from '@/components/PasswordInput';
 import PhoneInput from '@/components/PhoneInput';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// /register-otp — OTP phone signup clone
+// /register — OTP phone signup clone
 // Mirrors Flutter jor_auth_sheet.dart signup flow:
 //   phone → OTP → set password → done → redirect to /register (profile form)
 // The existing /register page is completely untouched.
@@ -146,7 +146,7 @@ function formatPhone(dialCode: string, number: string): string {
   return `${dialCode}${local}`;
 }
 
-export default function RegisterOtpClient() {
+export default function RegisterClient() {
   const [step, setStep]         = useState<Step>('phone');
   const [phone, setPhone]       = useState('');
   const [dialCode, setDialCode] = useState('+92');
@@ -274,7 +274,7 @@ export default function RegisterOtpClient() {
               </p>
               <p style={{ textAlign: 'center', marginTop: 4, fontSize: 13, color: INK_LT }}>
                 Already have an account?{' '}
-                <Link href="/login-otp" style={{ color: PURPLE, fontWeight: 700, textDecoration: 'none' }}>Login</Link>
+                <Link href="/login" style={{ color: PURPLE, fontWeight: 700, textDecoration: 'none' }}>Login</Link>
               </p>
             </>
           )}
@@ -352,7 +352,7 @@ export default function RegisterOtpClient() {
                 Your account is ready. Now fill in your rishta profile to get started.
               </div>
               <div style={{ fontSize: 15, fontWeight: 700, color: PURPLE, marginBottom: 24 }}>{fullPhone}</div>
-              <Link href={`/login-otp?phone=${encodeURIComponent(fullPhone)}&next=/register`}
+              <Link href={`/login?phone=${encodeURIComponent(fullPhone)}&next=/register`}
                 style={{ display: 'block', width: '100%', padding: '13px', borderRadius: 12, background: PURPLE, color: '#fff', fontWeight: 800, fontSize: 15, textDecoration: 'none', textAlign: 'center', boxShadow: '0 4px 14px rgba(83,74,183,0.3)' }}>
                 Login →
               </Link>

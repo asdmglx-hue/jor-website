@@ -54,7 +54,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
             localStorage.removeItem('jor_session_token');
             localStorage.removeItem('jor_login_time');
             // Redirect to correct login page based on how they logged in
-            window.location.replace(s?.auth_phone && !s?.cnic ? '/login-otp?kicked=1' : '/login?kicked=1');
+            window.location.replace(s?.auth_phone && !s?.cnic ? '/login?kicked=1' : '/login?kicked=1');
           }
         }).catch(() => {});
       }
@@ -152,11 +152,11 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
             </div>
             )
           ) : (
-            <Link href="/login-otp" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, color: '#1A1830', fontSize: 13, fontWeight: 700, border: '1.5px solid #E8E6F5' }}>Login</Link>
+            <Link href="/login" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, color: '#1A1830', fontSize: 13, fontWeight: 700, border: '1.5px solid #E8E6F5' }}>Login</Link>
           ))}
 
           {mounted && !user && (
-            <Link href="/register-otp" style={{ textDecoration: 'none', padding: '8px 18px', borderRadius: 10, background: '#534AB7', color: '#fff', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(83,74,183,0.25)' }}>
+            <Link href="/register" style={{ textDecoration: 'none', padding: '8px 18px', borderRadius: 10, background: '#534AB7', color: '#fff', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(83,74,183,0.25)' }}>
               Register
             </Link>
           )}
@@ -197,8 +197,8 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
             )
           ) : (
             <>
-              <Link href="/login-otp" style={{ textDecoration: 'none', padding: '7px 12px', borderRadius: 10, color: '#1A1830', fontSize: 13, fontWeight: 700, border: '1.5px solid #E8E6F5' }}>Login</Link>
-              <Link href="/register-otp" style={{ textDecoration: 'none', padding: '7px 14px', borderRadius: 10, background: '#534AB7', color: '#fff', fontSize: 13, fontWeight: 700 }}>Register</Link>
+              <Link href="/login" style={{ textDecoration: 'none', padding: '7px 12px', borderRadius: 10, color: '#1A1830', fontSize: 13, fontWeight: 700, border: '1.5px solid #E8E6F5' }}>Login</Link>
+              <Link href="/register" style={{ textDecoration: 'none', padding: '7px 14px', borderRadius: 10, background: '#534AB7', color: '#fff', fontSize: 13, fontWeight: 700 }}>Register</Link>
             </>
           ))}
 
