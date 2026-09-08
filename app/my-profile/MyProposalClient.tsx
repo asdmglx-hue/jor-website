@@ -471,7 +471,8 @@ export default function MyProposalClient() {
           .eq('auth_phone', session.auth_phone)
           .maybeSingle().then(({ data }) => {
           if (data) {
-            const fresh = { ...session, ...data } as Proposal;
+            // Ensure auth_phone is preserved so getSession() doesn't clear this session
+            const fresh = { ...session, ...data, auth_phone: data.auth_phone ?? session.auth_phone } as Proposal;
             setUser(fresh);
             if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
             if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
