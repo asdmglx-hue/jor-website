@@ -121,9 +121,14 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
           <Link href="/proposals" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: pathname.startsWith('/proposals') ? '#EEEDFE' : 'transparent', color: '#534AB7' }}>Browse Proposals</Link>
           <Link href="/plans" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: pathname.startsWith('/plans') ? '#EEEDFE' : 'transparent', color: '#534AB7' }}>Plans</Link>
 
-          {mounted && user && <NotificationBell />}
+          {mounted && user && !pathname.startsWith('/proposalform') && <NotificationBell />}
 
           {mounted && (user ? (
+            pathname.startsWith('/proposalform') ? (
+              <button onClick={handleLogout} style={{ padding: '8px 16px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', color: '#DC2626', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                Log Out
+              </button>
+            ) : (
             <div style={{ position: 'relative' }}>
               <button onClick={() => setMenuOpen(menuOpen === 'desktop' ? false : 'desktop')} style={{
                 display: 'flex', alignItems: 'center', gap: 7, padding: '5px 12px 5px 5px', borderRadius: 10,
@@ -144,6 +149,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
                 </div>
               )}
             </div>
+            )
           ) : (
             <Link href="/login" style={{ textDecoration: 'none', padding: '8px 14px', borderRadius: 10, color: '#1A1830', fontSize: 13, fontWeight: 700, border: '1.5px solid #E8E6F5' }}>Login</Link>
           ))}
@@ -159,6 +165,11 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
         <div className="nav-mobile" style={{ display: 'none', alignItems: 'center', gap: 8 }}>
 
           {mounted && (user ? (
+            pathname.startsWith('/proposalform') ? (
+              <button onClick={handleLogout} style={{ padding: '7px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', color: '#DC2626', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                Log Out
+              </button>
+            ) : (
             <div style={{ position: 'relative' }}>
               <button onClick={() => setMenuOpen(menuOpen === 'user' ? false : 'user')} style={{
                 display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px 4px 4px', borderRadius: 10,
@@ -182,6 +193,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
                 </div>
               )}
             </div>
+            )
           ) : (
             <>
               <Link href="/login" style={{ textDecoration: 'none', padding: '7px 12px', borderRadius: 10, color: '#1A1830', fontSize: 13, fontWeight: 700, border: '1.5px solid #E8E6F5' }}>Login</Link>
