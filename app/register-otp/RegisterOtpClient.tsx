@@ -255,7 +255,7 @@ export default function RegisterOtpClient() {
               <ErrBox msg={err} />
               <div style={{ marginTop: 32 }}>
                 <button onClick={handleSendOtp} disabled={busy} style={waBtn(busy)}>
-                  {busy ? <><Spinner /> Sending...</> : <><WaIcon /> Continue via WhatsApp</>}
+                  {busy ? <><Spinner /> Sending...</> : <><WaIcon /> Continue with WhatsApp</>}
                 </button>
               </div>
               <p style={{ fontSize: 11.5, color: INK_LT, textAlign: 'center', marginTop: 20, lineHeight: 1.6 }}>
