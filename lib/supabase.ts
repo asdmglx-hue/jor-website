@@ -1084,7 +1084,7 @@ export async function loginWithPhone(phone: string, password: string): Promise<P
   return result;
 }
 
-
+export async function updateProposal(id: string, updates: Partial<Proposal>): Promise<boolean> {
   const { error } = await supabase.from('proposals').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', id);
   return !error;
 }
