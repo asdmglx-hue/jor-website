@@ -45,7 +45,7 @@ const primaryBtn = (disabled = false): React.CSSProperties => ({
 
 const waBtn = (disabled = false): React.CSSProperties => ({
   width: '100%', padding: '13px', borderRadius: 12, border: 'none',
-  background: disabled ? '#a3d4b8' : WA_GREEN, color: '#fff',
+  background: disabled ? '#9895C0' : PURPLE, color: '#fff',
   fontWeight: 800, fontSize: 15, cursor: disabled ? 'not-allowed' : 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
 });
@@ -262,7 +262,7 @@ export default function RegisterOtpClient() {
               <p style={{ fontSize: 11.5, color: INK_LT, textAlign: 'left', marginTop: 16, lineHeight: 1.6 }}>
                 By continuing, you accept our{' '}
                 <a href="/privacy-policy" target="_blank" style={{ color: PURPLE, fontWeight: 700 }}>Privacy Policy</a>{' '}and{' '}
-                <a href="/terms" target="_blank" style={{ color: PURPLE, fontWeight: 700 }}>Terms of Service</a>.
+                <a href="/terms" target="_blank" style={{ color: PURPLE, fontWeight: 700 }}>Terms</a>.
               </p>
               <p style={{ textAlign: 'center', marginTop: 16, fontSize: 13, color: INK_LT }}>
                 Already have an account?{' '}
