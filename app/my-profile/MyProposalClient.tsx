@@ -466,13 +466,12 @@ export default function MyProposalClient() {
           }
         });
       } else if (session.auth_phone) {
-        // Phone-only user — fetch proposal by auth_phone
-        supabase.from('proposals').select(PROFILE_DETAIL_COLS)
-          .eq('auth_phone', session.auth_phone)
-          .maybeSingle().then(({ data }) => {
-          if (data) {
-            // Ensure auth_phone is preserved so getSession() doesn't clear this session
-            const fresh = { ...session, ...data, auth_phone: data.auth_phone ?? session.auth_phone } as Proposal;
+        // Phone-only user — use RPC which bypasses RLS (pending proposals blocked by direct select)
+        supabase.rpc('fetch_user_status_by_cnic', { p_cnic: session.auth_phone })
+          .then(({ data }) => {
+          const proposal = data as Record<string, unknown> | null;
+          if (proposal && proposal.id) {
+            const fresh = { ...session, ...proposal, auth_phone: (proposal.auth_phone as string) ?? session.auth_phone } as Proposal;
             setUser(fresh);
             if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
             if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
