@@ -778,6 +778,7 @@ export default function ProposalFormClient() {
 
 
   const [mounted, setMounted] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
   useEffect(() => {
     try {
       const savedStep = Number(localStorage.getItem(STEP_KEY)) || 1;
@@ -822,6 +823,7 @@ export default function ProposalFormClient() {
         window.location.href = '/login?next=/proposalform';
         return;
       }
+      setSessionChecked(true);
       const phone = s.auth_phone ?? '';
       setAuthPhone(phone);
       // Load cloud draft if no local draft exists
@@ -1323,6 +1325,9 @@ export default function ProposalFormClient() {
   const stepsMobile = noVerifSections
     ? ['Basic Info', 'Additional Info', 'Submit']
     : ['Basic Info', 'Additional Info', 'Verification', 'Submit'];
+
+  // Don't render anything until session is confirmed — prevents flash of form for logged-out users
+  if (!sessionChecked) return null;
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px 20px' }}>
