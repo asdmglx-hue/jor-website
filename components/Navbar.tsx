@@ -126,7 +126,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
 
           {mounted && (user ? (
             pathname.startsWith('/proposalform') ? (
-              <button onClick={() => setShowLogoutConfirm(true)} style={{ padding: '8px 14px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', color: '#1A1830', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => setShowLogoutConfirm(true)} style={{ padding: '8px 14px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', color: '#DC2626', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                 Log Out
               </button>
             ) : (
@@ -167,7 +167,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
 
           {mounted && (user ? (
             pathname.startsWith('/proposalform') ? (
-              <button onClick={() => setShowLogoutConfirm(true)} style={{ padding: '7px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', color: '#1A1830', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => setShowLogoutConfirm(true)} style={{ padding: '7px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', color: '#DC2626', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                 Log Out
               </button>
             ) : (
