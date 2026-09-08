@@ -1353,7 +1353,7 @@ export default function ProposalFormClient() {
       </div>
 
       {/* Step indicator — hidden until settings load so Verification tab never flashes */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 28, visibility: settingsLoaded ? 'visible' : 'hidden' }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 28 }}>
         {steps.map((s, i) => {
           const realStep = (i + 2) as 1 | 2 | 3 | 4 | 5; // steps start at 2 (no Account Setup)
           const reachable = realStep !== step;
