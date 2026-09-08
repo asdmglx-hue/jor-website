@@ -219,9 +219,9 @@ export default function LoginOtpClient() {
         const params = new URLSearchParams(window.location.search);
         window.location.href = params.get('next') || '/my-profile';
       } else {
-        // No profile yet — redirect to register to complete it
+        // No profile yet — redirect to proposalform to complete it
         trackEvent('login_success');
-        window.location.href = '/register';
+        window.location.href = '/proposalform';
       }
     } catch {
       setLErr('Something went wrong. Please check your connection and try again.');
