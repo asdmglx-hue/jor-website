@@ -194,13 +194,12 @@ export default function LoginOtpClient() {
         return;
       }
 
-      // Fetch the full proposal using the returned identity
+      // Fetch the full proposal using RPC (bypasses RLS so pending profiles work too)
       const identityStr = identity as string;
-      const { data: proposal } = await supabase
-        .from('proposals')
-        .select('*')
-        .or(`auth_phone.eq.${phone},cnic.eq.${identityStr}`)
-        .maybeSingle();
+      const { data: statusData } = await supabase.rpc('fetch_user_status_by_cnic', {
+        p_cnic: identityStr,
+      });
+      const proposal = statusData as Record<string, unknown> | null;
 
       const deviceId = getOrCreateWebDeviceId();
       localStorage.removeItem('jor_session_token');
@@ -210,7 +209,7 @@ export default function LoginOtpClient() {
       if (sessionToken) localStorage.setItem('jor_session_token', sessionToken as string);
       localStorage.setItem('jor_login_time', Date.now().toString());
 
-      if (proposal) {
+      if (proposal && proposal.id) {
         saveSession(proposal as import('@/lib/supabase').Proposal);
         trackEvent('login_success');
         const params = new URLSearchParams(window.location.search);
