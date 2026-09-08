@@ -26,7 +26,7 @@ const WA_GREEN  = '#25D366';
 
 const card: React.CSSProperties = {
   background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 20,
-  padding: '28px', boxShadow: '0 4px 20px rgba(83,74,183,0.08)',
+  padding: '32px 28px', boxShadow: '0 4px 20px rgba(83,74,183,0.08)',
 };
 
 const inputStyle: React.CSSProperties = {
@@ -77,7 +77,7 @@ function ErrBox({ msg }: { msg: string }) {
 
 function StepDots({ current, total }: { current: number; total: number }) {
   return (
-    <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 24 }}>
+    <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 28 }}>
       {Array.from({ length: total }).map((_, i) => (
         <div key={i} style={{
           width: i === current ? 18 : 6, height: 6, borderRadius: 3,
@@ -247,19 +247,19 @@ export default function RegisterOtpClient() {
           {/* ── Step: phone ── */}
           {step === 'phone' && (
             <>
-              <label style={lbl}>Phone Number</label>
+              <label style={lbl}>WhatsApp Number</label>
               <PhoneInput value={phone} onChange={v => { setPhone(v); setErr(''); }}
                 dialCode={dialCode} onDialChange={v => { setDialCode(v); setErr(''); }} autoFocus />
-              <p style={{ fontSize: 12, color: INK_LT, marginTop: 8, lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: INK_LT, marginTop: 10, lineHeight: 1.5 }}>
                 A 6-digit verification code will be sent to you via WhatsApp.
               </p>
               <ErrBox msg={err} />
-              <div style={{ marginTop: 20 }}>
+              <div style={{ marginTop: 24 }}>
                 <button onClick={handleSendOtp} disabled={busy} style={waBtn(busy)}>
                   {busy ? <><Spinner /> Sending...</> : <><WaIcon /> Continue via WhatsApp</>}
                 </button>
               </div>
-              <p style={{ fontSize: 11.5, color: INK_LT, textAlign: 'left', marginTop: 16, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 11.5, color: INK_LT, textAlign: 'left', marginTop: 20, lineHeight: 1.6 }}>
                 By continuing, you accept our{' '}
                 <a href="/privacy-policy" target="_blank" style={{ color: PURPLE, fontWeight: 700 }}>Privacy Policy</a>{' '}and{' '}
                 <a href="/terms" target="_blank" style={{ color: PURPLE, fontWeight: 700 }}>Terms</a>.
