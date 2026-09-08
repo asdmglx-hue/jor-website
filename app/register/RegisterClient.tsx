@@ -267,7 +267,7 @@ export default function RegisterClient() {
                   {busy ? <><Spinner /> Sending...</> : <><WaIcon /> Continue with WhatsApp</>}
                 </button>
               </div>
-              <p style={{ fontSize: 11.5, color: INK_LT, textAlign: 'center', marginTop: 20, lineHeight: 1.6, marginBottom: 4 }}>
+              <p style={{ fontSize: 11.5, color: INK_LT, textAlign: 'center', marginTop: 20, lineHeight: 1.6, marginBottom: 12 }}>
                 By continuing, you accept our{' '}
                 <a href="/privacy-policy" target="_blank" style={{ color: PURPLE, fontWeight: 700 }}>Privacy Policy</a>{' '}and{' '}
                 <a href="/terms" target="_blank" style={{ color: PURPLE, fontWeight: 700 }}>Terms</a>.

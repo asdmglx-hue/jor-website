@@ -42,7 +42,7 @@ const inputStyle: React.CSSProperties = {
 
 const primaryBtn = (disabled = false): React.CSSProperties => ({
   width: '100%', padding: '13px', borderRadius: 12, border: 'none',
-  background: disabled ? '#9895C0' : PURPLE, color: '#fff',
+  background: disabled ? '#a3d4b8' : WA_GREEN, color: '#fff',
   fontWeight: 800, fontSize: 15, cursor: disabled ? 'not-allowed' : 'pointer',
   boxShadow: disabled ? 'none' : '0 4px 14px rgba(83,74,183,0.3)',
   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -367,7 +367,7 @@ export default function LoginClient() {
                     dialCode={fDial} onDialChange={v => { setFDial(v); setFErr(''); }} autoFocus />
                   <ErrBox msg={fErr} />
                   <div style={{ marginTop: 20 }}>
-                    <button onClick={handleForgotSendOtp} disabled={fBusy} style={waBtn(fBusy)}>
+                    <button onClick={handleForgotSendOtp} disabled={fBusy} style={primaryBtn(fBusy)}>
                       {fBusy ? <><Spinner /> Sending...</> : 'Send OTP via WhatsApp'}
                     </button>
                   </div>
