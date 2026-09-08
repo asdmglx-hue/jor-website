@@ -591,6 +591,7 @@ export default function ProposalFormClient() {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(2);
   const [authPhone, setAuthPhone] = useState('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const cloudSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cityGroups, setCityGroups] = useState<Record<string, string[]>>({});
   const [casteGroups, setCasteGroups] = useState<Record<string, string[]>>(CASTE_GROUPS);
   const [professionGroups, setProfessionGroups] = useState<Record<string, string[]>>(PROFESSION_GROUPS);
@@ -823,14 +824,46 @@ export default function ProposalFormClient() {
       }
       const phone = s.auth_phone ?? '';
       setAuthPhone(phone);
-      // Pre-fill contact phone from auth_phone
+      // Load cloud draft if no local draft exists
       if (phone) {
-        setForm(f => ({ ...f, phone: phone.replace(/^\+92/, '0') }));
+        const localDraft = localStorage.getItem(DRAFT_KEY);
+        if (!localDraft || localDraft === '{}') {
+          void (async () => {
+            try {
+              const { data: cloudDraft } = await supabase.rpc('get_phone_draft', { p_phone: phone });
+              if (cloudDraft && typeof cloudDraft === 'object') {
+                const draft = cloudDraft as unknown as Record<string, unknown>;
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+                setForm(f => ({ ...f, ...draft }));
+                const savedStep = Math.max(2, Number(draft.step) || 2);
+                setStep(savedStep as 1 | 2 | 3 | 4 | 5);
+                setMaxStep(savedStep);
+              } else {
+                setForm(f => ({ ...f, phone: phone.replace(/^\+92/, '0') }));
+              }
+            } catch (_) {
+              setForm(f => ({ ...f, phone: phone.replace(/^\+92/, '0') }));
+            }
+          })();
+        }
       }
     } catch {}
     setMounted(true);
   }, []);
-  useEffect(() => { if (mounted) localStorage.setItem(DRAFT_KEY, JSON.stringify(form)); }, [form, mounted]);
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(form));
+      // Debounced cloud save — 2s after last change
+      if (authPhone) {
+        if (cloudSaveTimer.current) clearTimeout(cloudSaveTimer.current);
+        cloudSaveTimer.current = setTimeout(() => {
+          void (async () => {
+            try { await supabase.rpc('save_phone_draft', { p_phone: authPhone, p_draft: { ...form, step } }); } catch (_) {}
+          })();
+        }, 2000);
+      }
+    }
+  }, [form, mounted]);
   useEffect(() => { if (mounted) localStorage.setItem(STEP_KEY, String(step)); }, [step, mounted]);
   useEffect(() => {
     if (mounted) localStorage.setItem(COUPON_KEY, JSON.stringify({ code: couponCode, applied: !!appliedCouponCode }));
@@ -1229,6 +1262,10 @@ export default function ProposalFormClient() {
     setSubmitting(false);
     if (success) {
       localStorage.removeItem(DRAFT_KEY);
+      // Clear cloud draft too
+      if (authPhone) {
+        void (async () => { try { await supabase.rpc('clear_phone_draft', { p_phone: authPhone }); } catch (_) {} })();
+      }
       localStorage.removeItem(STEP_KEY);
       localStorage.removeItem(COUPON_KEY);
       localStorage.removeItem(AFFILIATE_APPLIED_KEY);
@@ -1307,9 +1344,7 @@ export default function ProposalFormClient() {
       <div style={{ textAlign: 'center', marginBottom: 28, position: 'relative' }}>
         <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1A1830', marginBottom: 4 }}>Post Your Rishta</h1>
         <p style={{ color: '#6B6893', fontSize: 14 }}>Reaches thousands of families</p>
-        <button onClick={() => setShowLogoutModal(true)} style={{ position: 'absolute', right: 0, top: 0, background: 'none', border: '1.5px solid #E8E6F5', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, color: '#6B6893', cursor: 'pointer' }}>
-          Log Out
-        </button>
+
       </div>
 
       {/* Step indicator — hidden until settings load so Verification tab never flashes */}

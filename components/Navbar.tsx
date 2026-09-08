@@ -12,6 +12,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
   const [user, setUser] = useState<{ name: string; profile_photo_url?: string; gender?: string } | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | false>(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
@@ -125,7 +126,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
 
           {mounted && (user ? (
             pathname.startsWith('/proposalform') ? (
-              <button onClick={handleLogout} style={{ padding: '8px 16px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', color: '#DC2626', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => setShowLogoutConfirm(true)} style={{ padding: '8px 16px', borderRadius: 10, border: '1.5px solid #FECACA', background: '#FEF2F2', color: '#DC2626', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                 Log Out
               </button>
             ) : (
@@ -166,7 +167,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
 
           {mounted && (user ? (
             pathname.startsWith('/proposalform') ? (
-              <button onClick={handleLogout} style={{ padding: '7px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', color: '#DC2626', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => setShowLogoutConfirm(true)} style={{ padding: '7px 12px', borderRadius: 10, border: '1.5px solid #FECACA', background: '#FEF2F2', color: '#DC2626', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                 Log Out
               </button>
             ) : (
@@ -231,6 +232,25 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
   return (
     <>
       {navContent}
+      {mounted && showLogoutConfirm && createPortal(
+        <div onClick={() => setShowLogoutConfirm(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, padding: 24, maxWidth: 340, width: '100%', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830', marginBottom: 8 }}>Log Out?</div>
+            <p style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.6, marginBottom: 20 }}>
+              Your form progress is automatically saved on this browser. Log back in anytime to continue where you left off.
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setShowLogoutConfirm(false)} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                Cancel
+              </button>
+              <button onClick={() => { setShowLogoutConfirm(false); handleLogout(); }} style={{ flex: 2, padding: '12px', borderRadius: 12, border: 'none', background: '#DC2626', color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
       {mounted && showPasswordModal && createPortal(
         <div onClick={() => setShowPasswordModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 380, padding: 24 }}>
