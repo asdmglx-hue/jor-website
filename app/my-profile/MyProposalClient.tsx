@@ -475,7 +475,10 @@ export default function MyProposalClient() {
             setUser(fresh);
             if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
             if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
-            import('@/lib/auth').then(m => m.saveSession(fresh));
+            import('@/lib/auth').then(m => {
+              m.saveSession(fresh);
+              window.dispatchEvent(new CustomEvent('jor:session-updated', { detail: fresh }));
+            });
           }
         });
       } else {

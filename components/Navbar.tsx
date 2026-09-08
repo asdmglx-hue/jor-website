@@ -27,8 +27,15 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
     const s = getSession();
     setUser(s ? { name: s.name, profile_photo_url: s.profile_photo_url, gender: s.gender } : null);
     if (s?.id) syncSavedFromServer(s.id);
-    if (s?.cnic) syncNotInterestedFromServer(s.cnic);
+    if (s?.auth_phone) syncNotInterestedFromServer(s.auth_phone);
     setMounted(true);
+
+    // Listen for session updates from my-profile (e.g. gender loaded after RPC)
+    const onSessionUpdated = (e: Event) => {
+      const fresh = (e as CustomEvent).detail;
+      if (fresh) setUser({ name: fresh.name, profile_photo_url: fresh.profile_photo_url, gender: fresh.gender });
+    };
+    window.addEventListener('jor:session-updated', onSessionUpdated);
 
     // Ping last_seen_at on every page navigation for logged-in users
     if (s?.id && !s.id.startsWith('admin:')) {
@@ -59,6 +66,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
         }).catch(() => {});
       }
     }
+    return () => window.removeEventListener('jor:session-updated', onSessionUpdated);
   }, [pathname]);
 
   const openPasswordModal = () => {
