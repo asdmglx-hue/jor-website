@@ -97,6 +97,7 @@ export type Proposal = {
   cnic_verified?: boolean;
   not_interested_ids?: string[];
   cnic?: string;
+  auth_phone?: string;
   cnic_front_url?: string;
   cnic_back_url?: string;
   guardian_cnic_front_url?: string;
@@ -1072,7 +1073,17 @@ export async function loginWithCnic(cnic: string, password: string): Promise<Pro
   return data as Proposal;
 }
 
-export async function updateProposal(id: string, updates: Partial<Proposal>): Promise<boolean> {
+// Login with phone + password (OTP system)
+export async function loginWithPhone(phone: string, password: string): Promise<Proposal | null> {
+  const { data, error } = await supabase.rpc('login_by_phone', {
+    p_phone: phone,
+    p_password: password.trim(),
+  });
+  if (error || !data || !data.id) return null;
+  return data as Proposal;
+}
+
+
   const { error } = await supabase.from('proposals').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', id);
   return !error;
 }

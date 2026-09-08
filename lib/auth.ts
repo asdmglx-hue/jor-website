@@ -14,12 +14,10 @@ export function getSession(): Proposal | null {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    // A genuinely valid session always has at least a name and a cnic —
-    // if either is missing, this is stale/corrupted data (e.g. from an
-    // interrupted save), not a real login. Treating it as logged-out
-    // here, rather than rendering it, is what stops a broken cached
-    // session from ever showing a blank/broken account page again.
-    if (!parsed || !parsed.name || !parsed.cnic) {
+    // A valid session must have at least a name and either a cnic (old users)
+    // or an auth_phone (OTP phone users). If neither is present this is
+    // stale/corrupted data — treat as logged out.
+    if (!parsed || !parsed.name || (!parsed.cnic && !parsed.auth_phone)) {
       localStorage.removeItem(SESSION_KEY);
       return null;
     }
