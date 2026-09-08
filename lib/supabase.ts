@@ -1079,8 +1079,9 @@ export async function loginWithPhone(phone: string, password: string): Promise<P
     p_phone: phone,
     p_password: password.trim(),
   });
-  if (error || !data || !data.id) return null;
-  return data as Proposal;
+  const result = data as Proposal | null;
+  if (error || !result || !result.id) return null;
+  return result;
 }
 
 

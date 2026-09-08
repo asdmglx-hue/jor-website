@@ -308,12 +308,11 @@ export default function LoginOtpClient() {
         p_phone: phone,
         p_password: lPass.trim(),
       });
-      if (error || !data || !data.id) {
+      const proposal = data as Record<string, unknown> | null;
+      if (error || !proposal || !proposal.id) {
         setLErr('Incorrect phone number or password. Please try again.');
         return;
       }
-
-      const proposal = data;
 
       // Register device session
       const deviceId = getOrCreateWebDeviceId();
@@ -328,7 +327,7 @@ export default function LoginOtpClient() {
       }
 
       localStorage.setItem('jor_login_time', Date.now().toString());
-      saveSession(proposal);
+      saveSession(proposal as import('@/lib/supabase').Proposal);
       trackEvent('login_success');
       window.location.href = '/my-profile';
     } catch {
