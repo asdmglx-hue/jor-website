@@ -95,11 +95,14 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
     const isAdmin = session.id?.startsWith('admin:');
     const ok = isAdmin
       ? !!(await supabase.rpc('admin_account_self_update_password', {
-          p_cnic: session.cnic,
+          p_cnic: (session as any).cnic,
           p_current_password: currentPassword.trim(),
           p_new_password: newPassword.trim(),
         })).data
-      : await updateProposal(session.id, { password: newPassword.trim() });
+      : !!(await supabase.rpc('set_phone_password', {
+          p_phone: (session as any).auth_phone,
+          p_password: newPassword.trim(),
+        }));
     setPasswordSaving(false);
     if (ok) {
       saveSession({ ...session, password: newPassword.trim() });

@@ -1007,7 +1007,7 @@ export default function ProposalFormClient() {
     const { msg: err, field } = validateStep();
     if (err) return { msg: err, field };
     if (step === 1) {
-      const digits = form.cnic.replace(/-/g, '').trim();
+      const digits = authPhone.replace(/\D/g, '');
       const { data: existingStatus } = await supabase.rpc('get_cnic_profile_status', { p_cnic: digits });
       if (existingStatus === 'pending') return { msg: 'Your profile is already submitted. Please log in to check the status.', field: 'cnic' };
       if (existingStatus === 'rejected') return { msg: 'This CNIC has a rejected profile. Please log in and delete your account first to register again.', field: 'cnic' };
@@ -1078,10 +1078,10 @@ export default function ProposalFormClient() {
     // (which was a different, unused storage system — every real profile
     // photo already live on the site is on R2, not Supabase).
     let profilePhotoUrl: string | undefined;
-    const digits = form.cnic.replace(/-/g, '').trim();
+    const digits = authPhone.replace(/\D/g, '');
     if (profilePhoto) {
       const photoForm = new FormData();
-      photoForm.append('cnic', digits);
+      photoForm.append('auth_phone', authPhone);
       photoForm.append('photo', profilePhoto);
       try {
         const res = await fetch('/api/upload-profile-photo', { method: 'POST', body: photoForm });
@@ -1107,7 +1107,7 @@ export default function ProposalFormClient() {
     const cleanCnic = `${digits.slice(0,5)}-${digits.slice(5,12)}-${digits.slice(12)}`;
     if (cnicFront && cnicBack) {
       const uploadForm = new FormData();
-      uploadForm.append('cnic', digits);
+      uploadForm.append('auth_phone', authPhone);
       uploadForm.append('front', cnicFront);
       uploadForm.append('back', cnicBack);
       try {
@@ -1134,7 +1134,7 @@ export default function ProposalFormClient() {
     let guardianCnicBackUrl: string | undefined;
     if (guardianCnicFront && guardianCnicBack) {
       const uploadForm = new FormData();
-      uploadForm.append('cnic', digits);
+      uploadForm.append('auth_phone', authPhone);
       uploadForm.append('front', guardianCnicFront);
       uploadForm.append('back', guardianCnicBack);
       try {
@@ -1159,7 +1159,7 @@ export default function ProposalFormClient() {
     let educationDocumentUrl: string | undefined;
     if (educationDocument) {
       const uploadForm = new FormData();
-      uploadForm.append('cnic', digits);
+      uploadForm.append('auth_phone', authPhone);
       uploadForm.append('file', educationDocument);
       try {
         const res = await fetch('/api/upload-education-document', { method: 'POST', body: uploadForm });
@@ -1182,7 +1182,7 @@ export default function ProposalFormClient() {
     const uploadCert = async (file: File | null, slot: string): Promise<string | undefined> => {
       if (!file) return undefined;
       const uploadForm = new FormData();
-      uploadForm.append('cnic', digits);
+      uploadForm.append('auth_phone', authPhone);
       uploadForm.append('slot', slot);
       uploadForm.append('file', file);
       const res = await fetch('/api/upload-degree-certificate', { method: 'POST', body: uploadForm });

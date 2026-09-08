@@ -179,20 +179,20 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
     setSubmitting(true);
     setError('');
 
-    const digits = (user.cnic || '').replace(/\D/g, '');
+    const digits = ((user as any).auth_phone || user.id || '').replace(/\D/g, '');
     // Mirrors the local state the app refreshes after submitting, so the
     // Verify Now button and section visibility update without a reload.
     const updates: Record<string, unknown> = {};
     const nextDocVerification: Record<string, string> = { ...(user.doc_verification ?? {}) };
 
     try {
-      if (!digits) throw new Error('Could not verify account — CNIC is missing.');
+      if (!digits) throw new Error('Could not verify account — identity is missing.');
 
       let frontUrl: string | undefined;
       let backUrl: string | undefined;
       if (showCandidateCnic && cnicFront && cnicBack) {
         const fd = new FormData();
-        fd.append('cnic', digits);
+        fd.append('auth_phone', digits);
         fd.append('front', cnicFront);
         fd.append('back', cnicBack);
         const res = await fetch('/api/upload-cnic', { method: 'POST', body: fd });
@@ -209,7 +209,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
       let educationUrl: string | undefined;
       if (showLatestDegree && educationDocument) {
         const fd = new FormData();
-        fd.append('cnic', digits);
+        fd.append('auth_phone', digits);
         fd.append('file', educationDocument);
         const res = await fetch('/api/upload-education-document', { method: 'POST', body: fd });
         const uploaded = await res.json().catch(() => ({}));
@@ -223,7 +223,7 @@ export default function VerifyNowModal({ user, onClose, onSaved }: {
       let guardianBackUrl: string | undefined;
       if (showParentsCnic && guardianCnicFront && guardianCnicBack) {
         const fd = new FormData();
-        fd.append('cnic', digits);
+        fd.append('auth_phone', digits);
         fd.append('front', guardianCnicFront);
         fd.append('back', guardianCnicBack);
         const res = await fetch('/api/upload-guardian-cnic', { method: 'POST', body: fd });
