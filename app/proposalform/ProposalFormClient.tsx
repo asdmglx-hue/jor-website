@@ -588,6 +588,16 @@ function CodesDropdown({ open, onToggle, hasApplied, couponCode, setCouponCode, 
 }
 
 export default function ProposalFormClient() {
+  // Synchronous session check — if no session, redirect immediately before any render
+  if (typeof window !== 'undefined') {
+    const { getSession: _getSession } = require('@/lib/auth');
+    const s = _getSession();
+    if (!s || (!s.auth_phone && !s.cnic)) {
+      window.location.href = '/login?next=/proposalform';
+      return null;
+    }
+  }
+
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(2);
   const [authPhone, setAuthPhone] = useState('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -778,7 +788,13 @@ export default function ProposalFormClient() {
 
 
   const [mounted, setMounted] = useState(false);
-  const [sessionChecked, setSessionChecked] = useState(false);
+  // Check session synchronously on first render — no useEffect delay
+  const sessionValid = typeof window === 'undefined' ? true : (() => {
+    try {
+      const s = getSession();
+      return !!(s && (s.auth_phone || s.cnic));
+    } catch { return false; }
+  })();
   useEffect(() => {
     try {
       const savedStep = Number(localStorage.getItem(STEP_KEY)) || 1;
@@ -823,7 +839,6 @@ export default function ProposalFormClient() {
         window.location.href = '/login?next=/proposalform';
         return;
       }
-      setSessionChecked(true);
       const phone = s.auth_phone ?? '';
       setAuthPhone(phone);
       // Load cloud draft if no local draft exists
@@ -1327,7 +1342,7 @@ export default function ProposalFormClient() {
     : ['Basic Info', 'Additional Info', 'Verification', 'Submit'];
 
   // Don't render anything until session is confirmed — prevents flash of form for logged-out users
-  if (!sessionChecked) return null;
+  if (!sessionValid) return null;
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px 20px' }}>
