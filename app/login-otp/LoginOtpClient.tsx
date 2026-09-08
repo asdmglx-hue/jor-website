@@ -202,11 +202,6 @@ export default function LoginOtpClient() {
         .or(`auth_phone.eq.${phone},cnic.eq.${identityStr}`)
         .maybeSingle();
 
-      if (!proposal) {
-        setLErr('Account found but profile not set up yet. Please complete your profile.');
-        return;
-      }
-
       const deviceId = getOrCreateWebDeviceId();
       localStorage.removeItem('jor_session_token');
       const { data: sessionToken } = await supabase.rpc('register_device_session', {
@@ -214,10 +209,17 @@ export default function LoginOtpClient() {
       });
       if (sessionToken) localStorage.setItem('jor_session_token', sessionToken as string);
       localStorage.setItem('jor_login_time', Date.now().toString());
-      saveSession(proposal as import('@/lib/supabase').Proposal);
-      trackEvent('login_success');
-      const params = new URLSearchParams(window.location.search);
-      window.location.href = params.get('next') || '/my-profile';
+
+      if (proposal) {
+        saveSession(proposal as import('@/lib/supabase').Proposal);
+        trackEvent('login_success');
+        const params = new URLSearchParams(window.location.search);
+        window.location.href = params.get('next') || '/my-profile';
+      } else {
+        // No profile yet — redirect to register to complete it
+        trackEvent('login_success');
+        window.location.href = '/register';
+      }
     } catch {
       setLErr('Something went wrong. Please check your connection and try again.');
     } finally {
