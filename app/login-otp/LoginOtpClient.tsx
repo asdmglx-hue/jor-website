@@ -212,7 +212,9 @@ export default function LoginOtpClient() {
       localStorage.setItem('jor_login_time', Date.now().toString());
 
       if (proposal && proposal.id) {
-        saveSession(proposal as import('@/lib/supabase').Proposal);
+        // Ensure auth_phone is on the session object so getSession() doesn't clear it
+        const sessionObj = { ...proposal, auth_phone: proposal.auth_phone ?? phone };
+        saveSession(sessionObj as import('@/lib/supabase').Proposal);
         trackEvent('login_success');
         const params = new URLSearchParams(window.location.search);
         window.location.href = params.get('next') || '/my-profile';
