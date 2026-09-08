@@ -184,6 +184,7 @@ export default function LoginOtpClient() {
     setLBusy(true); setLErr('');
     try {
       const phone = formatPhone(lDial, lPhone);
+      console.log("[LOGIN] dial:", lDial, "number:", lPhone, "formatted:", formatPhone(lDial, lPhone));
       // login_by_phone returns a text identity (cnic or phone), not a proposal object
       const { data: identity, error } = await supabase.rpc('login_by_phone', {
         p_phone: phone,
@@ -219,7 +220,20 @@ export default function LoginOtpClient() {
         const params = new URLSearchParams(window.location.search);
         window.location.href = params.get('next') || '/my-profile';
       } else {
-        // No profile yet — redirect to proposalform to complete it
+        // No profile yet — save minimal session so getSession() returns non-null
+        // then redirect to proposalform to complete the profile
+        saveSession({
+          id: identityStr,
+          name: identityStr, // phone as placeholder name
+          auth_phone: phone,
+          proposal_number: 0,
+          age: 0, gender: '', city: '', caste: '', sect: '',
+          education: '', profession: '', height_inches: 0,
+          marital_status: '', subscription_tier: 'none',
+          contact_phone: phone, phone_verified: false,
+          posted_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+          status: 'pending', is_boosted: false,
+        } as import('@/lib/supabase').Proposal);
         trackEvent('login_success');
         window.location.href = '/proposalform';
       }

@@ -784,8 +784,9 @@ export default function ProposalFormClient() {
         const s = localStorage.getItem(DRAFT_KEY);
         return s ? { ...EMPTY, ...JSON.parse(s) } : EMPTY;
       })();
-      setStep(savedStep as 1 | 2 | 3 | 4 | 5);
-      setMaxStep(savedStep);
+      const clampedStep = Math.max(2, savedStep);
+      setStep(clampedStep as 1 | 2 | 3 | 4 | 5);
+      setMaxStep(clampedStep);
       setForm(savedForm);
       if (savedForm.phone2) setShowPhone2(true);
 

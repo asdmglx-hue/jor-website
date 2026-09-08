@@ -14,10 +14,10 @@ export function getSession(): Proposal | null {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    // A valid session must have at least a name and either a cnic (old users)
-    // or an auth_phone (OTP phone users). If neither is present this is
-    // stale/corrupted data — treat as logged out.
-    if (!parsed || !parsed.name || (!parsed.cnic && !parsed.auth_phone)) {
+    // A valid session must have at least an id and either a cnic (old users)
+    // or an auth_phone (OTP phone users). Name check removed — phone-only
+    // users may have their phone as placeholder name before submitting profile.
+    if (!parsed || !parsed.id || (!parsed.cnic && !parsed.auth_phone)) {
       localStorage.removeItem(SESSION_KEY);
       return null;
     }
