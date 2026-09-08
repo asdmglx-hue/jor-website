@@ -126,7 +126,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
 
           {mounted && (user ? (
             pathname.startsWith('/proposalform') ? (
-              <button onClick={() => setShowLogoutConfirm(true)} style={{ padding: '8px 16px', borderRadius: 10, border: '1.5px solid #FECACA', background: '#FEF2F2', color: '#DC2626', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => setShowLogoutConfirm(true)} style={{ padding: '8px 14px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', color: '#1A1830', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                 Log Out
               </button>
             ) : (
@@ -167,7 +167,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
 
           {mounted && (user ? (
             pathname.startsWith('/proposalform') ? (
-              <button onClick={() => setShowLogoutConfirm(true)} style={{ padding: '7px 12px', borderRadius: 10, border: '1.5px solid #FECACA', background: '#FEF2F2', color: '#DC2626', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => setShowLogoutConfirm(true)} style={{ padding: '7px 12px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', color: '#1A1830', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                 Log Out
               </button>
             ) : (
@@ -237,7 +237,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, padding: 24, maxWidth: 340, width: '100%', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}>
             <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830', marginBottom: 8 }}>Log Out?</div>
             <p style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.6, marginBottom: 20 }}>
-              Your form progress is automatically saved on this browser. Log back in anytime to continue where you left off.
+              Your progress will be saved. Log in anytime to continue.
             </p>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setShowLogoutConfirm(false)} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
