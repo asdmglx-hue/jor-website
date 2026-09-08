@@ -184,16 +184,33 @@ export default function LoginOtpClient() {
     setLBusy(true); setLErr('');
     try {
       const phone = formatPhone(lDial, lPhone);
-      const { data, error } = await supabase.rpc('login_by_phone', { p_phone: phone, p_password: lPass.trim() });
-      const proposal = data as Record<string, unknown> | null;
-      if (error || !proposal || !proposal.id) {
+      // login_by_phone returns a text identity (cnic or phone), not a proposal object
+      const { data: identity, error } = await supabase.rpc('login_by_phone', {
+        p_phone: phone,
+        p_password: lPass.trim(),
+      });
+      if (error || !identity) {
         setLErr('Incorrect phone number or password. Please try again.');
         return;
       }
+
+      // Fetch the full proposal using the returned identity
+      const identityStr = identity as string;
+      const { data: proposal } = await supabase
+        .from('proposals')
+        .select('*')
+        .or(`auth_phone.eq.${phone},cnic.eq.${identityStr}`)
+        .maybeSingle();
+
+      if (!proposal) {
+        setLErr('Account found but profile not set up yet. Please complete your profile.');
+        return;
+      }
+
       const deviceId = getOrCreateWebDeviceId();
       localStorage.removeItem('jor_session_token');
       const { data: sessionToken } = await supabase.rpc('register_device_session', {
-        p_cnic: phone, p_device_id: deviceId, p_device_type: 'web',
+        p_cnic: identityStr, p_device_id: deviceId, p_device_type: 'web',
       });
       if (sessionToken) localStorage.setItem('jor_session_token', sessionToken as string);
       localStorage.setItem('jor_login_time', Date.now().toString());
@@ -278,7 +295,7 @@ export default function LoginOtpClient() {
           {mode === 'login' && (
             <>
               <div style={{ marginBottom: 16 }}>
-                <label style={lbl}>Phone Number</label>
+                <label style={lbl}>WhatsApp Number</label>
                 <PhoneInput value={lPhone} onChange={v => { setLPhone(v); setLErr(''); }}
                   dialCode={lDial} onDialChange={v => { setLDial(v); setLErr(''); }} autoFocus />
               </div>
