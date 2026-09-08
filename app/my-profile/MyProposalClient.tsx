@@ -1829,7 +1829,13 @@ export default function MyProposalClient() {
                   <Field label="Full Name" fieldKey="name" />
                   <Field label="Age" fieldKey="age" type="number" maxLength={2} />
                   <Field label="Gender" fieldKey="gender" />
-                  <Field label="CNIC" fieldKey="cnic" />
+                  {user.auth_phone && !user.cnic
+                    ? <div>
+                        {lbl('Login', lockIcon)}
+                        <div style={{ fontSize: 14, color: '#1A1830', fontWeight: 500 }}>{user.auth_phone}</div>
+                      </div>
+                    : <Field label="CNIC" fieldKey="cnic" />
+                  }
                   <Field label="City" fieldKey="city" options={['Lahore','Karachi','Islamabad','Rawalpindi','Faisalabad','Multan','Gujranwala','Sialkot','Bahawalpur','Sargodha','Peshawar','Quetta','Hyderabad','Abbottabad','Other']} />
                   <Field label="Country (Overseas)" fieldKey="country" options={['Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan','Bahrain','Bangladesh','Belgium','Bosnia & Herzegovina','Brunei','Bulgaria','Cambodia','Canada','China','Colombia','Croatia','Cyprus','Czech Republic','Denmark','Egypt','Estonia','Ethiopia','Finland','France','Georgia','Germany','Ghana','Greece','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Jamaica','Japan','Jordan','Kazakhstan','Kenya','Kuwait','Latvia','Lebanon','Libya','Lithuania','Luxembourg','Malaysia','Maldives','Malta','Mexico','Moldova','Monaco','Mongolia','Morocco','Myanmar','Namibia','Nepal','Netherlands','New Zealand','Nigeria','Norway','Oman','Pakistan','Palestine','Philippines','Poland','Portugal','Qatar','Romania','Russia','Saudi Arabia','Serbia','Singapore','Slovakia','Slovenia','South Africa','South Korea','Spain','Sri Lanka','Sudan','Sweden','Switzerland','Syria','Taiwan','Tanzania','Thailand','Turkey','UAE','Uganda','Ukraine','United Kingdom','United States','Uruguay','Uzbekistan','Vietnam','Yemen','Zambia','Zimbabwe']} />
                   <Field label="Location (Area)" fieldKey="location" />
