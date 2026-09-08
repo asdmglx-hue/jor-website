@@ -1445,7 +1445,7 @@ export default function ProposalFormClient() {
               </div>
               {cnicState === 'taken' && (
                 <div style={{ marginTop: 6, fontSize: 12.5, color: '#DC2626', fontWeight: 600 }}>
-                  This CNIC is already registered. <a href="/login" style={{ color: '#534AB7', textDecoration: 'none' }}>→ Login instead</a>
+                  This CNIC is already registered. <a href="/login-otp" style={{ color: '#534AB7', textDecoration: 'none' }}>→ Login instead</a>
                 </div>
               )}
             </Field>

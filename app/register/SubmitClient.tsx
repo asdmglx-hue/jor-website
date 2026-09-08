@@ -1279,7 +1279,7 @@ export default function SubmitClient() {
       <p style={{ color: '#6B6893', marginBottom: 24, lineHeight: 1.6 }}>
         Thank you for submitting your profile. Please log in to your account and complete the verification process.
       </p>
-      <Link href="/login" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: 12, background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>
+      <Link href="/login-otp" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: 12, background: '#534AB7', color: '#fff', fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>
         Login
       </Link>
     </div>
@@ -1430,7 +1430,7 @@ export default function SubmitClient() {
               </div>
               {cnicState === 'taken' && (
                 <div style={{ marginTop: 6, fontSize: 12.5, color: '#DC2626', fontWeight: 600 }}>
-                  This CNIC is already registered. <a href="/login" style={{ color: '#534AB7', textDecoration: 'none' }}>→ Login instead</a>
+                  This CNIC is already registered. <a href="/login-otp" style={{ color: '#534AB7', textDecoration: 'none' }}>→ Login instead</a>
                 </div>
               )}
             </Field>
