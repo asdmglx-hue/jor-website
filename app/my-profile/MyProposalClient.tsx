@@ -892,12 +892,7 @@ export default function MyProposalClient() {
               {user.age} yrs{user.profession ? ` • ${user.profession}` : ''}
             </div>
             )}
-            {isAdminAccount && user.cnic && (
-            <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 2 }}>
-              CNIC: {cnicDisplay(user.cnic)}
-            </div>
-            )}
-            {!isAdminAccount && (
+                    {!isAdminAccount && (
             <div style={{ fontSize: 13, color: '#6B6893', marginBottom: 8 }}>
               {user.country && user.country !== 'Pakistan' ? `${user.country} (from ${user.city})` : `${user.city}, Pakistan`}
             </div>
