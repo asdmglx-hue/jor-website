@@ -1409,7 +1409,7 @@ export default function MyProposalClient() {
         }}
         planName="Rishta Profile"
         isStandard={true}
-        initialCnic={(user as any).cnic}
+        initialIdentity={(user as any).auth_phone}
         ftPriceInt={Number((payProofSettings['featured_post_price'] || '200').replace(/,/g, '')) || 200}
         maxFeaturedPerCity={Number(payProofSettings['max_featured_per_city']) || 5}
         adminWa={payProofSettings['whatsapp_number'] || '923000000000'}
@@ -1430,7 +1430,7 @@ export default function MyProposalClient() {
         }}
         planName="Featured Post"
         isStandard={false}
-        initialCnic={(user as any).cnic}
+        initialIdentity={(user as any).auth_phone}
         ftPriceInt={Number((payProofSettings['featured_post_price'] || '200').replace(/,/g, '')) || 200}
         maxFeaturedPerCity={Number(payProofSettings['max_featured_per_city']) || 5}
         adminWa={payProofSettings['whatsapp_number'] || '923000000000'}

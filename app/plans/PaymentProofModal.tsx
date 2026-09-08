@@ -130,20 +130,20 @@ function maxDateStr(): string {
 }
 
 export default function PaymentProofModal({
-  open, onClose, planName, isStandard, initialCnic, ftPriceInt, maxFeaturedPerCity, adminWa, proofType, skipWhatsApp,
+  open, onClose, planName, isStandard, initialIdentity, ftPriceInt, maxFeaturedPerCity, adminWa, proofType, skipWhatsApp,
 }: {
   open: boolean;
   onClose: () => void;
   planName: string;
   isStandard: boolean;
-  initialCnic?: string;
+  initialIdentity?: string;
   ftPriceInt: number;
   maxFeaturedPerCity: number;
   adminWa: string;
   proofType?: 'new' | 'renewal';
   skipWhatsApp?: boolean; // when true, skip WhatsApp redirect (my-profile flow)
 }) {
-  const [cnic, setCnic] = useState('');
+  const [identity, setIdentity] = useState('');
   const [receipt, setReceipt] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [compressing, setCompressing] = useState(false);
@@ -154,13 +154,13 @@ export default function PaymentProofModal({
   // Reset fresh every time the modal opens, same as the mobile sheet.
   useEffect(() => {
     if (!open) return;
-    setCnic(formatCnic(initialCnic || ''));
+    setIdentity(initialIdentity || '');
     setReceipt(null);
     setReceiptPreview(null);
     setSlots([{ city: '', date: '' }]);
     setErrorMsg(null);
     setSubmitting(false);
-  }, [open, initialCnic]);
+  }, [open, initialIdentity]);
 
   if (!open) return null;
 
@@ -208,7 +208,7 @@ export default function PaymentProofModal({
   const addSlot = () => setSlots(prev => (prev.length < MAX_FEATURED_SLOTS ? [...prev, { city: '', date: '' }] : prev));
 
   const handleSubmit = async () => {
-    const digits = cnic.replace(/\D/g, '');
+    const digits = identity.replace(/\D/g, '');
     if (!isStandard && !slots.every(s => s.city && s.date)) { setErrorMsg('Pick a date and city for every slot to continue.'); return; }
     if (!receipt) { setErrorMsg('Please attach your payment receipt.'); return; }
 
@@ -236,7 +236,8 @@ export default function PaymentProofModal({
 
     try {
       const formData = new FormData();
-      formData.append('cnic', digits);
+      formData.append('auth_phone', identity);
+      
       formData.append('receipt', receipt);
       const res = await fetch('/api/upload-payment-proof', { method: 'POST', body: formData });
       const data = await res.json() as { url?: string; error?: string };
@@ -261,14 +262,14 @@ export default function PaymentProofModal({
         const totalAmount = ftPriceInt * totalCredits;
         try {
           await supabase.from('pending_featured_requests').insert({
-            cnic, selections: selectionsJson, total_credits: totalCredits, total_amount: totalAmount,
+            auth_phone: identity, selections: selectionsJson, total_credits: totalCredits, total_amount: totalAmount,
             proof_url: url, user_id_fk: proposalIdEarly ?? null,
           });
           // Notify admin of featured payment proof
           fetch('/api/notify-user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'admin_payment_proof', name: cnic, proposal_id: proposalIdEarly }),
+            body: JSON.stringify({ type: 'admin_payment_proof', name: identity, proposal_id: proposalIdEarly }),
           }).catch(() => {});
         } catch (_) {
           // Non-blocking — the WhatsApp message below still carries the
@@ -278,7 +279,7 @@ export default function PaymentProofModal({
           slots.map((s, i) => `${i + 1}. ${s.date} — ${s.city}`).join('\n');
       }
 
-      const text = `Hello Admin,\n\nMy CNIC: ${cnic}\n\nI have completed the payment and attached the receipt. Kindly verify my payment.${selectionsText}\n\nPayment Receipt: ${url}`;
+      const text = `Hello Admin,\n\nMy Phone: ${identity}\n\nI have completed the payment and attached the receipt. Kindly verify my payment.${selectionsText}\n\nPayment Receipt: ${url}`;
       if (!skipWhatsApp) {
         window.open(`https://wa.me/${adminWa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
       }

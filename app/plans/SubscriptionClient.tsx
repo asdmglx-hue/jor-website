@@ -326,7 +326,7 @@ export default function SubscriptionClient() {
         onClose={() => setShowUploadModal(false)}
         planName={selected >= 0 ? plans[selected].name : ''}
         isStandard={selected === 0}
-        initialCnic={user?.cnic}
+        initialIdentity={user?.auth_phone ?? user?.cnic}
         ftPriceInt={Number(FT_PRICE.replace(/,/g, '')) || 200}
         maxFeaturedPerCity={MAX_FEATURED_PER_CITY}
         adminWa={adminWa}
