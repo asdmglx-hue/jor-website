@@ -8,6 +8,7 @@ import PhoneInput from '@/components/PhoneInput';
 import { containsPhoneNumber } from '@/lib/phoneDetector';
 import SearchableSelect from '@/components/SearchableSelect';
 import OccupationSelect from '@/components/OccupationSelect';
+import { getSession, clearSession } from '@/lib/auth';
 // Moved server-side — see lib/actions/proposal-actions.ts and
 // lib/actions/revalidate-write.ts for why.
 import { submitProposalAction as submitProposal } from '@/lib/actions/proposal-actions';
@@ -588,6 +589,11 @@ function CodesDropdown({ open, onToggle, hasApplied, couponCode, setCouponCode, 
 
 export default function SubmitClient() {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+
+  // OTP session — set when user arrived via /register-otp → /login-otp → /register
+  // Existing CNIC users have session.cnic set, so otpSession stays null for them.
+  const [otpSession, setOtpSession] = useState<{ phone: string; name?: string } | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [cityGroups, setCityGroups] = useState<Record<string, string[]>>({});
   const [casteGroups, setCasteGroups] = useState<Record<string, string[]>>(CASTE_GROUPS);
   const [professionGroups, setProfessionGroups] = useState<Record<string, string[]>>(PROFESSION_GROUPS);
@@ -810,6 +816,19 @@ export default function SubmitClient() {
         applyAffiliateCode(savedForm.affiliate);
       }
     } catch {}
+    // Check if user is logged in via OTP (has auth_phone, no cnic)
+    // Existing CNIC users are unaffected — their session has .cnic set
+    try {
+      const s = getSession();
+      if (s && s.auth_phone && !s.cnic) {
+        setOtpSession({ phone: s.auth_phone, name: s.name });
+        // Skip Account Setup — start at Basic Info
+        setStep(2);
+        setMaxStep(2);
+        // Pre-fill contact_phone from auth_phone
+        setForm(f => ({ ...f, phone: s.auth_phone ?? '' }));
+      }
+    } catch {}
     setMounted(true);
   }, []);
   useEffect(() => { if (mounted) localStorage.setItem(DRAFT_KEY, JSON.stringify(form)); }, [form, mounted]);
@@ -874,11 +893,14 @@ export default function SubmitClient() {
     }
 
     if (step === 1) {
+      if (otpSession) { /* OTP users skip Account Setup — no CNIC needed */ }
+      else {
       const cnicDigits = form.cnic.replace(/\D/g, '');
       if (!cnicDigits) return fail('CNIC number is required', 'cnic');
       if (cnicDigits.length !== 13) return fail('Enter a complete 13-digit CNIC number', 'cnic');
       if (!form.password.trim() || form.password.length < 6) return fail('Password must be at least 6 characters', 'password');
       if (form.password !== form.confirm_password) return fail('Passwords do not match', 'confirm_password');
+      }
     }
     if (step === 2) {
       if (!form.name.trim()) return fail('Full name is required', 'name');
@@ -938,7 +960,7 @@ export default function SubmitClient() {
   const validateStepAsync = async (): Promise<{ msg: string; field: string } | null> => {
     const { msg: err, field } = validateStep();
     if (err) return { msg: err, field };
-    if (step === 1) {
+    if (step === 1 && !otpSession) {
       const digits = form.cnic.replace(/-/g, '').trim();
       const { data: existingStatus } = await supabase.rpc('get_cnic_profile_status', { p_cnic: digits });
       if (existingStatus === 'pending') return { msg: 'Your profile is already submitted. Please log in to check the status.', field: 'cnic' };
@@ -1196,6 +1218,8 @@ export default function SubmitClient() {
       // step 3
       cnic: cleanCnic,
       password: form.password.trim(),
+      // For OTP users: include auth_phone so the profile links to their account
+      ...(otpSession ? { auth_phone: otpSession.phone } as Record<string, unknown> : {}),
       profile_photo_url: profilePhotoUrl,
       cnic_front_url: cnicFrontUrl,
       cnic_back_url: cnicBackUrl,
@@ -1268,23 +1292,57 @@ export default function SubmitClient() {
     ? ['Account', 'Basic Info', 'Additional Info', 'Submit']
     : ['Account', 'Basic Info', 'Additional Info', 'Verification', 'Submit'];
 
+  // For OTP users, hide Account Setup from the step indicator
+  const visibleSteps = otpSession ? steps.slice(1) : steps;
+  const visibleStepsMobile = otpSession ? stepsMobile.slice(1) : stepsMobile;
+  // Map visual step index to real step number for OTP users
+  const visualStepIndex = otpSession ? step - 2 : step - 1;
+
+  // Logout confirmation modal for OTP users on register page
+  const LogoutModal = otpSession && showLogoutConfirm ? (
+    <div onClick={() => setShowLogoutConfirm(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, padding: 24, maxWidth: 340, width: '100%', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}>
+        <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1830', marginBottom: 8 }}>Log Out?</div>
+        <p style={{ fontSize: 13, color: '#6B6893', lineHeight: 1.6, marginBottom: 20 }}>
+          Your form progress is saved locally. Log out and come back anytime to continue.
+        </p>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => setShowLogoutConfirm(false)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+            Cancel
+          </button>
+          <button onClick={() => { clearSession(); window.location.href = '/login-otp'; }} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: '#DC2626', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+            Log Out
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px 20px' }}>
-      <div style={{ textAlign: 'center', marginBottom: 28 }}>
+      {LogoutModal}
+      <div style={{ textAlign: 'center', marginBottom: 28, position: 'relative' }}>
         <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1A1830', marginBottom: 4 }}>Post Your Rishta</h1>
         <p style={{ color: '#6B6893', fontSize: 14 }}>Reaches thousands of families</p>
+        {otpSession && (
+          <button onClick={() => setShowLogoutConfirm(true)} style={{ position: 'absolute', right: 0, top: 0, background: 'none', border: '1.5px solid #E8E6F5', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, color: '#6B6893', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Log Out
+          </button>
+        )}
       </div>
 
       {/* Step indicator — hidden until settings load so Verification tab never flashes */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 28, visibility: settingsLoaded ? 'visible' : 'hidden' }}>
-        {steps.map((s, i) => {
-          const reachable = i + 1 !== step;
+        {visibleSteps.map((s, i) => {
+          const realStep = (otpSession ? i + 2 : i + 1) as 1 | 2 | 3 | 4 | 5;
+          const reachable = realStep !== step;
+          const activeBar = otpSession ? (i + 2 <= step) : (i + 1 <= step);
           return (
             <div key={i} style={{ flex: 1, textAlign: 'center', cursor: reachable ? 'pointer' : 'default' }}
               onClick={async () => {
                 if (!reachable) return;
-                // When verification step is hidden, the 4th visible step is Review (step 5 real).
-                const targetStep = (noVerifSections && i === 3 ? 5 : i + 1) as 1 | 2 | 3 | 4 | 5;
+                const targetStep = (noVerifSections && otpSession && i === 2 ? 5 : noVerifSections && !otpSession && i === 3 ? 5 : realStep) as 1 | 2 | 3 | 4 | 5;
                 if (targetStep > step) {
                   const err = await validateStepAsync();
                   if (err) { setError(err.msg); setErrorField(err.field); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
@@ -1293,9 +1351,9 @@ export default function SubmitClient() {
                 setStep(targetStep);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}>
-              <div style={{ height: 4, borderRadius: 4, background: i + 1 <= step ? '#534AB7' : '#E8E6F5', marginBottom: 6 }} />
-              <span className="step-label-desktop" style={{ fontSize: 10, fontWeight: 700, color: i + 1 <= step ? '#534AB7' : '#68629C', textDecoration: reachable ? 'underline' : 'none' }}>{s}</span>
-              <span className="step-label-mobile" style={{ fontSize: 10, fontWeight: 700, color: i + 1 <= step ? '#534AB7' : '#68629C', textDecoration: reachable ? 'underline' : 'none' }}>{stepsMobile[i]}</span>
+              <div style={{ height: 4, borderRadius: 4, background: activeBar ? '#534AB7' : '#E8E6F5', marginBottom: 6 }} />
+              <span className="step-label-desktop" style={{ fontSize: 10, fontWeight: 700, color: activeBar ? '#534AB7' : '#68629C', textDecoration: reachable ? 'underline' : 'none' }}>{s}</span>
+              <span className="step-label-mobile" style={{ fontSize: 10, fontWeight: 700, color: activeBar ? '#534AB7' : '#68629C', textDecoration: reachable ? 'underline' : 'none' }}>{visibleStepsMobile[i]}</span>
             </div>
           );
         })}
