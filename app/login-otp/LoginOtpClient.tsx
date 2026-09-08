@@ -199,7 +199,9 @@ export default function LoginOtpClient() {
       const { data: statusData } = await supabase.rpc('fetch_user_status_by_cnic', {
         p_cnic: identityStr,
       });
-      const proposal = statusData as Record<string, unknown> | null;
+      // fetch_user_status_by_cnic returns nested object — unwrap it
+      const rawStatus = statusData as Record<string, unknown> | null;
+      const proposal = (rawStatus?.fetch_user_status_by_cnic ?? rawStatus) as Record<string, unknown> | null;
 
       const deviceId = getOrCreateWebDeviceId();
       localStorage.removeItem('jor_session_token');
