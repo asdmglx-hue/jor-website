@@ -725,7 +725,7 @@ export async function fetchProposalById(id: string): Promise<Proposal | null> {
 export async function fetchProposalByNumber(proposalNumber: number): Promise<Proposal | null> {
   try {
     const { data, error } = await withTimeout<{ data: unknown; error: unknown }>(
-      supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('proposal_number', proposalNumber).in('status', ['active', 'paused']).single(),
+      supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('proposal_number', proposalNumber).in('status', ['active', 'paused', 'pending', 'approved']).single(),
       20000,
       `fetchProposalByNumber(${proposalNumber})`
     );
