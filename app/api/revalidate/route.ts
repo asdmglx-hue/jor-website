@@ -14,15 +14,21 @@ import { NextRequest, NextResponse } from 'next/server';
 // match that same value:
 //   Jqz62p0xR_cacUBSLPgoqurzywcNffWqQbnjmsVgdf4
 export async function POST(req: NextRequest) {
-  const { token } = await req.json().catch(() => ({ token: '' }));
+  const body = await req.json().catch(() => ({}));
+  const { token, path } = body as { token?: string; path?: string };
   const expected = process.env.REVALIDATE_TOKEN;
 
   if (!expected || token !== expected) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  // Revalidate every page since the footer appears on all of them.
-  revalidatePath('/', 'layout');
+  if (path) {
+    // Revalidate a specific path (e.g. /profile/1234)
+    revalidatePath(path);
+  } else {
+    // Revalidate every page since the footer appears on all of them.
+    revalidatePath('/', 'layout');
+  }
 
-  return NextResponse.json({ revalidated: true });
+  return NextResponse.json({ revalidated: true, path: path ?? '/' });
 }
