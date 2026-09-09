@@ -1074,9 +1074,10 @@ export default function MyProposalClient() {
             const verifDv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
             const verifRejected = Object.values(verifDv).some(v => v === 'rejected');
 
+            // Done = verified OR all submitted docs are pending/approved AND none rejected
             const verifDone = !!(hasPendingVerification || user.is_doc_verified ||
-              Object.values(verifDv).some(v => v === 'pending' || v === 'approved'));
-            const verifRej  = !verifDone && verifRejected;
+              (Object.values(verifDv).some(v => v === 'pending' || v === 'approved') && !verifRejected));
+            const verifRej  = verifRejected; // show rejection even if some docs are pending/approved
 
             const payFree   = freeMode === true;
             const payDone   = !!(payFree || proofStatus === 'pending' || proofStatus === 'approved');
