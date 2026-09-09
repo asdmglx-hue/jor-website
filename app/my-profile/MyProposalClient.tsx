@@ -502,11 +502,12 @@ export default function MyProposalClient() {
         supabase.rpc('fetch_own_pending_edits', {
           p_cnic: (session as any).auth_phone?.replace(/\D/g, '') ?? '',
           p_proposal_id: session.id,
-        }).then(({ data: events }) => {
-          if (!events) return;
+        }).then(({ data: eventsRaw }) => {
+          if (!eventsRaw) return;
+          const events = Array.isArray(eventsRaw) ? eventsRaw : ((eventsRaw as any)?.fetch_own_pending_edits ?? []);
           const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
           const pending: Record<string, unknown> = {};
-          for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string; reviewed_at: string | null }[]) {
+          for (const ev of (events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string; reviewed_at: string | null }[])) {
             if (ev.status === 'reverted') {
               // Admin rejected — clear pending, show DB value
               for (const k of Object.keys(ev.changes)) delete pending[k];
@@ -789,11 +790,12 @@ export default function MyProposalClient() {
           supabase.rpc('fetch_own_pending_edits', {
             p_cnic: ((user as any).auth_phone ?? '').replace(/\D/g, ''),
             p_proposal_id: user.id,
-          }).then(({ data: events }) => {
-            if (!events) return;
+          }).then(({ data: eventsRaw }) => {
+            if (!eventsRaw) return;
+            const events = Array.isArray(eventsRaw) ? eventsRaw : ((eventsRaw as any)?.fetch_own_pending_edits ?? []);
             const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
             const pending: Record<string, unknown> = {};
-            for (const ev of events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string; reviewed_at: string | null }[]) {
+            for (const ev of events) {
               if (ev.status === 'reverted') {
                 for (const k of Object.keys(ev.changes)) delete pending[k];
               } else if (ev.status === 'applied' && ev.reviewed_at != null) {
