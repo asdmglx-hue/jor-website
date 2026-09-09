@@ -499,12 +499,15 @@ export default function MyProposalClient() {
       // ownership server-side, then returns the events so the same
       // chronological-replay resolution logic can run here too.
       if (session.id) {
+        console.log('[DEBUG] session.id:', session.id, 'auth_phone:', (session as any).auth_phone);
         supabase.rpc('fetch_own_pending_edits', {
           p_cnic: (session as any).auth_phone?.replace(/\D/g, '') ?? '',
           p_proposal_id: session.id,
-        }).then(({ data: eventsRaw }) => {
+        }).then(({ data: eventsRaw, error: pendingErr }) => {
+          console.log('[DEBUG] fetch_own_pending_edits raw:', eventsRaw, 'error:', pendingErr);
           if (!eventsRaw) return;
           const events = Array.isArray(eventsRaw) ? eventsRaw : ((eventsRaw as any)?.fetch_own_pending_edits ?? []);
+          console.log('[DEBUG] events array:', events, 'length:', events.length);
           const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
           const pending: Record<string, unknown> = {};
           for (const ev of (events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string; reviewed_at: string | null }[])) {
@@ -790,9 +793,11 @@ export default function MyProposalClient() {
           supabase.rpc('fetch_own_pending_edits', {
             p_cnic: ((user as any).auth_phone ?? '').replace(/\D/g, ''),
             p_proposal_id: user.id,
-          }).then(({ data: eventsRaw }) => {
+          }).then(({ data: eventsRaw, error: pendingErr2 }) => {
+            console.log('[DEBUG post-save] fetch_own_pending_edits raw:', eventsRaw, 'error:', pendingErr2);
             if (!eventsRaw) return;
             const events = Array.isArray(eventsRaw) ? eventsRaw : ((eventsRaw as any)?.fetch_own_pending_edits ?? []);
+            console.log('[DEBUG post-save] events:', events);
             const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
             const pending: Record<string, unknown> = {};
             for (const ev of events) {
