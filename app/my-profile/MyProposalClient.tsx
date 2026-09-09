@@ -1868,8 +1868,8 @@ export default function MyProposalClient() {
                   <Field label="Family Type" fieldKey="family_type" options={['Joint family','Separate Family']} />
                   <BoolField label="Father Alive" fieldKey="father_alive" />
                   <BoolField label="Mother Alive" fieldKey="mother_alive" />
-                  <Field label="Father Occupation" fieldKey="father_occupation" options={professionList} grouped={professionGroups} />
-                  <Field label="Mother Occupation" fieldKey="mother_occupation" options={professionList} grouped={professionGroups} />
+                  <Field label="Father Occupation" fieldKey="father_occupation" />
+                  <Field label="Mother Occupation" fieldKey="mother_occupation" />
                   <BoolField label="Has Siblings" fieldKey="has_siblings" />
                   {(user.has_siblings === true || user.has_siblings as unknown === 'true') && <>
                     <Field label="Brothers" fieldKey="brothers" type="number" />

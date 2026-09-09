@@ -1070,8 +1070,8 @@ export default function ProposalFormClient() {
     const totalInches = (+form.height_feet * 12) + (+form.height_inches_extra || 0);
     const actualProfession = form.profession === 'Other' ? form.profession_custom.trim() : form.profession;
     const actualCaste = form.caste === 'Other' ? form.caste_custom.trim() : form.caste;
-    const actualFatherOcc = form.father_occupation === 'Other' ? form.father_occupation_custom.trim() : form.father_occupation;
-    const actualMotherOcc = form.mother_occupation === 'Other' ? form.mother_occupation_custom.trim() : form.mother_occupation;
+    const actualFatherOcc = form.father_occupation.trim();
+    const actualMotherOcc = form.mother_occupation.trim();
 
     // Upload profile photo — via the same secure server-side R2 upload
     // endpoint used for CNIC photos, not client-side Supabase Storage
@@ -1736,25 +1736,11 @@ export default function ProposalFormClient() {
               </Field>
             </div>
             <Field label="Father's Occupation">
-              <SearchableSelect value={form.father_occupation} onChange={v => { set('father_occupation', v); if (v !== 'Other') set('father_occupation_custom', ''); }} groups={professionGroups} placeholder="Select" />
+              <input value={form.father_occupation} onChange={e => set('father_occupation', e.target.value)} style={inp} placeholder="e.g. Farmer, Contractor, Retired" maxLength={40} />
             </Field>
-            {form.father_occupation === 'Other' && (
-              <SubSection>
-                <Field label="Specify Occupation">
-                  <input value={form.father_occupation_custom} onChange={e => set('father_occupation_custom', e.target.value)} style={inp} placeholder="e.g. Farmer, Contractor" maxLength={30} />
-                </Field>
-              </SubSection>
-            )}
             <Field label="Mother's Occupation">
-              <SearchableSelect value={form.mother_occupation} onChange={v => { set('mother_occupation', v); if (v !== 'Other') set('mother_occupation_custom', ''); }} groups={professionGroups} placeholder="Select" />
+              <input value={form.mother_occupation} onChange={e => set('mother_occupation', e.target.value)} style={inp} placeholder="e.g. Housewife, Teacher, Doctor" maxLength={40} />
             </Field>
-            {form.mother_occupation === 'Other' && (
-              <SubSection>
-                <Field label="Specify Occupation">
-                  <input value={form.mother_occupation_custom} onChange={e => set('mother_occupation_custom', e.target.value)} style={inp} placeholder="e.g. Housewife, Tailor" maxLength={30} />
-                </Field>
-              </SubSection>
-            )}
             <Field label="Do you have siblings?">
               <Sel value={form.has_siblings} onChange={v => set('has_siblings', v)} options={['Yes','No']} placeholder="Select" />
             </Field>
