@@ -269,7 +269,11 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
           const expired = !!(updated.subscription_expiry && new Date(updated.subscription_expiry) <= new Date());
 
           // Newly approved — old status was not active, new status is active
-          const justApproved = old.status !== 'active' && updated.status === 'active' && !expired;
+          // Exclude View Only (subscription_status = inactive/doc_pending) — those
+          // profiles are hidden from the browse feed so the banner shouldn't fire.
+          const justApproved = old.status !== 'active' && updated.status === 'active' && !expired
+            && updated.subscription_status !== 'inactive'
+            && updated.subscription_status !== 'doc_pending';
           if (justApproved) {
             const f = filtersRef.current;
             const matches =
