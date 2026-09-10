@@ -1672,10 +1672,11 @@ export default function MyProposalClient() {
               );
             };
 
-            const BoolField = ({ label, fieldKey }: { label: string; fieldKey: string }) => {
+            const BoolField = ({ label, fieldKey, inferTrue }: { label: string; fieldKey: string; inferTrue?: boolean }) => {
               const val = user[fieldKey as keyof typeof user];
               const isEditing = inlineKey === fieldKey;
-              const displayVal = val != null ? (val ? 'Yes' : 'No') : null;
+              const effectiveVal = (val != null) ? val : (inferTrue ? true : null);
+              const displayVal = effectiveVal != null ? (effectiveVal ? 'Yes' : 'No') : null;
               return (
                 <div style={{ marginBottom: 14 }}>
                   {lbl(label)}
@@ -1692,7 +1693,7 @@ export default function MyProposalClient() {
                     fieldDisabled(fieldKey) ? (
                       <div style={{ fontSize: 14, color: '#1A1830', fontWeight: 500 }}>{displayVal}</div>
                     ) : (
-                    <div onClick={() => { setInlineKey(fieldKey); setInlineVal(String(val)); }}
+                    <div onClick={() => { setInlineKey(fieldKey); setInlineVal(String(effectiveVal)); }}
                       style={{ fontSize: 14, color: '#1A1830', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                       onMouseEnter={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '1'; }}
                       onMouseLeave={e => { const i = e.currentTarget.querySelector('.edit-icon') as HTMLElement; if (i) i.style.opacity = '0'; }}>
@@ -1835,8 +1836,8 @@ export default function MyProposalClient() {
                   <Field label="Complexion" fieldKey="complexion" options={['Fair','Wheatish','Brown','Dark']} />
                   <Field label="Marital Status" fieldKey="marital_status" options={maritalOpts} />
                   {['Married','Divorced','Khula','Widowed'].includes(user.marital_status || '') && <>
-                    {!(user.has_kids === true || user.has_kids as unknown === 'true') && <BoolField label="Has Kids" fieldKey="has_kids" />}
-                    {(user.has_kids === true || user.has_kids as unknown === 'true') && <>
+                    {!(user.has_kids === true || user.has_kids as unknown === 'true' || (user.boys != null && (user.boys as unknown as number) > 0) || (user.girls != null && (user.girls as unknown as number) > 0)) && <BoolField label="Has Kids" fieldKey="has_kids" />}
+                    {(user.has_kids === true || user.has_kids as unknown === 'true' || (user.boys != null && (user.boys as unknown as number) > 0) || (user.girls != null && (user.girls as unknown as number) > 0)) && <>
                       <Field label="Sons" fieldKey="boys" type="number" />
                       <Field label="Daughters" fieldKey="girls" type="number" />
                     </>}
@@ -1857,8 +1858,8 @@ export default function MyProposalClient() {
                   <BoolField label="Mother Alive" fieldKey="mother_alive" />
                   <Field label="Father Occupation" fieldKey="father_occupation" />
                   <Field label="Mother Occupation" fieldKey="mother_occupation" />
-                  <BoolField label="Has Siblings" fieldKey="has_siblings" />
-                  {(user.has_siblings === true || user.has_siblings as unknown === 'true') && <>
+                  <BoolField label="Has Siblings" fieldKey="has_siblings" inferTrue={user.has_siblings == null && ((user.brothers as unknown as number) > 0 || (user.sisters as unknown as number) > 0)} />
+                  {(user.has_siblings === true || user.has_siblings as unknown === 'true' || (user.brothers != null && (user.brothers as unknown as number) > 0) || (user.sisters != null && (user.sisters as unknown as number) > 0)) && <>
                     <Field label="Brothers" fieldKey="brothers" type="number" />
                     <Field label="Sisters" fieldKey="sisters" type="number" />
                   </>}
