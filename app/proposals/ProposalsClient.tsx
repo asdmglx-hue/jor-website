@@ -272,8 +272,8 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
           // Exclude View Only (subscription_status = inactive/doc_pending) — those
           // profiles are hidden from the browse feed so the banner shouldn't fire.
           const justApproved = old.status !== 'active' && updated.status === 'active' && !expired
-            && updated.subscription_status !== 'inactive'
-            && updated.subscription_status !== 'doc_pending';
+            && (updated as any).subscription_status !== 'inactive'
+            && (updated as any).subscription_status !== 'doc_pending';
           if (justApproved) {
             const f = filtersRef.current;
             const matches =
