@@ -6,10 +6,9 @@ import PasswordInput from '@/components/PasswordInput';
 import PhoneInput from '@/components/PhoneInput';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// /register — OTP phone signup clone
+// /register — WhatsApp OTP phone signup
 // Mirrors Flutter jor_auth_sheet.dart signup flow:
-//   phone → OTP → set password → done → redirect to /register (profile form)
-// The existing /register page is completely untouched.
+//   phone → OTP → set password → done → redirect to login → proposalform
 // ─────────────────────────────────────────────────────────────────────────────
 
 type Step = 'phone' | 'otp' | 'password' | 'done';

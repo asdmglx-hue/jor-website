@@ -8,11 +8,10 @@ import PhoneInput from '@/components/PhoneInput';
 import { trackEvent } from '@/lib/analytics';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// /login — OTP phone login clone
+// /login — WhatsApp OTP phone login
 // Mirrors Flutter jor_auth_sheet.dart login + forgot flow:
 //   Login: phone + password → session → /my-profile
 //   Forgot: phone → OTP → new password → back to login
-// The existing /login page (CNIC) is completely untouched.
 // ─────────────────────────────────────────────────────────────────────────────
 
 type Mode  = 'login' | 'forgot';
@@ -185,7 +184,7 @@ export default function LoginClient() {
     try {
       const phone = formatPhone(lDial, lPhone);
       console.log("[LOGIN] dial:", lDial, "number:", lPhone, "formatted:", formatPhone(lDial, lPhone));
-      // login_by_phone returns a text identity (cnic or phone), not a proposal object
+      // login_by_phone returns the identity string (phone number) on success
       const { data: identity, error } = await supabase.rpc('login_by_phone', {
         p_phone: phone,
         p_password: lPass.trim(),

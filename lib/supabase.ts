@@ -1011,68 +1011,6 @@ async function fetchProposalsForCategoryInner(
   return { proposals, featured };
 }
 
-// Login with CNIC + password (matches your Flutter app exactly)
-export async function loginWithCnic(cnic: string, password: string): Promise<Proposal | null> {
-  const digits = cnic.replace(/-/g, '').trim();
-  const hyphenated = `${digits.slice(0,5)}-${digits.slice(5,12)}-${digits.slice(12)}`;
-
-  // Admin accounts (from the admin app's "Create Admin" screen) are checked
-  // first. They're real logins backed by the admin_accounts table, not a
-  // proposal — so we synthesize a minimal Proposal-shaped session object for
-  // them, since the rest of the site (session storage, my-profile page)
-  // expects a Proposal. subscription_tier/status are set so every locked-
-  // content check across the site (which funnels through isSubscriptionActive)
-  // treats this session as fully unlocked.
-  const { data: adminRow } = await supabase
-    .from('admin_accounts')
-    .select('id, name, cnic, password')
-    .or(`cnic.eq.${digits},cnic.eq.${hyphenated}`)
-    .eq('password', password.trim())
-    .maybeSingle();
-
-  if (adminRow) {
-    return {
-      id: `admin:${adminRow.id}`,
-      proposal_number: 0,
-      name: adminRow.name || 'Admin',
-      age: 0,
-      gender: 'Male',
-      city: '',
-      caste: '',
-      sect: '',
-      education: '',
-      profession: '',
-      height_inches: 0,
-      marital_status: '',
-      cnic: adminRow.cnic,
-      password: adminRow.password,
-      subscription_tier: 'featured',
-      status: 'approved',
-    } as Proposal;
-  }
-
-  // Regular (non-admin) login now goes through a security-definer RPC too —
-  // a raw select here was silently invisible to any proposal that isn't
-  // status='active' under the public_view_active_proposals policy (added
-  // for the emergency proposals-visibility fix), which meant pending or
-  // paused accounts could never log in at all, always reporting "Incorrect
-  // CNIC or password" even with the right credentials. The RPC bypasses
-  // that restriction while still requiring an exact password match.
-  const { data, error } = await supabase.rpc('login_by_cnic', {
-    p_cnic: digits,
-    p_password: password.trim(),
-  });
-  // data?.id check is deliberate, not redundant with !data — a Postgres
-  // function returning a composite type produces a row where every field
-  // is individually null when no match is found, not a true SQL null.
-  // That "row of nulls" is still a truthy object in JS, which is exactly
-  // what let a wrong password through as a successful login before this
-  // was caught. Checking a real field, not just object truthiness, is
-  // what actually catches that case.
-  if (error || !data || !data.id) return null;
-  return data as Proposal;
-}
-
 // Login with phone + password (OTP system)
 export async function loginWithPhone(phone: string, password: string): Promise<Proposal | null> {
   const { data, error } = await supabase.rpc('login_by_phone', {
@@ -1198,19 +1136,10 @@ export function cnicDisplay(cnic: string): string {
   return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
 }
 
-// Cached once per page load so the frequent, synchronous
-// isSubscriptionActive() checks below don't need to hit the database every
-// time. Kicked off immediately when this module loads; by the time most
-// components actually check subscription status, this has usually already
-// resolved. Backed by the admin_accounts table (supports multiple admins,
-// created from the admin app's "Create Admin" screen) rather than a single
-// hardcoded CNIC, so it stays correct as admins are added/changed/removed.
-let cachedAdminCnics: Set<string> = new Set();
-if (typeof window !== 'undefined') {
-  supabase.from('admin_accounts').select('cnic').then(({ data }) => {
-    if (data) cachedAdminCnics = new Set(data.map((r: { cnic: string }) => r.cnic));
-  });
-}
+// (Admin subscription check previously used a CNIC lookup against
+// admin_accounts — removed when login switched to OTP. Admin sessions are
+// now identified by id starting with 'admin:' set at login time, which
+// isSubscriptionActive checks directly via proposal.id below.)
 
 // ── Featured Post — per-city/date slot availability ─────────────────────────
 // Mirrors the mobile app's check exactly (SupabaseService.featuredSlotUsage /
@@ -1246,7 +1175,10 @@ export async function isFeaturedSlotAvailable(city: string, date: string, maxPer
 }
 
 export function isSubscriptionActive(proposal: Proposal): boolean {
-  if (proposal.cnic && cachedAdminCnics.has(proposal.cnic)) return true;
+  // Admin sessions are synthesised at login with id = 'admin:<uuid>' and
+  // subscription_tier = 'featured' — treat them as always active so every
+  // locked-content check across the site is bypassed for admins.
+  if (proposal.id?.startsWith('admin:')) return true;
   if (proposal.subscription_tier === 'none') return false;
   if (!proposal.subscription_expiry) return false;
   return new Date(proposal.subscription_expiry) > new Date();
@@ -1319,18 +1251,5 @@ export async function fetchAllBlogSlugs(): Promise<{ slug: string; published_at:
   return (data || []) as { slug: string; published_at: string }[];
 }
 
-// ── Forgot Password CNIC photo upload ────────────────────────────────────────
-export async function uploadForgotPasswordCnicPhoto(file: File, cnicDigits: string): Promise<string | null> {
-  try {
-    const ext = file.name.split('.').pop() || 'jpg';
-    const path = `forgot-password/${cnicDigits}_${Date.now()}.${ext}`;
-    const { error } = await supabase.storage
-      .from('cnic-photos')
-      .upload(path, file, { upsert: true, contentType: file.type });
-    if (error) return null;
-    const { data } = supabase.storage.from('cnic-photos').getPublicUrl(path);
-    return data.publicUrl;
-  } catch {
-    return null;
-  }
-}
+// uploadForgotPasswordCnicPhoto removed — forgot password flow now uses
+// WhatsApp OTP only (handleForgotSendOtp in LoginClient). No CNIC photo needed.

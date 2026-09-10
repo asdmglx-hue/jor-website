@@ -394,18 +394,12 @@ export default function MyProposalClient() {
       const sessionToken = localStorage.getItem('jor_session_token');
       const sessionIdentity = session.auth_phone
         ? session.auth_phone.replace(/\D/g, '')
-        : (session as any).cnic?.replace(/-/g, '') ?? null;
+        : null;
       if (!sessionIdentity || !sessionToken) return true; // no token = old login, allow
       const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
       if (Date.now() - loginTime < 10000) return true; // grace period after login
-      // IMPORTANT: register_device_session (called at login) always uses
-      // the dash-stripped CNIC, but a handful of proposals have their
-      // cnic column stored WITH dashes (data entry inconsistency) —
-      // session.cnic reflects however it's actually stored for this
-      // person. Comparing that raw value against a session registered
-      // under the stripped form never matches, silently and permanently
-      // kicking that person on every visit regardless of device.
-      // Stripping here guarantees this always compares apples to apples.
+      // sessionIdentity is auth_phone digits — stripping non-digits here
+      // keeps it consistent with how register_device_session stored it.
       const { data } = await Promise.resolve(supabase.rpc('check_device_session', {
         p_cnic: sessionIdentity,
         p_session_token: sessionToken,
@@ -418,7 +412,7 @@ export default function MyProposalClient() {
         localStorage.removeItem('er_saved');
         // Small delay to ensure localStorage writes complete before reload
         await new Promise(resolve => setTimeout(resolve, 150));
-        window.location.replace(session.auth_phone && !session.cnic ? '/login?kicked=1' : '/login?kicked=1');
+        window.location.replace('/login?kicked=1');
         return false;
       }
       return true;
@@ -432,9 +426,9 @@ export default function MyProposalClient() {
       import('@/lib/auth').then(m => m.syncSavedFromServer(session.id).then(ids => setSavedIds(ids)));
     }
     // Admin sessions are synthesized at login with an id like "admin:<uuid>"
-    // (see loginWithCnic) — checking that directly is synchronous, so the
-    // Admin badge is correct on the very first render instead of briefly
-    // showing "Active" while an async admin_accounts lookup resolves.
+    // — checking that directly is synchronous, so the Admin badge is correct
+    // on the very first render instead of briefly showing "Active" while an
+    // async lookup resolves.
     if (session.id?.startsWith('admin:')) setIsAdminAccount(true);
     // Admin sessions use a synthetic "admin:<uuid>" id — passing that
     // directly into a real UUID column (proposals.id, featured_boosts.user_id)
@@ -442,31 +436,10 @@ export default function MyProposalClient() {
     // admin sessions rather than querying with an id that was never real.
     if (!session.id?.startsWith('admin:')) {
       // Always fetch fresh data so status/plans changes are reflected.
-      // Uses the same safe column list as public profile views — cnic and
-      // password aren't re-fetched here (the database no longer allows
-      // fetching them via a plain table query at all, even for a
-      // person's own row, since Postgres grants can't distinguish "my
-      // row" from "anyone's row" without real Supabase Auth). They're
-      // preserved from what login already stored locally instead of
-      // being silently wiped out by this refresh.
-      // Use fetch_own_proposal RPC — bypasses the RLS status='active' filter
-      // so pending/paused users also get fresh data on page load.
-      if (session.id && (session as any).cnic) {
-        supabase.rpc('fetch_own_proposal', {
-          p_id: session.id,
-          p_cnic: (session as any).cnic.replace(/-/g, ''),
-        }).then(({ data: rows }) => {
-          const data = rows?.[0];
-          if (data) {
-            const fresh = { ...session, ...data } as Proposal;
-            setUser(fresh);
-            if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
-            if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
-            import('@/lib/auth').then(m => m.saveSession(fresh));
-          }
-        });
-      } else if (session.auth_phone) {
-        // Phone-only user — use RPC which bypasses RLS (pending proposals blocked by direct select)
+      // Uses fetch_user_status_by_cnic RPC (despite the legacy name, it
+      // accepts auth_phone too) — bypasses RLS so pending/paused users
+      // also get fresh data on page load.
+      if (session.auth_phone) {
         supabase.rpc('fetch_user_status_by_cnic', { p_cnic: session.auth_phone })
           .then(({ data }) => {
           const proposal = data as Record<string, unknown> | null;
@@ -479,17 +452,6 @@ export default function MyProposalClient() {
               m.saveSession(fresh);
               window.dispatchEvent(new CustomEvent('jor:session-updated', { detail: fresh }));
             });
-          }
-        });
-      } else {
-        // Fallback for accounts without cnic (admin sessions skipped above)
-        supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle().then(({ data }) => {
-          if (data) {
-            const fresh = { ...session, ...data } as Proposal;
-            setUser(fresh);
-            if (fresh.degree_title_2 || fresh.institute_2) setShowDeg2(true);
-            if (fresh.degree_title_3 || fresh.institute_3) setShowDeg3(true);
-            import('@/lib/auth').then(m => m.saveSession(fresh));
           }
         });
       }
@@ -553,12 +515,12 @@ export default function MyProposalClient() {
             }
             setBoostChecked(true);
           });
-        if (session.id && (session as any).cnic) {
-          supabase.rpc('fetch_own_proposal', { p_id: session.id, p_cnic: (session as any).cnic.replace(/-/g, '') })
-            .then(({ data: rows }) => { const data = rows?.[0]; if (data) setUser(prev => (prev ? { ...prev, ...data } : (data as Proposal))); });
-        } else {
-          supabase.from('proposals').select(PROFILE_DETAIL_COLS).eq('id', session.id).maybeSingle()
-            .then(({ data }) => { if (data) setUser(prev => (prev ? { ...prev, ...data } : (data as Proposal))); });
+        if (session.auth_phone) {
+          supabase.rpc('fetch_user_status_by_cnic', { p_cnic: session.auth_phone })
+            .then(({ data }) => {
+              const proposal = data as Record<string, unknown> | null;
+              if (proposal && proposal.id) setUser(prev => (prev ? { ...prev, ...proposal } : (proposal as Proposal)));
+            });
         }
       };
       refreshBoosts();
@@ -620,7 +582,7 @@ export default function MyProposalClient() {
   const handleLogout = () => {
     const session = getSession();
     const sessionToken = localStorage.getItem('jor_session_token');
-    const logoutIdentity = session?.auth_phone ?? (session as any)?.cnic ?? null;
+    const logoutIdentity = session?.auth_phone ?? null;
     if (logoutIdentity && sessionToken) {
       supabase.rpc('remove_device_session', {
         p_cnic: logoutIdentity.replace(/\D/g, ''),
@@ -1547,7 +1509,7 @@ export default function MyProposalClient() {
               const slot = urlKey === 'degree_certificate_url' ? '1' : urlKey === 'degree_certificate_2_url' ? '2' : '3';
 
               const handleFile = async (file: File) => {
-                if (!user?.cnic) { setCertErr('CNIC must be set before uploading a certificate.'); return; }
+                if (!(user as any)?.auth_phone) { setCertErr('Your account must be linked to a phone number before uploading a certificate.'); return; }
                 setCertErr('');
                 setUploading(true);
                 try {
@@ -1833,7 +1795,7 @@ export default function MyProposalClient() {
                   <Field label="Full Name" fieldKey="name" />
                   <Field label="Age" fieldKey="age" type="number" maxLength={2} />
                   <Field label="Gender" fieldKey="gender" />
-                  {user.auth_phone && !user.cnic
+                  {user.auth_phone
                     ? <div>
                         {lbl('Login', lockIcon)}
                         <div style={{ fontSize: 14, color: '#1A1830', fontWeight: 500 }}>{user.auth_phone}</div>

@@ -592,7 +592,7 @@ export default function ProposalFormClient() {
   if (typeof window !== 'undefined') {
     const { getSession: _getSession } = require('@/lib/auth');
     const s = _getSession();
-    if (!s || (!s.auth_phone && !s.cnic)) {
+    if (!s || !s.auth_phone) {
       window.location.href = '/login?next=/proposalform';
       return null;
     }
@@ -792,7 +792,7 @@ export default function ProposalFormClient() {
   const sessionValid = typeof window === 'undefined' ? true : (() => {
     try {
       const s = getSession();
-      return !!(s && (s.auth_phone || s.cnic));
+      return !!(s && s.auth_phone);
     } catch { return false; }
   })();
   useEffect(() => {
@@ -835,7 +835,7 @@ export default function ProposalFormClient() {
     // Read OTP session — redirect to login if not authenticated
     try {
       const s = getSession();
-      if (!s || (!s.auth_phone && !s.cnic)) {
+      if (!s || !s.auth_phone) {
         window.location.href = '/login?next=/proposalform';
         return;
       }
