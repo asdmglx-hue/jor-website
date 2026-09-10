@@ -1286,6 +1286,31 @@ export default function ProposalFormClient() {
       localStorage.removeItem(STEP_KEY);
       localStorage.removeItem(COUPON_KEY);
       localStorage.removeItem(AFFILIATE_APPLIED_KEY);
+
+      // ── Fix: patch localStorage session with the submitted profile data ──
+      // After OTP login the session only contains { id, auth_phone } — no
+      // name, photo, etc. — because the proposal didn't exist yet.
+      // my-profile reads from localStorage on its very first render (before
+      // the async RPC returns), so without this patch it briefly shows the
+      // phone number as the name and a red placeholder avatar.
+      // Merging the form values here means the first paint is already correct.
+      try {
+        const { getSession, saveSession } = await import('@/lib/auth');
+        const current = getSession();
+        if (current) {
+          saveSession({
+            ...current,
+            name: form.name.trim(),
+            gender: form.gender as 'Male' | 'Female',
+            age: +form.age,
+            city: form.city,
+            profession: form.profession,
+            profile_photo_url: profilePhotoUrl ?? undefined,
+            status: 'pending',
+          });
+        }
+      } catch (_) { /* non-critical — page will still load and fix itself via RPC */ }
+
       setSubmitted(true);
       trackEvent('register_complete');
       if ((window as any).fbq) {
