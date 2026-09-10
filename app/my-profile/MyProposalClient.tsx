@@ -1043,21 +1043,35 @@ export default function MyProposalClient() {
             const verifDv: Record<string, string> = (user.doc_verification as Record<string, string>) ?? {};
             const verifRejected = Object.values(verifDv).some(v => v === 'rejected');
 
-            // Cross-check actual URL presence — doc_verification statuses can be stale
-            // if an admin removed a document without explicitly rejecting it. A status
-            // of 'pending' or 'approved' means nothing if the file itself is gone.
+            // Check actual URL presence — doc_verification statuses can be stale
+            // if an admin removed a document without explicitly rejecting it.
             const hasCnicUrl    = !!(user.cnic_front_url && user.cnic_back_url);
             const hasDegreeUrl  = !!user.education_document_url;
             const hasParentsUrl = !!(user.guardian_cnic_front_url && user.guardian_cnic_back_url);
+
+            // Read which doc sections are shown and compulsory (same keys as Verify Now settings)
+            const showCnicSetting    = verifyNowSettings['verify_now_candidate_cnic'] !== 'false';
+            const showDegreeSetting  = verifyNowSettings['verify_now_latest_degree']  !== 'false';
+            const showParentsSetting = verifyNowSettings['verify_now_parents_cnic']   !== 'false';
+            const cnicCompulsory     = verifyNowSettings['verify_now_candidate_cnic_compulsory'] !== 'false';
+            const degreeCompulsory   = verifyNowSettings['verify_now_latest_degree_compulsory']  === 'true';
+            const parentsCompulsory  = verifyNowSettings['verify_now_parents_cnic_compulsory']   !== 'false';
+
+            // A compulsory doc section is "satisfied" only if the actual files exist.
+            // A non-compulsory section is satisfied regardless (it's optional).
+            // verifDone = no rejections AND every compulsory section that is shown has its files.
+            const cnicSatisfied    = !showCnicSetting    || !cnicCompulsory    || hasCnicUrl;
+            const degreeSatisfied  = !showDegreeSetting  || !degreeCompulsory  || hasDegreeUrl;
+            const parentsSatisfied = !showParentsSetting || !parentsCompulsory || hasParentsUrl;
+            const allCompulsorySatisfied = cnicSatisfied && degreeSatisfied && parentsSatisfied;
+
+            // Also need at least one real file submitted (otherwise an account with zero
+            // compulsory docs would show "submitted" before uploading anything).
             const hasAnyRealDoc = hasCnicUrl || hasDegreeUrl || hasParentsUrl;
 
-            // Done = verified OR (has at least one real uploaded file AND no rejections)
-            // hasPendingVerification is local state set when user submits via Verify Now
-            // modal — only trust it if the actual files still exist on the server.
             const verifDone = !!(user.is_doc_verified ||
-              (hasPendingVerification && hasAnyRealDoc) ||
-              (hasAnyRealDoc && Object.values(verifDv).some(v => v === 'pending' || v === 'approved') && !verifRejected));
-            const verifRej  = verifRejected; // show rejection even if some docs are pending/approved
+              (!verifRejected && allCompulsorySatisfied && hasAnyRealDoc));
+            const verifRej  = verifRejected;
 
             const payFree   = freeMode === true;
             const payDone   = !!(payFree || proofStatus === 'pending' || proofStatus === 'approved');
