@@ -77,7 +77,6 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
     if (!session) return;
     setPasswordError(''); setPasswordSuccess('');
     if (!currentPassword.trim()) { setPasswordError('Enter your current password'); return; }
-    if (currentPassword.trim() !== session.password) { setPasswordError('Current password is incorrect'); return; }
     if (!newPassword.trim() || newPassword.trim().length < 6) { setPasswordError('New password must be at least 6 characters'); return; }
     if (newPassword.trim() !== confirmNewPassword.trim()) { setPasswordError('New passwords do not match'); return; }
     setPasswordSaving(true);
@@ -89,23 +88,39 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
     // direct table write — the admin_accounts table no longer grants raw
     // write access to the anon key.
     const isAdmin = session.id?.startsWith('admin:');
-    const ok = isAdmin
-      ? !!(await supabase.rpc('admin_account_self_update_password', {
-          p_cnic: (session as any).auth_phone,
-          p_current_password: currentPassword.trim(),
-          p_new_password: newPassword.trim(),
-        })).data
-      : !!(await supabase.rpc('set_phone_password', {
-          p_phone: (session as any).auth_phone,
-          p_password: newPassword.trim(),
-        }));
-    setPasswordSaving(false);
-    if (ok) {
+    if (isAdmin) {
+      const ok = !!(await supabase.rpc('admin_account_self_update_password', {
+        p_cnic: (session as any).auth_phone,
+        p_current_password: currentPassword.trim(),
+        p_new_password: newPassword.trim(),
+      })).data;
+      setPasswordSaving(false);
+      if (!ok) { setPasswordError('Current password is incorrect'); return; }
       saveSession({ ...session, password: newPassword.trim() });
       setPasswordSuccess('Password updated successfully.');
-      setCurrentPassword(''); setNewPassword(''); setConfirmNewPassword('');
     } else {
-      setPasswordError('Failed to update password. Please try again.');
+      // Verify current password server-side first
+      const { data: verified } = await supabase.rpc('login_by_phone', {
+        p_phone: (session as any).auth_phone,
+        p_password: currentPassword.trim(),
+      });
+      if (!verified) {
+        setPasswordSaving(false);
+        setPasswordError('Current password is incorrect');
+        return;
+      }
+      const ok = !!(await supabase.rpc('set_phone_password', {
+        p_phone: (session as any).auth_phone,
+        p_password: newPassword.trim(),
+      })).data !== undefined;
+      setPasswordSaving(false);
+      if (ok) {
+        saveSession({ ...session, password: newPassword.trim() });
+        setPasswordSuccess('Password updated successfully.');
+        setCurrentPassword(''); setNewPassword(''); setConfirmNewPassword('');
+      } else {
+        setPasswordError('Failed to update password. Please try again.');
+      }
     }
   };
 
