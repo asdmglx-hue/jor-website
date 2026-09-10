@@ -262,23 +262,24 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
       .channel('proposals-feed')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'proposals', filter: 'status=eq.active' },
-        (payload) => {
-          const newProposal = payload.new as Proposal;
-          // If it matches current filters, show banner
-          const f = filtersRef.current;
-          const matches =
-            (!f.gender || newProposal.gender === f.gender) &&
-            (!f.city || newProposal.city === f.city);
-          if (matches) setNewCount(c => c + 1);
-        }
-      )
-      .on(
-        'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'proposals' },
         (payload) => {
           const updated = payload.new as Proposal;
+          const old = payload.old as Partial<Proposal>;
           const expired = !!(updated.subscription_expiry && new Date(updated.subscription_expiry) <= new Date());
+
+          // Newly approved — old status was not active, new status is active
+          const justApproved = old.status !== 'active' && updated.status === 'active' && !expired;
+          if (justApproved) {
+            const f = filtersRef.current;
+            const matches =
+              (!f.gender || updated.gender === f.gender) &&
+              (!f.city || updated.city === f.city) &&
+              (!f.overseas || (updated.country && updated.country !== 'Pakistan'));
+            if (matches) setNewCount(c => c + 1);
+            return;
+          }
+
           // If proposal was deactivated OR its subscription just expired
           // (status may still literally say 'active' until the admin app's
           // periodic check catches up and flips it), remove it from view.
