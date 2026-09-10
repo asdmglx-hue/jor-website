@@ -106,7 +106,6 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
     if (typeof window === 'undefined') return [];
     try { return JSON.parse(localStorage.getItem('er_not_interested') || '[]'); } catch { return []; }
   });
-  const [newCount, setNewCount] = useState(0); // realtime new proposals banner
   // A logged-in (non-admin) man only browses women's proposals and vice
   // versa — matches the mobile app's identical lockedGender feature. Takes
   // priority over any ?gender= URL param, same as mobile ignoring a
@@ -216,7 +215,6 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
       const filtered = data.filter(row => !dismissed.includes(row.id));
       setProposals(prev => append ? [...prev, ...filtered] : filtered);
       setTotal(t);
-      setNewCount(0);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -256,7 +254,7 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // ── Real-time: listen for new/updated proposals ──────────────────────────
+  // ── Real-time: listen for updated proposals ──────────────────────────────
   useEffect(() => {
     const channel = supabase
       .channel('proposals-feed')
@@ -265,24 +263,7 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
         { event: 'UPDATE', schema: 'public', table: 'proposals' },
         (payload) => {
           const updated = payload.new as Proposal;
-          const old = payload.old as Partial<Proposal>;
           const expired = !!(updated.subscription_expiry && new Date(updated.subscription_expiry) <= new Date());
-
-          // Newly approved — old status was not active, new status is active
-          // Exclude View Only (subscription_status = inactive/doc_pending) — those
-          // profiles are hidden from the browse feed so the banner shouldn't fire.
-          const justApproved = old.status !== 'active' && updated.status === 'active' && !expired
-            && (updated as any).subscription_status !== 'inactive'
-            && (updated as any).subscription_status !== 'doc_pending';
-          if (justApproved) {
-            const f = filtersRef.current;
-            const matches =
-              (!f.gender || updated.gender === f.gender) &&
-              (!f.city || updated.city === f.city) &&
-              (!f.overseas || (updated.country && updated.country !== 'Pakistan'));
-            if (matches) setNewCount(c => c + 1);
-            return;
-          }
 
           // If proposal was deactivated OR its subscription just expired
           // (status may still literally say 'active' until the admin app's
@@ -427,21 +408,6 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
             </div>
           )}
         </div>
-      )}
-
-      {/* Realtime new proposals banner */}
-      {newCount > 0 && (
-        <button
-          onClick={() => { setPage(0); load(filters, 0); }}
-          style={{
-            width: '100%', padding: '12px', marginBottom: 16, borderRadius: 12, border: 'none',
-            background: 'linear-gradient(135deg, #534AB7, #3D35A0)', color: '#fff',
-            fontWeight: 800, fontSize: 14, cursor: 'pointer',
-            boxShadow: '0 4px 16px rgba(83,74,183,0.3)',
-          }}
-        >
-          🔔 {newCount} new proposal{newCount > 1 ? 's' : ''} added — click to refresh
-        </button>
       )}
 
       {!showSaved && (loading ? (
