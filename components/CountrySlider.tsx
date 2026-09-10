@@ -47,7 +47,7 @@ const ISO: Record<string, string> = {
   'Vatican City': 'va', 'Saint Vincent': 'vc', 'Venezuela': 've', 'Vietnam': 'vn',
   'Vanuatu': 'vu', 'Samoa': 'ws', 'Kosovo': 'xk', 'Yemen': 'ye', 'South Africa': 'za',
   'Zambia': 'zm', 'Zimbabwe': 'zw', 'Andorra': 'ad', 'Pakistan': 'pk',
-  'South Korea': 'kr', 'North Korea': 'kp',
+  'South Korea': 'kr', 'North Korea': 'kp', 'Hong Kong': 'hk',
 };
 
 export default function CountrySlider({ countries: initialCountries }: { countries: { country: string; count: number }[] }) {
