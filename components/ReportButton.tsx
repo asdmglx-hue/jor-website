@@ -37,7 +37,7 @@ export default function ReportButton({ proposalId }: { proposalId: string }) {
     const session = getSession();
     try {
       await supabase.rpc('submit_profile_report', {
-        p_cnic: (session as any)?.cnic ?? '',
+        p_cnic: (session as any)?.auth_phone ?? '',
         p_reported_proposal_id: proposalId,
         p_reason: selected,
         p_details: details.trim() || undefined,

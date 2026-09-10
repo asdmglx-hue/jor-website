@@ -44,10 +44,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
 
     // Check session validity on every page navigation
     // This ensures kicked users are logged out globally, not just on /my-profile
-    // Use cnic for old users, auth_phone for new OTP phone users
-    const sessionIdentity = s?.cnic
-      ? s.cnic.replace(/-/g, '')
-      : s?.auth_phone ?? null;
+    const sessionIdentity = s?.auth_phone ?? null;
     if (sessionIdentity) {
       const sessionToken = localStorage.getItem('jor_session_token');
       const loginTime = parseInt(localStorage.getItem('jor_login_time') || '0');
@@ -60,8 +57,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
             localStorage.removeItem('er_user');
             localStorage.removeItem('jor_session_token');
             localStorage.removeItem('jor_login_time');
-            // Redirect to correct login page based on how they logged in
-            window.location.replace(s?.auth_phone && !s?.cnic ? '/login?kicked=1' : '/login?kicked=1');
+            window.location.replace('/login?kicked=1');
           }
         }).catch(() => {});
       }
@@ -95,7 +91,7 @@ export default function Navbar({ sticky = false }: { sticky?: boolean }) {
     const isAdmin = session.id?.startsWith('admin:');
     const ok = isAdmin
       ? !!(await supabase.rpc('admin_account_self_update_password', {
-          p_cnic: (session as any).cnic,
+          p_cnic: (session as any).auth_phone,
           p_current_password: currentPassword.trim(),
           p_new_password: newPassword.trim(),
         })).data
