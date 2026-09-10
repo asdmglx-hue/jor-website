@@ -1866,10 +1866,16 @@ export default function MyProposalClient() {
 
                 {sec('Education & Career', grid(<>
                   <Field label="Education Level (Highest)" fieldKey="education" options={["Matric","FSc/FA","Diploma","Bachelor's","Master's","MPhil","PhD","Other"]} />
-                  <div style={{ gridColumn: '1 / -1', fontSize: 13, fontWeight: 700, color: '#534AB7', marginBottom: 2 }}>Degree</div>
-                  <Field label="Title" fieldKey="degree_title" />
-                  <Field label="Institute" fieldKey="institute" />
-                  <div style={{ gridColumn: '1 / -1' }}><DegreeCertField label="Degree Certificate" urlKey="degree_certificate_url" /></div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#534AB7', marginBottom: 8 }}>Degree</div>
+                    <div style={{ background: '#F8F7FE', border: '1px solid #E8E6F5', borderRadius: 12, padding: '14px 16px', marginBottom: 10 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+                        <Field label="Title" fieldKey="degree_title" />
+                        <Field label="Institute" fieldKey="institute" />
+                      </div>
+                      <DegreeCertField label="Degree Certificate" urlKey="degree_certificate_url" />
+                    </div>
+                  </div>
                   {!showDeg2 && (
                     <div style={{ gridColumn: '1 / -1', marginBottom: 22 }}>
                       <button onClick={() => setShowDeg2(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#534AB7', fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0' }}>
@@ -1878,13 +1884,19 @@ export default function MyProposalClient() {
                     </div>
                   )}
                   {showDeg2 && <>
-                    <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', marginTop: 4 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#534AB7' }}>Degree 2</span>
-                      <button onClick={() => { setShowDeg2(false); setShowDeg3(false); }} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 12 }}>✕ Remove</button>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#534AB7' }}>Degree 2</span>
+                        <button onClick={() => { setShowDeg2(false); setShowDeg3(false); }} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 12 }}>✕ Remove</button>
+                      </div>
+                      <div style={{ background: '#F8F7FE', border: '1px solid #E8E6F5', borderRadius: 12, padding: '14px 16px', marginBottom: 10 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+                          <Field label="Title" fieldKey="degree_title_2" />
+                          <Field label="Institute 2" fieldKey="institute_2" />
+                        </div>
+                        <DegreeCertField label="Degree 2 Certificate" urlKey="degree_certificate_2_url" />
+                      </div>
                     </div>
-                    <Field label="Title" fieldKey="degree_title_2" />
-                    <Field label="Institute 2" fieldKey="institute_2" />
-                    <div style={{ gridColumn: '1 / -1' }}><DegreeCertField label="Degree 2 Certificate" urlKey="degree_certificate_2_url" /></div>
                     {!showDeg3 && (
                       <div style={{ gridColumn: '1 / -1', marginBottom: 22 }}>
                         <button onClick={() => setShowDeg3(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#534AB7', fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0' }}>
@@ -1894,13 +1906,19 @@ export default function MyProposalClient() {
                     )}
                   </>}
                   {showDeg2 && showDeg3 && <>
-                    <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', marginTop: 4 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#534AB7' }}>Degree 3</span>
-                      <button onClick={() => setShowDeg3(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 12 }}>✕ Remove</button>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#534AB7' }}>Degree 3</span>
+                        <button onClick={() => setShowDeg3(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 12 }}>✕ Remove</button>
+                      </div>
+                      <div style={{ background: '#F8F7FE', border: '1px solid #E8E6F5', borderRadius: 12, padding: '14px 16px', marginBottom: 10 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+                          <Field label="Title" fieldKey="degree_title_3" />
+                          <Field label="Institute 3" fieldKey="institute_3" />
+                        </div>
+                        <DegreeCertField label="Degree 3 Certificate" urlKey="degree_certificate_3_url" />
+                      </div>
                     </div>
-                    <Field label="Title" fieldKey="degree_title_3" />
-                    <Field label="Institute 3" fieldKey="institute_3" />
-                    <div style={{ gridColumn: '1 / -1' }}><DegreeCertField label="Degree 3 Certificate" urlKey="degree_certificate_3_url" /></div>
                   </>}
                   <Field label="Occupation" fieldKey="profession" options={professionList} grouped={professionGroups} />
                   <Field label="Employment Type" fieldKey="employment_type" options={['Full-time','Part-time','Self-employed','Business','Freelance','Not employed']} />
