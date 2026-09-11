@@ -271,7 +271,8 @@ export default function RegisterClient() {
                 <a href="/privacy-policy" target="_blank" style={{ color: PURPLE, fontWeight: 700 }}>Privacy Policy</a>{' '}and{' '}
                 <a href="/terms" target="_blank" style={{ color: PURPLE, fontWeight: 700 }}>Terms</a>.
               </p>
-              <p style={{ textAlign: 'center', marginTop: 4, fontSize: 13, color: INK_LT }}>
+              <div style={{ height: 1, background: '#E8E6F5', margin: '4px 0 16px' }} />
+              <p style={{ textAlign: 'center', fontSize: 13, color: INK_LT }}>
                 Already have an account?{' '}
                 <Link href="/login" style={{ color: PURPLE, fontWeight: 700, textDecoration: 'none' }}>Login</Link>
               </p>
