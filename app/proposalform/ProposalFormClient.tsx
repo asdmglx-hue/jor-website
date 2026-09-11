@@ -2161,8 +2161,8 @@ export default function ProposalFormClient() {
 
               <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {[
-                  { value: 'self', label: 'I am submitting this profile to find a suitable marriage proposal for myself.' },
-                  { value: 'guardian', label: 'I am submitting this profile to find a suitable marriage proposal for my son/daughter.' },
+                  { value: 'self', label: 'I am submitting this profile for myself to find a suitable marriage proposal.' },
+                  { value: 'guardian', label: 'I am submitting this profile for my son/daughter to find a suitable marriage proposal.' },
                 ].map(opt => (
                   <div
                     key={opt.value}
