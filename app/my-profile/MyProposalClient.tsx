@@ -268,7 +268,7 @@ export default function MyProposalClient() {
   const [payInstructionsCopied, setPayInstructionsCopied] = useState<string | null>(null);
   const [payProofType, setPayProofType] = useState<'new' | 'renewal'>('new'); // which button opened the modal
   const [payProofSettings, setPayProofSettings] = useState<Record<string, string>>({});
-  const [badgeEnabled, setBadgeEnabled] = useState(true);
+  const [badgeEnabled, setBadgeEnabled] = useState(false);
   const [verifyNowSettings, setVerifyNowSettings] = useState<Record<string, string>>({});
   useEffect(() => {
     supabase.from('app_settings').select('key, value')
@@ -282,7 +282,7 @@ export default function MyProposalClient() {
         if (!data) return;
         const map = Object.fromEntries(data.map((r: { key: string; value: string }) => [r.key, r.value]));
         setFreeMode(map['free_mode'] === 'true');
-        if (map['verification_badge_enabled'] === 'false') setBadgeEnabled(false);
+        setBadgeEnabled(map['verification_badge_enabled'] !== 'false');
         setVerifyNowSettings(map);
         setPayProofSettings(map);
         setSettingsLoaded(true);
