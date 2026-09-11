@@ -460,27 +460,23 @@ export default function MyProposalClient() {
       // the app hit). Reusing the same RPC built for the app: verifies
       // ownership server-side, then returns the events so the same
       // chronological-replay resolution logic can run here too.
-      if (session.id) {
-        console.log('[DEBUG] session.id:', session.id, 'auth_phone:', (session as any).auth_phone);
+      // Pending profiles: all changes apply directly — no review queue
+      // is ever created, so nothing to fetch.
+      if (session.id && session.status !== 'pending') {
         supabase.rpc('fetch_own_pending_edits', {
           p_cnic: (session as any).auth_phone?.replace(/\D/g, '') ?? '',
           p_proposal_id: session.id,
         }).then(({ data: eventsRaw, error: pendingErr }) => {
-          console.log('[DEBUG] fetch_own_pending_edits raw:', eventsRaw, 'error:', pendingErr);
           if (!eventsRaw) return;
           const events = Array.isArray(eventsRaw) ? eventsRaw : ((eventsRaw as any)?.fetch_own_pending_edits ?? []);
-          console.log('[DEBUG] events array:', events, 'length:', events.length);
           const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
           const pending: Record<string, unknown> = {};
           for (const ev of (events as { changes: Record<string, unknown>; old_values: Record<string, unknown>; status: string; reviewed_at: string | null }[])) {
             if (ev.status === 'reverted') {
-              // Admin rejected — clear pending, show DB value
               for (const k of Object.keys(ev.changes)) delete pending[k];
             } else if (ev.status === 'applied' && ev.reviewed_at != null) {
-              // Admin approved — already in DB, clear pending
               for (const k of Object.keys(ev.changes)) delete pending[k];
             } else if (ev.status === 'applied' && ev.reviewed_at == null) {
-              // User submitted, waiting for admin review — show as pending
               for (const k of Object.keys(ev.changes)) {
                 if (INSTANT_FIELDS.has(k)) continue;
                 pending[k] = ev.changes[k];
@@ -751,15 +747,14 @@ export default function MyProposalClient() {
         // landed in review, the field should immediately show its
         // submitted text + a pending indicator, not wait for the next
         // full page load to reflect that.
-        if (user.id) {
+        // Pending profiles: all changes apply directly — no review queue.
+        if (user.id && user.status !== 'pending') {
           supabase.rpc('fetch_own_pending_edits', {
             p_cnic: ((user as any).auth_phone ?? '').replace(/\D/g, ''),
             p_proposal_id: user.id,
-          }).then(({ data: eventsRaw, error: pendingErr2 }) => {
-            console.log('[DEBUG post-save] fetch_own_pending_edits raw:', eventsRaw, 'error:', pendingErr2);
+          }).then(({ data: eventsRaw }) => {
             if (!eventsRaw) return;
             const events = Array.isArray(eventsRaw) ? eventsRaw : ((eventsRaw as any)?.fetch_own_pending_edits ?? []);
-            console.log('[DEBUG post-save] events:', events);
             const INSTANT_FIELDS = new Set(['contact_phone','contact_phone_2','contact_person','contact_person_2']);
             const pending: Record<string, unknown> = {};
             for (const ev of events) {
@@ -1612,7 +1607,7 @@ export default function MyProposalClient() {
                 : rawDisplayVal;
               return (
                 <div style={{ marginBottom: 14 }}>
-                  {lbl(label, hasPending ? clockIcon : (ALWAYS_LOCKED.includes(fieldKey) ? lockIcon : (info ? <InfoPopover text={info} /> : undefined)))}
+                  {lbl(label, (hasPending && !isPendingAccount) ? clockIcon : (ALWAYS_LOCKED.includes(fieldKey) ? lockIcon : (info ? <InfoPopover text={info} /> : undefined)))}
                   {isEditing ? (
                     <>
                       {options
@@ -1774,7 +1769,7 @@ export default function MyProposalClient() {
               const isEditing = inlineKey === fieldKey;
               return (
                 <div style={{ marginBottom: 16, minWidth: 0 }}>
-                  {lbl(label, hasPending ? clockIcon : undefined)}
+                  {lbl(label, (hasPending && !isPendingAccount) ? clockIcon : undefined)}
                   {isEditing ? (
                     <>
                       <textarea value={inlineVal} onChange={e => setInlineVal(e.target.value.slice(0,200))} rows={3} maxLength={200}
@@ -1936,7 +1931,7 @@ export default function MyProposalClient() {
                     const val = hasPending ? pendingChanges.disability_details as string : user.disability_details;
                     return (
                       <div style={{ marginBottom: 14, gridColumn: '1 / -1' }}>
-                        {lbl('Disability Details', hasPending ? clockIcon : undefined)}
+                        {lbl('Disability Details', (hasPending && !isPendingAccount) ? clockIcon : undefined)}
                         {isEditing ? (
                           <>
                             <textarea value={inlineVal} onChange={e => setInlineVal(e.target.value.slice(0,30))} rows={2} maxLength={30}
@@ -1967,7 +1962,7 @@ export default function MyProposalClient() {
                     const val = hasPending ? pendingChanges.house_size as string : user.house_size;
                     return (
                       <div style={{ marginBottom: 14 }}>
-                        {lbl('House Size', hasPending ? clockIcon : undefined)}
+                        {lbl('House Size', (hasPending && !isPendingAccount) ? clockIcon : undefined)}
                         {isEditing ? (
                           <>
                             <div style={{ display: 'flex', gap: 8 }}>
