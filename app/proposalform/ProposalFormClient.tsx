@@ -614,22 +614,35 @@ export default function ProposalFormClient() {
   const [requireParentsCnic, setRequireParentsCnic] = useState<boolean | null>(null);
   const [requireVerifStep, setRequireVerifStep] = useState(false);
 
+  const pendingStepRef = useRef<number | null>(null);
+
   useEffect(() => {
     fetchCities().then(data => { if (Object.keys(data).length > 0) setCityGroups(data); });
     fetchCastes().then(data => { if (Object.keys(data).length > 0) setCasteGroups(data); });
     fetchOccupations().then(data => { if (Object.keys(data).length > 0) setProfessionGroups(data); });
-    // Fetch verification toggles from app_settings (same table + keys the admin
-    // app writes to, and the user app reads from cachedSettings).
     supabase.from('app_settings').select('key, value')
       .in('key', ['require_candidate_cnic', 'require_latest_degree', 'require_parents_cnic', 'require_verification_step'])
       .then(({ data }) => {
         if (!data) return;
         const map: Record<string, string> = {};
         (data as { key: string; value: string }[]).forEach(r => { map[r.key] = r.value; });
-        setRequireCandidateCnic(map['require_candidate_cnic'] !== 'false');
-        setRequireLatestDegree(map['require_latest_degree'] !== 'false');
-        setRequireParentsCnic(map['require_parents_cnic'] !== 'false');
-        if (map['require_verification_step'] === 'true')  setRequireVerifStep(true);
+        const hasCnic   = map['require_candidate_cnic'] !== 'false';
+        const hasDegree = map['require_latest_degree']  !== 'false';
+        const hasParent = map['require_parents_cnic']   !== 'false';
+        setRequireCandidateCnic(hasCnic);
+        setRequireLatestDegree(hasDegree);
+        setRequireParentsCnic(hasParent);
+        if (map['require_verification_step'] === 'true') setRequireVerifStep(true);
+        // Now that we know whether step 4 exists, apply the pending saved step.
+        // If verification is off and saved step was 4, skip to 5.
+        const pending = pendingStepRef.current;
+        if (pending !== null) {
+          const noVerif = !hasCnic && !hasDegree && !hasParent;
+          const resolved = (noVerif && pending === 4 ? 5 : pending) as 1 | 2 | 3 | 4 | 5;
+          setStep(resolved);
+          setMaxStep(m => Math.max(m, resolved));
+          pendingStepRef.current = null;
+        }
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -802,11 +815,17 @@ export default function ProposalFormClient() {
         const s = localStorage.getItem(DRAFT_KEY);
         return s ? { ...EMPTY, ...JSON.parse(s) } : EMPTY;
       })();
-      // If saved step is 4 (Verification), stay on 3 until settings load —
-      // avoids the flash of the Verification section before we know if it's needed.
-      const clampedStep = Math.max(2, savedStep === 4 ? 3 : savedStep);
-      setStep(clampedStep as 1 | 2 | 3 | 4 | 5);
-      setMaxStep(clampedStep);
+      const clampedStep = Math.max(2, savedStep);
+      // Don't setStep yet — park it in pendingStepRef so the settings fetch
+      // can resolve step 4 correctly (skip to 5 if verification is off).
+      // Only park if step could be 4; otherwise apply immediately.
+      if (clampedStep === 4) {
+        pendingStepRef.current = clampedStep;
+        setStep(2); // show step 2 as placeholder until settings resolve
+      } else {
+        setStep(clampedStep as 1 | 2 | 3 | 4 | 5);
+        setMaxStep(clampedStep);
+      }
       setForm(savedForm);
       if (savedForm.phone2) setShowPhone2(true);
 
@@ -854,9 +873,14 @@ export default function ProposalFormClient() {
                 const draft = cloudDraft as unknown as Record<string, unknown>;
                 localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
                 setForm(f => ({ ...f, ...draft }));
-                const savedStep = Math.max(2, Number(draft.step) === 4 ? 3 : Number(draft.step) || 2);
-                setStep(savedStep as 1 | 2 | 3 | 4 | 5);
-                setMaxStep(savedStep);
+                const savedStep = Math.max(2, Number(draft.step) || 2);
+                if (savedStep === 4) {
+                  pendingStepRef.current = savedStep;
+                  setStep(2);
+                } else {
+                  setStep(savedStep as 1 | 2 | 3 | 4 | 5);
+                  setMaxStep(savedStep);
+                }
               } else {
                 setForm(f => ({ ...f, phone: phone.replace(/^\+92/, '0') }));
               }
@@ -1872,11 +1896,6 @@ export default function ProposalFormClient() {
         )}
 
         {/* ── Step 4: Verification — hidden when all 3 sections are turned off ── */}
-        {step === 4 && !settingsLoaded && (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-            <div style={{ width: 32, height: 32, border: '3px solid #E8E6F5', borderTopColor: '#534AB7', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-          </div>
-        )}
         {step === 4 && settingsLoaded && !noVerifSections && (
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
