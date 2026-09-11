@@ -190,7 +190,7 @@ export default function LoginClient() {
         p_password: lPass.trim(),
       });
       if (error || !identity) {
-        setLErr('Incorrect phone number or password. Please try again.');
+        setLErr('Incorrect phone number or password.');
         return;
       }
 

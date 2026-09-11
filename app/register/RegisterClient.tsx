@@ -175,7 +175,7 @@ export default function RegisterClient() {
       const { data } = await supabase.rpc('check_phone_exists', { p_phone: fp });
       if (data === true) {
         setBusy(false);
-        setErr('This number already has an account. Please login instead.');
+        setErr('This number is already registered. Please log in.');
         return;
       }
     } catch (_) { /* proceed */ }
@@ -207,7 +207,7 @@ export default function RegisterClient() {
       if (data?.success) {
         setStep('password');
       } else if (data?.hasAccount) {
-        setErr('This number already has an account. Please login instead.');
+        setErr('This number is already registered. Please log in.');
       } else {
         setErr((data?.message as string) || 'Invalid code. Please try again.');
       }
