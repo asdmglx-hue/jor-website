@@ -614,8 +614,6 @@ export default function ProposalFormClient() {
   const [requireParentsCnic, setRequireParentsCnic] = useState<boolean | null>(null);
   const [requireVerifStep, setRequireVerifStep] = useState(false);
 
-  const pendingStepRef = useRef<number | null>(null);
-
   useEffect(() => {
     fetchCities().then(data => { if (Object.keys(data).length > 0) setCityGroups(data); });
     fetchCastes().then(data => { if (Object.keys(data).length > 0) setCasteGroups(data); });
@@ -626,23 +624,10 @@ export default function ProposalFormClient() {
         if (!data) return;
         const map: Record<string, string> = {};
         (data as { key: string; value: string }[]).forEach(r => { map[r.key] = r.value; });
-        const hasCnic   = map['require_candidate_cnic'] !== 'false';
-        const hasDegree = map['require_latest_degree']  !== 'false';
-        const hasParent = map['require_parents_cnic']   !== 'false';
-        setRequireCandidateCnic(hasCnic);
-        setRequireLatestDegree(hasDegree);
-        setRequireParentsCnic(hasParent);
+        setRequireCandidateCnic(map['require_candidate_cnic'] !== 'false');
+        setRequireLatestDegree(map['require_latest_degree'] !== 'false');
+        setRequireParentsCnic(map['require_parents_cnic'] !== 'false');
         if (map['require_verification_step'] === 'true') setRequireVerifStep(true);
-        // Now that we know whether step 4 exists, apply the pending saved step.
-        // If verification is off and saved step was 4, skip to 5.
-        const pending = pendingStepRef.current;
-        if (pending !== null) {
-          const noVerif = !hasCnic && !hasDegree && !hasParent;
-          const resolved = (noVerif && pending === 4 ? 5 : pending) as 1 | 2 | 3 | 4 | 5;
-          setStep(resolved);
-          setMaxStep(m => Math.max(m, resolved));
-          pendingStepRef.current = null;
-        }
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -816,16 +801,8 @@ export default function ProposalFormClient() {
         return s ? { ...EMPTY, ...JSON.parse(s) } : EMPTY;
       })();
       const clampedStep = Math.max(2, savedStep);
-      // Don't setStep yet — park it in pendingStepRef so the settings fetch
-      // can resolve step 4 correctly (skip to 5 if verification is off).
-      // Only park if step could be 4; otherwise apply immediately.
-      if (clampedStep === 4) {
-        pendingStepRef.current = clampedStep;
-        setStep(2); // show step 2 as placeholder until settings resolve
-      } else {
-        setStep(clampedStep as 1 | 2 | 3 | 4 | 5);
-        setMaxStep(clampedStep);
-      }
+      setStep(clampedStep as 1 | 2 | 3 | 4 | 5);
+      setMaxStep(clampedStep);
       setForm(savedForm);
       if (savedForm.phone2) setShowPhone2(true);
 
@@ -874,13 +851,8 @@ export default function ProposalFormClient() {
                 localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
                 setForm(f => ({ ...f, ...draft }));
                 const savedStep = Math.max(2, Number(draft.step) || 2);
-                if (savedStep === 4) {
-                  pendingStepRef.current = savedStep;
-                  setStep(2);
-                } else {
-                  setStep(savedStep as 1 | 2 | 3 | 4 | 5);
-                  setMaxStep(savedStep);
-                }
+                setStep(savedStep as 1 | 2 | 3 | 4 | 5);
+                setMaxStep(savedStep);
               } else {
                 setForm(f => ({ ...f, phone: phone.replace(/^\+92/, '0') }));
               }
@@ -907,7 +879,7 @@ export default function ProposalFormClient() {
       }
     }
   }, [form, mounted]);
-  useEffect(() => { if (mounted) localStorage.setItem(STEP_KEY, String(step)); }, [step, mounted]);
+  useEffect(() => { if (mounted) localStorage.setItem(STEP_KEY, String(step === 4 ? 3 : step)); }, [step, mounted]);
   useEffect(() => {
     if (mounted) localStorage.setItem(COUPON_KEY, JSON.stringify({ code: couponCode, applied: !!appliedCouponCode }));
   }, [couponCode, appliedCouponCode, mounted]);
