@@ -879,7 +879,7 @@ export default function ProposalFormClient() {
       }
     }
   }, [form, mounted]);
-  useEffect(() => { if (mounted) localStorage.setItem(STEP_KEY, String(step === 4 ? 3 : step)); }, [step, mounted]);
+  useEffect(() => { if (mounted) localStorage.setItem(STEP_KEY, String(step)); }, [step, mounted]);
   useEffect(() => {
     if (mounted) localStorage.setItem(COUPON_KEY, JSON.stringify({ code: couponCode, applied: !!appliedCouponCode }));
   }, [couponCode, appliedCouponCode, mounted]);
