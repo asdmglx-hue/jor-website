@@ -1019,7 +1019,7 @@ export default function ProposalFormClient() {
 
   const next = async () => {
 
-    if (step === 5 && submitterType === null) { setError('Please tick the confirmation checkbox before submitting.'); return; }
+    if (step === 5 && submitterType === null) { setError('Please select an option to continue.'); return; }
     if (navigating.current) return;
     navigating.current = true;
     try {
@@ -1061,7 +1061,7 @@ export default function ProposalFormClient() {
   };
 
   const handleSubmit = async () => {
-    if (submitterType === null) { setError('Please tick the confirmation checkbox before submitting.'); return; }
+    if (submitterType === null) { setError('Please select an option to continue.'); return; }
     const { msg: err, field } = validateStep();
     if (err) { setError(err); setErrorField(field); return; }
 
@@ -2159,19 +2159,25 @@ export default function ProposalFormClient() {
                 );
               })()}
 
-              <div style={{ marginTop: 16 }}>
-                <div
-                  onClick={() => setSubmitterType(submitterType === 'guardian' ? 'self' : 'guardian')}
-                  style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', borderRadius: 12, border: `1.5px solid ${submitterType === 'guardian' ? '#534AB7' : '#E8E6F5'}`, background: submitterType === 'guardian' ? '#EEEDFE' : '#fff', cursor: 'pointer', userSelect: 'none' }}>
-                  <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${submitterType === 'guardian' ? '#534AB7' : '#C4C2D4'}`, background: submitterType === 'guardian' ? '#534AB7' : '#fff', flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {submitterType === 'guardian' && (
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    )}
+              <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[
+                  { value: 'self', label: 'I am submitting this profile to find a suitable marriage proposal for myself.' },
+                  { value: 'guardian', label: 'I am submitting this profile to find a suitable marriage proposal for my son/daughter.' },
+                ].map(opt => (
+                  <div
+                    key={opt.value}
+                    onClick={() => setSubmitterType(opt.value as 'self' | 'guardian')}
+                    style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', borderRadius: 12, border: `1.5px solid ${submitterType === opt.value ? '#534AB7' : '#E8E6F5'}`, background: submitterType === opt.value ? '#EEEDFE' : '#fff', cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${submitterType === opt.value ? '#534AB7' : '#C4C2D4'}`, background: '#fff', flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {submitterType === opt.value && (
+                        <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#534AB7' }} />
+                      )}
+                    </div>
+                    <span style={{ fontSize: 13, color: submitterType === opt.value ? '#534AB7' : '#4B4869', lineHeight: 1.6, fontWeight: submitterType === opt.value ? 600 : 400 }}>
+                      {opt.label}
+                    </span>
                   </div>
-                  <span style={{ fontSize: 13, color: submitterType === 'guardian' ? '#534AB7' : '#4B4869', lineHeight: 1.6, fontWeight: submitterType === 'guardian' ? 600 : 400 }}>
-                    I confirm this profile is created by a parent/guardian (or created on their behalf), and all family-to-family communications will be handled directly by the parent/guardian.
-                  </span>
-                </div>
+                ))}
               </div>
             </div>
           );
