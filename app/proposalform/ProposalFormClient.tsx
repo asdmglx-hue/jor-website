@@ -1360,11 +1360,11 @@ export default function ProposalFormClient() {
   );
 
   const steps = noVerifSections
-    ? ['Basic Info', 'Additional Info', 'Submit']
-    : ['Basic Info', 'Additional Info', 'Verification', 'Submit'];
+    ? ['Basic Info', 'Additional Info', 'Review & Submit']
+    : ['Basic Info', 'Additional Info', 'Verification', 'Review & Submit'];
   const stepsMobile = noVerifSections
-    ? ['Basic Info', 'Additional Info', 'Submit']
-    : ['Basic Info', 'Additional Info', 'Verification', 'Submit'];
+    ? ['Basic Info', 'Additional Info', 'Review & Submit']
+    : ['Basic Info', 'Additional Info', 'Verification', 'Review & Submit'];
 
   // Don't render anything until session is confirmed — prevents flash of form for logged-out users
   if (!sessionValid) return null;
@@ -1870,7 +1870,12 @@ export default function ProposalFormClient() {
         )}
 
         {/* ── Step 4: Verification — hidden when all 3 sections are turned off ── */}
-        {step === 4 && !noVerifSections && (
+        {step === 4 && !settingsLoaded && (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+            <div style={{ width: 32, height: 32, border: '3px solid #E8E6F5', borderTopColor: '#534AB7', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          </div>
+        )}
+        {step === 4 && settingsLoaded && !noVerifSections && (
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
