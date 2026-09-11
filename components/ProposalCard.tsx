@@ -15,8 +15,8 @@ async function fetchBadgeEnabled(): Promise<boolean> {
   try {
     const { supabase } = await import('@/lib/supabase');
     const { data } = await supabase.from('app_settings').select('value').eq('key', 'verification_badge_enabled').maybeSingle();
-    _badgeEnabled = (data?.value ?? 'true') !== 'false';
-  } catch { _badgeEnabled = true; }
+    _badgeEnabled = (data?.value ?? 'false') !== 'false';
+  } catch { _badgeEnabled = false; }
   return _badgeEnabled!;
 }
 
@@ -97,7 +97,7 @@ export default function ProposalCard({ proposal: p, onNotInterested, onSavedChan
   const [showPhone, setShowPhone] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [badgeEnabled, setBadgeEnabled] = useState(true);
+  const [badgeEnabled, setBadgeEnabled] = useState(false);
 
   useEffect(() => { setMounted(true); fetchBadgeEnabled().then(setBadgeEnabled); }, []);
 
