@@ -1,3 +1,10 @@
+// ── Identity Note ─────────────────────────────────────────────────────────────
+// All users are identified by phone number (OTP auth). There is NO CNIC login.
+// DB RPCs still use the parameter name 'p_cnic' for historical reasons —
+// the value passed is ALWAYS auth_phone (phone number), never a national ID.
+// Rule: 'CNIC' in a name = national ID document (verification/upload only).
+//       'Phone' in a name  = login identity (auth_phone column in proposals).
+// ────────────────────────────────────────────────────────────────────────────
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSession, clearSession, getSavedIds } from '@/lib/auth';
