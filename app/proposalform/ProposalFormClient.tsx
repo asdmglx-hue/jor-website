@@ -802,7 +802,9 @@ export default function ProposalFormClient() {
         const s = localStorage.getItem(DRAFT_KEY);
         return s ? { ...EMPTY, ...JSON.parse(s) } : EMPTY;
       })();
-      const clampedStep = Math.max(2, savedStep);
+      // If saved step is 4 (Verification), stay on 3 until settings load —
+      // avoids the flash of the Verification section before we know if it's needed.
+      const clampedStep = Math.max(2, savedStep === 4 ? 3 : savedStep);
       setStep(clampedStep as 1 | 2 | 3 | 4 | 5);
       setMaxStep(clampedStep);
       setForm(savedForm);
@@ -852,7 +854,7 @@ export default function ProposalFormClient() {
                 const draft = cloudDraft as unknown as Record<string, unknown>;
                 localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
                 setForm(f => ({ ...f, ...draft }));
-                const savedStep = Math.max(2, Number(draft.step) || 2);
+                const savedStep = Math.max(2, Number(draft.step) === 4 ? 3 : Number(draft.step) || 2);
                 setStep(savedStep as 1 | 2 | 3 | 4 | 5);
                 setMaxStep(savedStep);
               } else {
