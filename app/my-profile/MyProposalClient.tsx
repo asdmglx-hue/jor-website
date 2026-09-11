@@ -2106,8 +2106,7 @@ export default function MyProposalClient() {
                   <button onClick={() => setDeleteStep((isAdminAccount || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed') ? null : 'reason')} style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1.5px solid #E8E6F5', background: '#fff', color: '#6B6893', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>{(isAdminAccount || getStatusLabel(user) === 'Rejected' || getStatusLabel(user) === 'Removed') ? 'Cancel' : 'Back'}</button>
                   <button disabled={!deletePassword || deleting} onClick={async () => {
                     if (!user) return;
-                    if (deletePassword.trim() !== user.password) { setDeleteError('Incorrect password. Please try again.'); return; }
-                    setDeleting(true);
+                    setDeleting(true); setDeleteError('');
                     if (isAdminAccount) {
                       // Admin accounts aren't proposals — hard-delete via a
                       // security-definer function that re-verifies the
@@ -2123,6 +2122,12 @@ export default function MyProposalClient() {
                       else { setDeleteError('Incorrect password. Please try again.'); }
                       return;
                     }
+                    // Verify password server-side before soft/hard delete
+                    const { data: verified } = await supabase.rpc('login_by_phone', {
+                      p_phone: (user as any).auth_phone,
+                      p_password: deletePassword.trim(),
+                    });
+                    if (!verified) { setDeleting(false); setDeleteError('Incorrect password. Please try again.'); return; }
                     // This is a soft delete only — the account moves into
                     // an admin-managed trash where it can be restored later.
                     // Photos are deliberately left untouched here; they're
