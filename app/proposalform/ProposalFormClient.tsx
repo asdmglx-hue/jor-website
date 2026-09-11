@@ -1273,7 +1273,7 @@ export default function ProposalFormClient() {
       education_document_url: educationDocumentUrl,
       affiliate_code: appliedAffiliateCode || undefined,
       applied_coupon_code: appliedCouponCode || undefined,
-      ...(submitterType ? { admin_notes: submitterType === 'self' ? 'Profile submitted for self' : 'Profile submitted by parent/guardian' } as any : {}),
+      ...(submitterType ? { submitter_type: submitterType } as any : {}),
     });
 
     setSubmitting(false);
