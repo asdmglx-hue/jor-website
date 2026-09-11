@@ -353,6 +353,9 @@ export default function ProposalsClient({ categorySlugs, countrySlugs }: Props) 
       .join(',');
     if (activeFilters) trackEvent('filter_applied', { filters: activeFilters });
     if (filters.search) trackEvent('search_used', { query_length: filters.search.length });
+    // Enforce the gender lock — logged-in users must always see opposite gender.
+    if (lockedGender) next = { ...next, gender: lockedGender };
+
     setFilters(next);
   };
 
