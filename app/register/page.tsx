@@ -2,7 +2,7 @@ import RegisterClient from './RegisterClient';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Create Account — Jor Matrimony',
+  title: 'Create Your Rishta Account - Jor',
   description: 'Create your Jor Matrimony account with your phone number.',
 };
 

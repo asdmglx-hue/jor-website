@@ -4,7 +4,7 @@ import ProposalsClient from './ProposalsClient';
 import { getQualifyingCategoryEntries, getQualifyingCountries } from '@/lib/supabase';
 
 export const metadata: Metadata = {
-  title: 'Browse Rishta Proposals | Jor',
+  title: 'Browse Rishta Proposals - Jor',
   description: 'Browse thousands of verified rishta proposals from across Pakistan. Filter by city, caste, sect, profession and more.',
   alternates: { canonical: 'https://joronline.com/proposals' },
 };

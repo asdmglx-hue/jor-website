@@ -13,7 +13,7 @@ export const revalidate = false;
 const SITE = 'https://joronline.com';
 
 export const metadata: Metadata = {
-  title: 'Jor Help Center | Jor',
+  title: 'Help Center - Jor',
   description: 'Get help creating your account and using the Jor App and Website — completely free.',
   alternates: { canonical: `${SITE}/agents` },
   robots: { index: true, follow: true },

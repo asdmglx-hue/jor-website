@@ -4,7 +4,7 @@ import Link from 'next/link';
 import AboutCta from '@/components/AboutCta';
 
 export const metadata: Metadata = {
-  title: 'About Jor — Pakistan\'s Trusted Matrimonial Platform',
+  title: 'About Jor - Pakistan\'s Trusted Matrimonial Platform',
   description: 'Jor makes finding a rishta simple, safe, and dignified. Verified profiles, direct contact, no middlemen, and no hidden fees. Built for Pakistani families.',
   alternates: { canonical: 'https://joronline.com/about' },
 };

@@ -21,7 +21,7 @@ import type { Metadata } from 'next';
 export const revalidate = false;
 
 export const metadata: Metadata = {
-  title: "Jor – Pakistan's Trusted Matrimonial Platform",
+  title: "Jor - Find the Right Rishta Easily",
   description: "Browse thousands of verified rishta proposals from Pakistan and abroad — including UK, USA, Canada and UAE. Filter by city, caste, sect, profession & more. Available on Android.",
   alternates: { canonical: 'https://joronline.com' },
 };

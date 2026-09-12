@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
-  title: 'Page Not Found | Jor',
+  title: 'Page Not Found - Jor',
 };
 
 export default function NotFound() {

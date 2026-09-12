@@ -16,12 +16,12 @@ export const revalidate = false;
 const SITE = 'https://joronline.com';
 
 export const metadata: Metadata = {
-  title: 'Blog │ Rishta Advice & Wedding Planning - Jor',
+  title: 'Rishta Advice & Wedding Planning - Jor',
   description: 'Practical rishta advice and wedding planning tips to help Pakistani families navigate the rishta journey and find the perfect match.',
   alternates: { canonical: `${SITE}/blog` },
   robots: { index: true, follow: true },
   openGraph: {
-    title: 'The Jor Blog — Rishta Advice & Wedding Planning',
+    title: 'The Jor Blog - Rishta Advice & Wedding Planning',
     description: 'Practical rishta advice, wedding planning tips, and real stories from Pakistani families.',
     url: `${SITE}/blog`,
     type: 'website',
