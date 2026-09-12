@@ -609,9 +609,12 @@ export default function ProposalFormClient() {
   // Verification section visibility — controlled by admin via app_settings.
   // Mirrors the exact same keys read by the user app and the admin toggle card.
   // Default true so sections always show before settings load (safe fallback).
-  const [requireCandidateCnic, setRequireCandidateCnic] = useState<boolean | null>(null);
-  const [requireLatestDegree, setRequireLatestDegree] = useState<boolean | null>(null);
-  const [requireParentsCnic, setRequireParentsCnic] = useState<boolean | null>(null);
+  // Default to false (no verification sections) so the step indicator
+  // renders correctly on first paint. If admin settings say otherwise,
+  // the useEffect below updates them after the fetch completes.
+  const [requireCandidateCnic, setRequireCandidateCnic] = useState<boolean | null>(false);
+  const [requireLatestDegree, setRequireLatestDegree] = useState<boolean | null>(false);
+  const [requireParentsCnic, setRequireParentsCnic] = useState<boolean | null>(false);
   const [requireVerifStep, setRequireVerifStep] = useState(false);
 
   useEffect(() => {
