@@ -249,6 +249,13 @@ export default function LoginClient() {
     setFBusy(true); setFErr('');
     const fp = formatPhone(fDial, fPhone);
     try {
+      // Check if number is registered before sending OTP
+      const { data: exists } = await supabase.rpc('check_phone_exists', { p_phone: fp });
+      if (!exists) {
+        setFErr('No account found for this number. Please sign up instead.');
+        setFBusy(false);
+        return;
+      }
       const res = await supabase.functions.invoke('send-otp', { body: { phone: fp } });
       const data = res.data as Record<string, unknown>;
       if (data?.success) { setFFullPhone(fp); setFStep('otp'); }
