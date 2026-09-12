@@ -71,7 +71,7 @@ export default function ContactButtons({
   ];
 
   const active = contacts[activeIdx];
-  const headingLabel = 'Contact Family';
+  const headingLabel = 'Contact';
 
   function showPausedToast() {
     setPausedToast(true);
