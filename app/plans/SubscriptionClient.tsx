@@ -202,21 +202,44 @@ export default function SubscriptionClient() {
       </div>
 
       {/* CTA Button */}
-      {selected >= 0 && (
-        isActive && user && selected === 0 ? (
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '15px', borderRadius: 14, background: '#E5E4F0',
-            fontWeight: 800, fontSize: 15, marginBottom: 24, color: '#9895C0',
-            cursor: 'default', border: '2px solid #D4D2E8',
-          }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9895C0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Active · Expires {user.subscription_expiry ? new Date(user.subscription_expiry).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
-          </div>
-        ) : (
+      {selected >= 0 && (() => {
+        const isPendingUser = !!user && user.status === 'pending';
+        const proofStatus = user?.payment_proof_status ?? '';
+        const hasSubmittedProof = proofStatus === 'pending' || proofStatus === 'approved';
+
+        // Already subscribed on Rishta plan
+        if (isActive && user && selected === 0) {
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '15px', borderRadius: 14, background: '#E5E4F0', fontWeight: 800, fontSize: 15, marginBottom: 24, color: '#9895C0', cursor: 'default', border: '2px solid #D4D2E8' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9895C0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Active · Expires {user.subscription_expiry ? new Date(user.subscription_expiry).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+            </div>
+          );
+        }
+
+        // Pending user selected Featured plan — needs active subscription first
+        if (isPendingUser && selected === 1) {
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '15px', borderRadius: 14, background: '#E5E4F0', fontWeight: 800, fontSize: 15, marginBottom: 24, color: '#9895C0', cursor: 'default', border: '2px solid #D4D2E8' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9895C0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              You need Active Subscription
+            </div>
+          );
+        }
+
+        // Pending user selected Rishta plan but already submitted proof
+        if (isPendingUser && selected === 0 && hasSubmittedProof) {
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '15px', borderRadius: 14, background: '#E5E4F0', fontWeight: 800, fontSize: 15, marginBottom: 24, color: '#9895C0', cursor: 'default', border: '2px solid #D4D2E8' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9895C0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Payment Proof Submitted
+            </div>
+          );
+        }
+
+        return (
           <button onClick={() => {
             if (!user) {
-              // Not logged in: Rishta Profile → register, Featured → login
               router.push(selected === 0 ? '/register' : '/login');
               return;
             }
@@ -233,8 +256,8 @@ export default function SubscriptionClient() {
           }}>
             Continue with {plans[selected].name} – {selected === 0 ? stdPriceWithCoupon() : plans[selected].priceDisplay}
           </button>
-        )
-      )}
+        );
+      })()}
 
       {/* Payment Modal */}
       {showPayModal && selected >= 0 && (
