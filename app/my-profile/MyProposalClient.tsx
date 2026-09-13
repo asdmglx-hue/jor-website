@@ -1402,9 +1402,7 @@ export default function MyProposalClient() {
         initialIdentity={(user as any).auth_phone}
         ftPriceInt={Number((payProofSettings['featured_post_price'] || '200').replace(/,/g, '')) || 200}
         maxFeaturedPerCity={Number(payProofSettings['max_featured_per_city']) || 5}
-        adminWa={payProofSettings['whatsapp_number'] || '923000000000'}
         proofType={payProofType}
-        skipWhatsApp={true}
       />
       <PaymentProofModal
         open={showFeaturedPayProofModal}
@@ -1423,9 +1421,7 @@ export default function MyProposalClient() {
         initialIdentity={(user as any).auth_phone}
         ftPriceInt={Number((payProofSettings['featured_post_price'] || '200').replace(/,/g, '')) || 200}
         maxFeaturedPerCity={Number(payProofSettings['max_featured_per_city']) || 5}
-        adminWa={payProofSettings['whatsapp_number'] || '923000000000'}
         proofType="new"
-        skipWhatsApp={true}
       />
       {bookingResult && (
         <div

@@ -130,7 +130,7 @@ function maxDateStr(): string {
 }
 
 export default function PaymentProofModal({
-  open, onClose, planName, isStandard, initialIdentity, ftPriceInt, maxFeaturedPerCity, adminWa, proofType, skipWhatsApp,
+  open, onClose, planName, isStandard, initialIdentity, ftPriceInt, maxFeaturedPerCity, proofType,
 }: {
   open: boolean;
   onClose: () => void;
@@ -139,9 +139,7 @@ export default function PaymentProofModal({
   initialIdentity?: string;
   ftPriceInt: number;
   maxFeaturedPerCity: number;
-  adminWa: string;
   proofType?: 'new' | 'renewal';
-  skipWhatsApp?: boolean; // when true, skip WhatsApp redirect (my-profile flow)
 }) {
   const [identity, setIdentity] = useState('');
   const [receipt, setReceipt] = useState<File | null>(null);
@@ -255,7 +253,6 @@ export default function PaymentProofModal({
       // Featured Post: record the requested date/city pairs so support can
       // see + approve them from the pending queue — same table + shape the
       // mobile app writes to, so both stay in sync.
-      let selectionsText = '';
       if (!isStandard) {
         const selectionsJson = slots.map(s => ({ city: s.city, date: s.date }));
         const totalCredits = slots.length;
@@ -265,23 +262,12 @@ export default function PaymentProofModal({
             auth_phone: identity, selections: selectionsJson, total_credits: totalCredits, total_amount: totalAmount,
             proof_url: url, user_id_fk: proposalIdEarly ?? null,
           });
-          // Notify admin of featured payment proof
           fetch('/api/notify-user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'admin_payment_proof', name: identity, proposal_id: proposalIdEarly }),
           }).catch(() => {});
-        } catch (_) {
-          // Non-blocking — the WhatsApp message below still carries the
-          // full selection details for support to act on manually.
-        }
-        selectionsText = '\n\nFeatured Date & City selections:\n' +
-          slots.map((s, i) => `${i + 1}. ${s.date} — ${s.city}`).join('\n');
-      }
-
-      const text = `Hello Admin,\n\nMy Phone: ${identity}\n\nI have completed the payment and attached the receipt. Kindly verify my payment.${selectionsText}\n\nPayment Receipt: ${url}`;
-      if (!skipWhatsApp) {
-        window.open(`https://wa.me/${adminWa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+        } catch (_) { /* non-blocking */ }
       }
 
 

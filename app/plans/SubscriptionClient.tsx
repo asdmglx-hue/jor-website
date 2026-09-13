@@ -352,7 +352,6 @@ export default function SubscriptionClient() {
         initialIdentity={user?.auth_phone}
         ftPriceInt={Number(FT_PRICE.replace(/,/g, '')) || 200}
         maxFeaturedPerCity={MAX_FEATURED_PER_CITY}
-        adminWa={adminWa}
       />
     </div>
   );
