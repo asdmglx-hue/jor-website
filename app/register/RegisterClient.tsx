@@ -258,7 +258,7 @@ export default function RegisterClient() {
               <PhoneInput value={phone} onChange={v => { setPhone(v); setErr(''); }}
                 dialCode={dialCode} onDialChange={v => { setDialCode(v); setErr(''); }} autoFocus />
               <p style={{ fontSize: 12, color: INK_LT, marginTop: 10, lineHeight: 1.5 }}>
-                A 6-digit verification code will be sent to you via WhatsApp.
+                A 6-digit code will be sent via WhatsApp.
               </p>
               <ErrBox msg={err} />
               <div style={{ marginTop: 32 }}>
