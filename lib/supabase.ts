@@ -174,14 +174,15 @@ export const PROFILE_DETAIL_COLS = 'id,proposal_number,name,age,gender,city,coun
 // every browse/category/homepage load, where they were never used.
 export const CARD_COLS ='id,proposal_number,name,age,gender,city,country,profession,caste,sect,marital_status,height_inches,about,looking_for,profile_photo_url,posted_at,subscription_tier,is_boosted,contact_phone,status,cnic_verified,is_doc_verified';
 
-// Proposals whose status is still literally 'active' in the DB but whose
-// subscription_expiry has already passed are in a brief window where the
-// admin app's periodic auto-expire check hasn't caught up and flipped
-// status to 'expired' yet. Every public-facing listing/search/count query
-// needs this on top of status='active' so an expired subscription doesn't
-// keep showing in the feed just because that background job hasn't run.
+// Expired profiles are intentionally kept visible in the feed —
+// Expired profiles are intentionally kept visible in the feed —
+// they show as contact-locked to visitors and serve as social proof
+// that the platform has profiles. The expiry filter has been removed
+// so all active profiles appear regardless of subscription_expiry.
+// Returning status.eq.active makes this a no-op since every caller
+// already filters .eq('status', 'active') — all rows pass through.
 export function notExpiredFilter(): string {
-  return `subscription_expiry.is.null,subscription_expiry.gt.${new Date().toISOString()}`;
+  return `status.eq.active`;
 }
 
 // Merges a legacy single-value filter field with its new multi-select
